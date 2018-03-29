@@ -4,6 +4,7 @@
 
 #' @useDynLib silverblaze
 #' @importFrom Rcpp evalCpp
+#' @import roxygen2
 NULL
 
 #------------------------------------------------
