@@ -22,6 +22,21 @@ dummy1 <- function() {
 	print("dummy1")
 }
 
+#------------------------------------------------
+#' logSum
+#'
+#' To avoid underflow issues from R, scale the product of small values by xmax.
+#'
+#' @param x A vector whose values are in log space
+#'
+#' @export
+#' logSum()
+
+logSum <- function(x){
+  xmax <- max(x)
+  xmax + log(sum(exp(x-xmax)))
+}
+
 #----------------------------------------------------------------#
 #----------------------------------------------------------------#
 #              PRESENCE ABSENCE METROPOLIS HASTINGS              #
@@ -145,12 +160,6 @@ dummy1 <- function() {
 # Prob_data <- function(x, y, mu_x, mu_y, Sd) {
 #   param <- dnorm(latlon_to_bearing(y, x, y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE) + dnorm(latlon_to_bearing(y, mu_x, mu_y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE)
 #   return(param)
-# }
-#
-# # x is in log space, return log(sum(exp(x))) to reduce underflow issues
-# logSum <- function(x){
-#   xmax <- max(x)
-#   xmax + log(sum(exp(x-xmax)))
 # }
 #
 # # joint probability - ADD IN EXPECTED POPULATION DENSITY HERE
