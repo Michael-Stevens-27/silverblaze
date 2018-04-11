@@ -30,6 +30,7 @@ dummy1 <- function() {
 #' @param x A vector whose values are in log space
 #'
 #' @export
+#' @examples
 #' logSum()
 
 logSum <- function(x){
