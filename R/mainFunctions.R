@@ -4,6 +4,7 @@
 
 #' @useDynLib silverblaze
 #' @importFrom Rcpp evalCpp
+#' @importFrom plot3D hist3D
 #' @import roxygen2
 NULL
 

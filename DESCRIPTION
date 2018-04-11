@@ -5,9 +5,9 @@ Version: 1.0
 Date: 2018-03-29
 Author: Michael Stevens
 Maintainer: Michael Stevens <M.Stevens@qmul.ac.uk>
-Description: Implementing absence data into the geographic profiling model. 
+Description: Implementing absence data into the geographic profiling model.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.14)
+Imports: plot3D, Rcpp (>= 0.12.14)
 LinkingTo: Rcpp
 SystemRequirements:
     C++11
