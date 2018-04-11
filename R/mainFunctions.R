@@ -31,7 +31,9 @@ dummy1 <- function() {
 #'
 #' @export
 #' @examples
-#' logSum()
+#' x <- seq(5e-49, 5e-48, 1e-49)
+#' log(prod(x))
+#' logSum(x)
 
 logSum <- function(x){
   xmax <- max(x)
