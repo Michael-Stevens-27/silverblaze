@@ -51,8 +51,8 @@ logSum <- function(x){
 # library(RgeoProfile)
 # library(MASS)
 
-# install_github("Michael-Stevens-27/silverblaze", ref = "master")
-# library(silverblaze)
+install_github("Michael-Stevens-27/silverblaze", ref = "master")
+library(silverblaze)
 
 # rm(list = ls()) #remove all objects
 
