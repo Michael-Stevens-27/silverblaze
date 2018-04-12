@@ -1,127 +1,127 @@
 
 ################## TEMP FUNCTIONS TO BE SORTED
-
-dts <- function(x, df, scale=1, log=FALSE) {
-  ret <- lgamma((df+1)/2)-lgamma(df/2)-0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
-  if (!log) { ret <- exp(ret) }
-  return(ret)
-}
-
-latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
-
-  # calculate bearing and great circle distance of data relative to centre
-  data_trans <- latlon_to_bearing(centre_lat, centre_lon, data_lat, data_lon)
-
-  # use bearing and distance to calculate cartesian coordinates
-  theta <- data_trans$bearing*2*pi/360
-  d <- data_trans$gc_dist
-  data_x <- d*sin(theta)
-  data_y <- d*cos(theta)
-
-  return(list(x=data_x, y=data_y))
-}
-
-bin2D <- function(x, y, x_breaks, y_breaks) {
-
-  # get number of breaks in each dimension
-  nx <- length(x_breaks)
-  ny <- length(y_breaks)
-
-  # create table of binned values
-  tab1 <- table(findInterval(x, x_breaks), findInterval(y, y_breaks))
-
-  # convert to dataframe and force numeric
-  df1 <- as.data.frame(tab1, stringsAsFactors=FALSE)
-  names(df1) <- c("x", "y", "count")
-  df1$x <- as.numeric(df1$x)
-  df1$y <- as.numeric(df1$y)
-
-  # subset to within breaks range
-  df2 <- subset(df1, x>0 & x<nx & y>0 & y<ny)
-
-  # fill in matrix
-  mat1 <- matrix(0,ny-1,nx-1)
-  mat1[cbind(df2$y, df2$x)] <- df2$count
-
-  # calculate cell midpoints
-  x_mids <- (x_breaks[-1]+x_breaks[-nx])/2
-  y_mids <- (y_breaks[-1]+y_breaks[-ny])/2
-
-  # return output as list
-  output <- list(x_mids=x_mids, y_mids=y_mids, z=mat1)
-  return(output)
-}
-
-geoSmooth <- function (longitude, latitude, breaks_lon, breaks_lat, lambda = NULL)
-{
-    cells_lon <- length(breaks_lon) - 1
-    cells_lat <- length(breaks_lat) - 1
-    centre_lon <- mean(breaks_lon)
-    centre_lat <- mean(breaks_lat)
-    cellSize_lon <- diff(breaks_lon[1:2])
-    cellSize_lat <- diff(breaks_lat[1:2])
-    surface_raw <- bin2D(longitude, latitude, breaks_lon, breaks_lat)$z
-    if (all(surface_raw == 0)) {
-        stop("chosen lat/long window contains no posterior draws")
-    }
-    railSize_lon <- cells_lon
-    railSize_lat <- cells_lat
-    railMat_lon <- matrix(0, cells_lat, railSize_lon)
-    railMat_lat <- matrix(0, railSize_lat, cells_lon + 2 * railSize_lon)
-    surface_normalised <- surface_raw/sum(surface_raw)
-    surface_normalised <- cbind(railMat_lon, surface_normalised,
-        railMat_lon)
-    surface_normalised <- rbind(railMat_lat, surface_normalised,
-        railMat_lat)
-    f1 = fftw2d(surface_normalised)
-    cellSize_trans <- latlon_to_cartesian(centre_lat, centre_lon,
-        centre_lat + cellSize_lat, centre_lon + cellSize_lon)
-    cellSize_trans_lon <- cellSize_trans$x
-    cellSize_trans_lat <- cellSize_trans$y
-    kernel_lon <- cellSize_trans_lon * c(0:floor(ncol(surface_normalised)/2),
-        floor((ncol(surface_normalised) - 1)/2):1)
-    kernel_lat <- cellSize_trans_lat * c(0:floor(nrow(surface_normalised)/2),
-        floor((nrow(surface_normalised) - 1)/2):1)
-    kernel_lon_mat <- outer(rep(1, length(kernel_lat)), kernel_lon)
-    kernel_lat_mat <- outer(kernel_lat, rep(1, length(kernel_lon)))
-    kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
-    if (is.null(lambda)) {
-        lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
-        lambda_vec <- lambda_step * (1:100)
-    }
-    else {
-        lambda_vec <- lambda
-    }
-    cat("Smoothing posterior surface")
-    flush.console()
-    logLike <- -Inf
-    for (i in 1:length(lambda_vec)) {
-        if (i > 1) {
-            cat(".")
-            flush.console()
-        }
-        lambda_this <- lambda_vec[i]
-        kernel <- dts(kernel_s_mat, df = 3, scale = lambda_this)
-        f2 = fftw2d(kernel)
-        f3 = f1 * f2
-        f4 = Re(fftw2d(f3, inverse = T))/length(surface_normalised)
-        f5 <- f4 - surface_normalised * dts(0, df = 3, scale = lambda_this)
-        f5[f5 < 0] <- 0
-        f5 <- f5/sum(f4)
-        f6 <- surface_normalised * log(f5)
-        if (sum(f6, na.rm = T) < logLike) {
-            (break)()
-        }
-        logLike <- sum(f6, na.rm = T)
-    }
-    if (is.null(lambda)) {
-        cat(paste("\nmaximum likelihood lambda = ", round(lambda_this,
-            3), sep = ""))
-    }
-    f4 <- f4[, (railSize_lon + 1):(ncol(f4) - railSize_lon)]
-    f4 <- f4[(railSize_lat + 1):(nrow(f4) - railSize_lat), ]
-    return(f4)
-}
+#
+# dts <- function(x, df, scale=1, log=FALSE) {
+#   ret <- lgamma((df+1)/2)-lgamma(df/2)-0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
+#   if (!log) { ret <- exp(ret) }
+#   return(ret)
+# }
+#
+# latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
+#
+#   # calculate bearing and great circle distance of data relative to centre
+#   data_trans <- latlon_to_bearing(centre_lat, centre_lon, data_lat, data_lon)
+#
+#   # use bearing and distance to calculate cartesian coordinates
+#   theta <- data_trans$bearing*2*pi/360
+#   d <- data_trans$gc_dist
+#   data_x <- d*sin(theta)
+#   data_y <- d*cos(theta)
+#
+#   return(list(x=data_x, y=data_y))
+# }
+#
+# bin2D <- function(x, y, x_breaks, y_breaks) {
+#
+#   # get number of breaks in each dimension
+#   nx <- length(x_breaks)
+#   ny <- length(y_breaks)
+#
+#   # create table of binned values
+#   tab1 <- table(findInterval(x, x_breaks), findInterval(y, y_breaks))
+#
+#   # convert to dataframe and force numeric
+#   df1 <- as.data.frame(tab1, stringsAsFactors=FALSE)
+#   names(df1) <- c("x", "y", "count")
+#   df1$x <- as.numeric(df1$x)
+#   df1$y <- as.numeric(df1$y)
+#
+#   # subset to within breaks range
+#   df2 <- subset(df1, x>0 & x<nx & y>0 & y<ny)
+#
+#   # fill in matrix
+#   mat1 <- matrix(0,ny-1,nx-1)
+#   mat1[cbind(df2$y, df2$x)] <- df2$count
+#
+#   # calculate cell midpoints
+#   x_mids <- (x_breaks[-1]+x_breaks[-nx])/2
+#   y_mids <- (y_breaks[-1]+y_breaks[-ny])/2
+#
+#   # return output as list
+#   output <- list(x_mids=x_mids, y_mids=y_mids, z=mat1)
+#   return(output)
+# }
+#
+# geoSmooth <- function (longitude, latitude, breaks_lon, breaks_lat, lambda = NULL)
+# {
+#     cells_lon <- length(breaks_lon) - 1
+#     cells_lat <- length(breaks_lat) - 1
+#     centre_lon <- mean(breaks_lon)
+#     centre_lat <- mean(breaks_lat)
+#     cellSize_lon <- diff(breaks_lon[1:2])
+#     cellSize_lat <- diff(breaks_lat[1:2])
+#     surface_raw <- bin2D(longitude, latitude, breaks_lon, breaks_lat)$z
+#     if (all(surface_raw == 0)) {
+#         stop("chosen lat/long window contains no posterior draws")
+#     }
+#     railSize_lon <- cells_lon
+#     railSize_lat <- cells_lat
+#     railMat_lon <- matrix(0, cells_lat, railSize_lon)
+#     railMat_lat <- matrix(0, railSize_lat, cells_lon + 2 * railSize_lon)
+#     surface_normalised <- surface_raw/sum(surface_raw)
+#     surface_normalised <- cbind(railMat_lon, surface_normalised,
+#         railMat_lon)
+#     surface_normalised <- rbind(railMat_lat, surface_normalised,
+#         railMat_lat)
+#     f1 = fftw2d(surface_normalised)
+#     cellSize_trans <- latlon_to_cartesian(centre_lat, centre_lon,
+#         centre_lat + cellSize_lat, centre_lon + cellSize_lon)
+#     cellSize_trans_lon <- cellSize_trans$x
+#     cellSize_trans_lat <- cellSize_trans$y
+#     kernel_lon <- cellSize_trans_lon * c(0:floor(ncol(surface_normalised)/2),
+#         floor((ncol(surface_normalised) - 1)/2):1)
+#     kernel_lat <- cellSize_trans_lat * c(0:floor(nrow(surface_normalised)/2),
+#         floor((nrow(surface_normalised) - 1)/2):1)
+#     kernel_lon_mat <- outer(rep(1, length(kernel_lat)), kernel_lon)
+#     kernel_lat_mat <- outer(kernel_lat, rep(1, length(kernel_lon)))
+#     kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
+#     if (is.null(lambda)) {
+#         lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
+#         lambda_vec <- lambda_step * (1:100)
+#     }
+#     else {
+#         lambda_vec <- lambda
+#     }
+#     cat("Smoothing posterior surface")
+#     flush.console()
+#     logLike <- -Inf
+#     for (i in 1:length(lambda_vec)) {
+#         if (i > 1) {
+#             cat(".")
+#             flush.console()
+#         }
+#         lambda_this <- lambda_vec[i]
+#         kernel <- dts(kernel_s_mat, df = 3, scale = lambda_this)
+#         f2 = fftw2d(kernel)
+#         f3 = f1 * f2
+#         f4 = Re(fftw2d(f3, inverse = T))/length(surface_normalised)
+#         f5 <- f4 - surface_normalised * dts(0, df = 3, scale = lambda_this)
+#         f5[f5 < 0] <- 0
+#         f5 <- f5/sum(f4)
+#         f6 <- surface_normalised * log(f5)
+#         if (sum(f6, na.rm = T) < logLike) {
+#             (break)()
+#         }
+#         logLike <- sum(f6, na.rm = T)
+#     }
+#     if (is.null(lambda)) {
+#         cat(paste("\nmaximum likelihood lambda = ", round(lambda_this,
+#             3), sep = ""))
+#     }
+#     f4 <- f4[, (railSize_lon + 1):(ncol(f4) - railSize_lon)]
+#     f4 <- f4[(railSize_lat + 1):(nrow(f4) - railSize_lat), ]
+#     return(f4)
+# }
 ###############################################
 #------------------------------------------------
 # The following commands ensure that package dependencies are listed in the NAMESPACE file.
