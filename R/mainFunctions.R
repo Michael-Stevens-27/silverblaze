@@ -1,4 +1,9 @@
-#------------------------------------------------
+#----------------------------------------------------------------#
+#----------------------------------------------------------------#
+#              PRESENCE ABSENCE METROPOLIS HASTINGS              #
+#----------------------------------------------------------------#
+#----------------------------------------------------------------#
+
 # The following commands ensure that package dependencies are listed in the NAMESPACE file.
 
 #' @useDynLib silverblaze
@@ -39,11 +44,76 @@ logSum <- function(x){
   xmax + log(sum(exp(x-xmax)))
 }
 
-#----------------------------------------------------------------#
-#----------------------------------------------------------------#
-#              PRESENCE ABSENCE METROPOLIS HASTINGS              #
-#----------------------------------------------------------------#
-#----------------------------------------------------------------#
+#------------------------------------------------
+#' latlon_to_cartesian
+#'
+#' Convert from latitude/longitude to cartesian co-ordinates
+#'
+#' @param centre_lat The centre latitude
+#' @param centre_lon The centre longitude
+#' @param data_lat   The data latitude
+#' @param data_lon   The data longitude
+#'
+#' @export
+#' @examples
+#' centre_latLon <- c(0,1)
+#' data_latLon <- c(0,1)
+#' latlon_to_cartesian(centre_lat = centre_latLon[1], centre_lon = centre_latLon[2], data_lat = data_latLon[1], data_lon = data_latLon[2])
+#  From B. VERITY
+
+latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
+
+  # calculate bearing and great circle distance of data relative to centre
+  data_trans <- latlon_to_bearing(centre_lat, centre_lon, data_lat, data_lon)
+
+  # use bearing and distance to calculate cartesian coordinates
+  theta <- data_trans$bearing*2*pi/360
+  d <- data_trans$gc_dist
+  data_x <- d*sin(theta)
+  data_y <- d*cos(theta)
+
+  return(list(x=data_x, y=data_y))
+}
+
+#------------------------------------------------
+#' latlon_to_bearing
+#'
+#' Calculate distance between latitude/longitude points
+#'
+#' @param origin_lat The origin latitude
+#' @param origin_lon The origin longitude
+#' @param dest_lat   The destination latitude
+#' @param dest_lon   The destination longitude
+#'
+#' @export
+#' @examples
+#' origin_latLon <- c(0,0)
+#' dest_latLon <- c(1,1)
+#' latlon_to_bearing(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], dest_lat = dest_latLon[1], dest_lon = dest_latLon[2])
+#  From B. VERITY
+
+latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
+  # convert input arguments to radians
+  origin_lat <- origin_lat*2*pi/360
+  dest_lat <- dest_lat*2*pi/360
+  origin_lon <- origin_lon*2*pi/360
+  dest_lon <- dest_lon*2*pi/360
+
+  delta_lon <- dest_lon-origin_lon
+
+  # calculate bearing and great circle distance
+  bearing <- atan2(sin(delta_lon)*cos(dest_lat), cos(origin_lat)*sin(dest_lat)-sin(origin_lat)*cos(dest_lat)*cos(delta_lon))
+  gc_angle <- acos(sin(origin_lat)*sin(dest_lat) + cos(origin_lat)*cos(dest_lat)*cos(delta_lon))
+  gc_angle[is.nan(gc_angle)] <- 0
+  # convert bearing from radians to degrees measured clockwise from due north, and convert gc_angle to great circle distance via radius of earth (km)
+  bearing <- bearing*360/(2*pi)
+  bearing <- (bearing+360)%%360
+  earthRad <- 6371
+  gc_dist <- earthRad*gc_angle
+
+  return(list(bearing=bearing, gc_dist=gc_dist))
+}
+
 #
 # # # install_github("Michael-Stevens-27/silverblaze", ref = "master")
 # # # library(silverblaze)
@@ -51,21 +121,6 @@ logSum <- function(x){
 # # # rm(list = ls()) #remove all objects
 # #
 # # # set.seed(5) # throws out ratio error
-#
-# latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
-#
-#   # calculate bearing and great circle distance of data relative to centre
-#   data_trans <- latlon_to_bearing(centre_lat, centre_lon, data_lat, data_lon)
-#
-#   # use bearing and distance to calculate cartesian coordinates
-#   theta <- data_trans$bearing*2*pi/360
-#   d <- data_trans$gc_dist
-#   data_x <- d*sin(theta)
-#   data_y <- d*cos(theta)
-#
-#   return(list(x=data_x, y=data_y))
-# }
-#
 # # Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution.
 # # The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon}
 # # to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere -
@@ -146,31 +201,7 @@ logSum <- function(x){
 # 	SD_TR <- list(distance = distance, distance_min = distance_min)
 # 	return(SD_TR)
 # }
-# # Calculate distance between lat long points
-# # From B. VERITY
-#
-# latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
-#   # convert input arguments to radians
-#   origin_lat <- origin_lat*2*pi/360
-#   dest_lat <- dest_lat*2*pi/360
-#   origin_lon <- origin_lon*2*pi/360
-#   dest_lon <- dest_lon*2*pi/360
-#
-#   delta_lon <- dest_lon-origin_lon
-#
-#   # calculate bearing and great circle distance
-#   bearing <- atan2(sin(delta_lon)*cos(dest_lat), cos(origin_lat)*sin(dest_lat)-sin(origin_lat)*cos(dest_lat)*cos(delta_lon))
-#   gc_angle <- acos(sin(origin_lat)*sin(dest_lat) + cos(origin_lat)*cos(dest_lat)*cos(delta_lon))
-#   gc_angle[is.nan(gc_angle)] <- 0
-#   # convert bearing from radians to degrees measured clockwise from due north, and convert gc_angle to great circle distance via radius of earth (km)
-#   bearing <- bearing*360/(2*pi)
-#   bearing <- (bearing+360)%%360
-#   earthRad <- 6371
-#   gc_dist <- earthRad*gc_angle
-#
-#   return(list(bearing=bearing, gc_dist=gc_dist))
-# }
-#
+
 # #-------------------------------------------------------------------
 # # Presence Absence Functions
 #
