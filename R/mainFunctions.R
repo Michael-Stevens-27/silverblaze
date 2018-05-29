@@ -27,24 +27,6 @@ dummy1 <- function() {
 }
 
 #------------------------------------------------
-#' logSum
-#'
-#' To avoid underflow issues from R, scale the product of small values by xmax.
-#'
-#' @param x A vector whose values are in log space
-#'
-#' @export
-#' @examples
-#' x <- seq(5e-49, 5e-48, 1e-49)
-#' log(prod(x))
-#' logSum(x)
-
-logSum <- function(x){
-  xmax <- max(x)
-  xmax + log(sum(exp(x-xmax)))
-}
-
-#------------------------------------------------
 #' latlon_to_cartesian
 #'
 #' Convert from latitude/longitude to cartesian co-ordinates
@@ -114,147 +96,237 @@ latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
   return(list(bearing=bearing, gc_dist=gc_dist))
 }
 
-#
+#------------------------------------------------
+#' bearing_to_latlon
+#'
+#' Calculate destination lat/lon given an origin, a bearing and a greater circle distance of travel
+#'
+#' @param origin_lat The origin latitude
+#' @param origin_lon The origin longitude
+#' @param bearing   The angle in degrees relative to due north
+#' @param gc_dist   The greater circle distance in kilometres
+#'
+#' @export
+#' @examples
+#' origin_latLon <- c(0,0)
+#' some_bearing <- 50
+#' some_gc_dist <- 27
+#' bearing_to_latlon(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], bearing = some_bearing, gc_dist = some_gc_dist)
+#  From B. VERITY
+
+bearing_to_latlon <- function(origin_lat, origin_lon, bearing, gc_dist) {
+
+  # convert origin_lat, origin_lon and bearing from degrees to radians
+  origin_lat <- origin_lat*2*pi/360
+  origin_lon <- origin_lon*2*pi/360
+  bearing <- bearing*2*pi/360
+
+  # calculate new lat/lon using great circle distance
+  earthRad <- 6371
+  new_lat <- asin(sin(origin_lat)*cos(gc_dist/earthRad) + cos(origin_lat)*sin(gc_dist/earthRad)*cos(bearing))
+  new_lon <- origin_lon + atan2(sin(bearing)*sin(gc_dist/earthRad)*cos(origin_lat), cos(gc_dist/earthRad)-sin(origin_lat)*sin(new_lat))
+
+  # convert new_lat and new_lon from radians to degrees
+  new_lat <- new_lat*360/(2*pi)
+  new_lon <- new_lon*360/(2*pi)
+
+  return(list(longitude=new_lon, latitude=new_lat))
+}
+
+#------------------------------------------------
+#' cartesian_to_latlon
+#'
+#' Transform Cartesian Co-ordinates into Latitude and Longitude points assuming a Lat_Long centre
+#'
+#' @param centre_lat The centre latitude
+#' @param centre_lon The centre longitude
+#' @param data_x Cartesian x co-ordinate
+#' @param data_y Cartesian y co-ordinate
+#'
+#' @export
+#' @examples
+#' centre <- c(1,5)
+#' data <- c(2,3)
+#' cartesian_to_latlon(centre_lat = centre[1], centre_lon = centre[2], data_x = data[1], data_y = data[2])
+# From B. VERITY
+
+cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
+
+  # calculate angle and euclidian distance of all points relative to origin
+  d <- sqrt(data_x^2+data_y^2)
+  theta <- atan2(data_y,data_x)
+
+  # convert theta to bearing relative to due north
+  theta <- theta*360/(2*pi)
+  theta <- (90-theta)%%360
+
+  # use bearing and great circle distance to calculate lat/lon relative to an origin point
+  data_trans <- bearing_to_latlon(centre_lat, centre_lon, theta, d)
+
+  return(list(longitude=data_trans$longitude, latitude=data_trans$latitude))
+}
+
+#------------------------------------------------
+#' pairwise_distance
+#'
+#' Given two sets of points calculate the distance between each pair of points. Returns a matrix whose entries are distances between pairs of points. Also returns the nearest neighbour point in the form of the minimum rowise distance of this matrix.
+#'
+#' @param points two sets of x and y points all in latitude and longitude
+#'
+#' @export
+#' @examples
+#' some_points <- cbind(1:10, 1:10, 11:20, 11:20)
+#' pairwise_distance(some_points)
+# From B. VERITY
+
+pairwise_distance <- function(points){
+	distance <- matrix(NA, ncol = length(points[,1]), nrow = length(points[,1]))
+
+	for(i in 1:length(points[,1]))
+	{
+	for(j in 1:i)
+		{
+		x1 <- points[i, 1]
+		y1 <- points[i, 2]
+		x2 <- points[j, 1]
+		y2 <- points[j, 2]
+		dist <- latlon_to_bearing(y1, x1, y2, x2)$gc_dist
+		distance[i,j] <- dist
+		}
+	}
+	diag(distance)  <- NA
+	distance[distance==0] <- NA
+	distance_min <- apply(distance, 1, min, na.rm = TRUE)
+	distance_min[distance_min =="Inf"] <- NA
+	SD_TR <- list(distance = distance, distance_min = distance_min)
+	return(SD_TR)
+}
+
+#------------------------------------------------
+#' rnorm_sphere
+#'
+#' Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution.
+#' The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon}
+#' to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere -
+#' rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
+#'
+#' @param n The number of points to draw
+#' @param centre_lat The mean latitude of the normal being drawn from
+#' @param centre_lon The mean longitude of the normal being drawn from
+#' @param sigma The standard deviation of the normal being drawn from
+#'
+#' @export
+#' @examples
+#' rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)
+# From B. VERITY
+
+rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
+	x <- rnorm(n,sd=sigma)
+	y <- rnorm(n,sd=sigma)
+	output <- cartesian_to_latlon(centre_lat, centre_lon, x, y)
+	return(output)
+}
+
+#------------------------------------------------
+#' logSum
+#'
+#' To avoid underflow issues from R, scale the product of small values by xmax.
+#'
+#' @param x A vector whose values are in log space
+#'
+#' @export
+#' @examples
+#' x <- seq(5e-49, 5e-48, 1e-49)
+#' exp(log(prod(x)))
+#' logSum(x)
+
+logSum <- function(x){
+	xmax <- max(x)
+	xmax + log(sum(exp(x-xmax)))
+}
+
+# Presence Absence Functions
+#-------------------------------------------------------------------
+#' dbvnorm
+#'
+#' Extract the log density on the bivariate normal at (x, y) centred at (mu_x, mu_y)
+#'
+#' @param x 		The location of the point whose density we require (longitude)
+#' @param y 		The location of the point whose density we require (latitude)
+#' @param mu_x  The mean of the bivariate normal (longitude)
+#' @param mu_y  The mean of the bivariate normal (latitude)
+#' @param sd 		The standard deviation of the bivariate normal in kilometres
+#'
+#' @export
+#' @examples
+#' bvnorm(x = 1, y = 1, mu_x = 0, mu_y = 0, Sd = 10)
+
+bvnorm <- function(x, y, mu_x, mu_y, Sd) {
+  param <- dnorm(latlon_to_bearing(y, x, y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE) + dnorm(latlon_to_bearing(y, mu_x, mu_y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE)
+  return(param)
+}
+
+#-------------------------------------------------------------------
+#' PAjoint
+#'
+#' Calculate the logged joint probability of observing the data. This acts as the posterior draw. Also extract the logged density of the bivariate normal at each trap location.
+#'
+#' @param theta_x 		The mean longitude for the source we condition on
+#' @param theta_y 		The mean latitude for the source we condition on
+#' @param sigma  			The standard deviation of the bivariate normal (source) we condition on
+#' @param data  			The trap data consisting of locations in lat/long and associated densities
+#' @param trap_rad 		The trap radius we use to approximate the area under the bivariate normal (in kilometres)
+#' @param exp_pop			The expected population over our entire area
+#''
+#' @export
+#' @examples
+#' trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
+#' PAjoint(theta_x = 0, theta_y = 0, prior_Sd = NULL, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25)
+
+PAjoint <- function(theta_x, theta_y, prior_Sd = NULL, sigma, data, trap_rad, exp_pop) {
+  # extract useful parameters
+  K <- length(theta_x)  # K clusters
+  n <- nrow(data)       # n traps
+
+  # log-likelihood
+  heights <- matrix(NA, nrow = n, ncol = K)
+  for (k in 1:K) {
+    heights[,k] <- bvnorm(x = data[,1], y = data[,2], mu_x = theta_x[k], mu_y = theta_y[k], Sd=sigma)
+  }
+  # Sum poisson params across sources with EQUAL waitings dictated by log(K)
+  z <- log(pi) + 2*log(trap_rad) + apply(heights, 1, logSum) - log(K)
+  log_lambda <- log(exp_pop) + z
+  likeli_val  <- sum( data[,3]*log_lambda - exp(log_lambda) - lfactorial(data[,3]) )
+  # posterior_val <- prior_val + likeli_val # prior currently undefined
+  posterior_val <- likeli_val
+  return(list(posterior_val = posterior_val, z = z))
+}
+
+#------------------------------------------------
+#' proposal
+#'
+#' Propose new parameter values (specifically a source location) from a bivaraite normal.
+#'
+#' @param n The number of new points to propose
+#' @param mu1 The centre of the bivariate norm to draw from (longitude)
+#' @param mu2 The centre of the bivariate norm to draw from (latitude)
+#' @param Sd  The standard deviation of the bivariate norm to draw from (kilometres)
+#'
+#' @export
+#' @examples
+#' proposal(n = 16, mu1 = 0, mu2 = 0, Sd = 5)
+
+proposal <- function(n, mu1, mu2, Sd) {
+  points <- rnorm_sphere(n = n, centre_lon = mu1, centre_lat = mu2, sigma = Sd)
+  cbind(longitude = points$longitude, latitude = points$latitude)
+}
+
+
 # # # install_github("Michael-Stevens-27/silverblaze", ref = "master")
 # # # library(silverblaze)
-# #
 # # # rm(list = ls()) #remove all objects
-# #
-# # # set.seed(5) # throws out ratio error
-# # Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution.
-# # The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon}
-# # to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere -
-# # rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
-# # From B. VERITY
-#
-# rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
-# 	x <- rnorm(n,sd=sigma)
-# 	y <- rnorm(n,sd=sigma)
-# 	output <- cartesian_to_latlon(centre_lat, centre_lon, x, y)
-# 	return(output)
-# }
-#
-# # Calculate destination lat/lon given an origin, a bearing and a great circle distance of travel
-# # Note that bearing should be in degrees relative to due north, and gc_dist should be in units of kilometres
-# # From B. VERITY
-#
-# bearing_to_latlon <- function(origin_lat, origin_lon, bearing, gc_dist) {
-#
-#   # convert origin_lat, origin_lon and bearing from degrees to radians
-#   origin_lat <- origin_lat*2*pi/360
-#   origin_lon <- origin_lon*2*pi/360
-#   bearing <- bearing*2*pi/360
-#
-#   # calculate new lat/lon using great circle distance
-#   earthRad <- 6371
-#   new_lat <- asin(sin(origin_lat)*cos(gc_dist/earthRad) + cos(origin_lat)*sin(gc_dist/earthRad)*cos(bearing))
-#   new_lon <- origin_lon + atan2(sin(bearing)*sin(gc_dist/earthRad)*cos(origin_lat), cos(gc_dist/earthRad)-sin(origin_lat)*sin(new_lat))
-#
-#   # convert new_lat and new_lon from radians to degrees
-#   new_lat <- new_lat*360/(2*pi)
-#   new_lon <- new_lon*360/(2*pi)
-#
-#   return(list(longitude=new_lon, latitude=new_lat))
-# }
-#
-# # Convert Cartesian co-ordinates to lat long
-# # From B. VERITY
-#
-# cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
-#
-#   # calculate angle and euclidian distance of all points relative to origin
-#   d <- sqrt(data_x^2+data_y^2)
-#   theta <- atan2(data_y,data_x)
-#
-#   # convert theta to bearing relative to due north
-#   theta <- theta*360/(2*pi)
-#   theta <- (90-theta)%%360
-#
-#   # use bearing and great circle distance to calculate lat/lon relative to an origin point
-#   data_trans <- bearing_to_latlon(centre_lat, centre_lon, theta, d)
-#
-#   return(list(longitude=data_trans$longitude, latitude=data_trans$latitude))
-# }
-#
-# # calculate pairwise distance
-# # From B. VERITY
-#
-# pairwise_distance <- function(points){
-# 	distance <- matrix(NA, ncol = length(points[,1]), nrow = length(points[,1]))
-#
-# 	for(i in 1:length(points[,1]))
-# 	{
-# 	for(j in 1:i)
-# 		{
-# 		x1 <- points[i, 1]
-# 		y1 <- points[i, 2]
-# 		x2 <- points[j, 1]
-# 		y2 <- points[j, 2]
-# 		dist <- latlon_to_bearing(y1, x1, y2, x2)$gc_dist
-# 		distance[i,j] <- dist
-# 		}
-# 	}
-# 	diag(distance)  <- NA
-# 	distance[distance==0] <- NA
-# 	distance_min <- apply(distance, 1, min, na.rm = TRUE)
-# 	distance_min[distance_min =="Inf"] <- NA
-# 	SD_TR <- list(distance = distance, distance_min = distance_min)
-# 	return(SD_TR)
-# }
 
-# #-------------------------------------------------------------------
-# # Presence Absence Functions
-#
-# # Extract the height on the bivariate normal centred at (mu_x, mu_y)
-# Prob_data <- function(x, y, mu_x, mu_y, Sd) {
-#   param <- dnorm(latlon_to_bearing(y, x, y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE) + dnorm(latlon_to_bearing(y, mu_x, mu_y, mu_x)$gc_dist, mean=0, sd=Sd, log=TRUE)
-#   return(param)
-# }
-#
-# # x is in log space, return log(sum(exp(x))) to reduce underflow issues
-# logSum <- function(x){
-#   xmax <- max(x)
-#   xmax + log(sum(exp(x-xmax)))
-# }
-#
-#
-# # joint probability
-# post <- function(theta_x, theta_y, prior_Sd = NULL, sigma, data, trap_rad, exp_pop) {
-#   # extract useful parameters
-#   K <- length(theta_x)  # K clusters
-#   n <- nrow(data)       # n traps
-# 
-#   # distinguish between a varying or constant sigma
-#   # if(length(sigma) == 1)
-#   # {
-#   #   sigma <- rep(sigma, K)
-#   # }
-#
-#   # # log-likelihood - V.S.
-#   # heights <- matrix(NA, nrow = n, ncol = K)
-#   # for (k in 1:K) {
-#   #   heights[,k] <- dnorm(latlon_to_bearing(data[,2], data[,1], data[,2], theta_x[k])$gc_dist, mean=0, sd=sigma[k], log=TRUE) + dnorm(latlon_to_bearing(data[,2], data[,1], theta_y[k], data[,1])$gc_dist, mean=0, sd=sigma[k], log=TRUE)
-#   # }
-#   # log-likelihood
-#   heights <- matrix(NA, nrow = n, ncol = K)
-#   for (k in 1:K) {
-#     heights[,k] <- dnorm(latlon_to_bearing(data[,2], data[,1], data[,2], theta_x[k])$gc_dist, mean=0, sd=sigma, log=TRUE) + dnorm(latlon_to_bearing(data[,2], data[,1], theta_y[k], data[,1])$gc_dist, mean=0, sd=sigma, log=TRUE)
-#   }
-#   # Sum poisson params across sources with EQUAL waitings dictated by log(K)
-#   z <- log(pi) + 2*log(trap_rad) + apply(heights, 1, logSum) - log(K)
-#   log_lambda <- log(exp_pop) + z
-#   likeli_val  <- sum( data[,3]*log_lambda - exp(log_lambda) - lfactorial(data[,3]) )
-#   # posterior_val <- prior_val + likeli_val # prior currently undefined
-#   posterior_val <- likeli_val
-#   return(list(posterior_val = posterior_val, z = z))
-# }
-#
-# # draw from proposal
-# proposal <- function(n, mu1, mu2, Sd) {
-#   points <- rnorm_sphere(n = n, centre_lon = mu1, centre_lat = mu2, sigma = Sd)
-#   cbind(longitude = points$longitude, latitude = points$latitude)
-# }
-#
+
 # # A function that simulates and collects all observed and unobserved data
 # PAsim <- function(n_true = 100, sigma_true = 1, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), n_traps = 100, trap_const = 0.3, K_true = 3, single_count = F, plotting = F, plotRail = 0.05, trap_spacing = "random", trap_clusters = NULL, bias = 0)
 #   {
