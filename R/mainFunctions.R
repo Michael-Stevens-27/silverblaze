@@ -247,7 +247,7 @@ logSum <- function(x){
 
 # Presence Absence Functions
 #-------------------------------------------------------------------
-#' dbvnorm
+#' bvnorm
 #'
 #' Extract the log density on the bivariate normal at (x, y) centred at (mu_x, mu_y)
 #'
@@ -326,45 +326,48 @@ proposal <- function(n, mu1, mu2, Sd) {
 # # # library(silverblaze)
 # # # rm(list = ls()) #remove all objects
 
-
 # # A function that simulates and collects all observed and unobserved data
-# PAsim <- function(n_true = 100, sigma_true = 1, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), n_traps = 100, trap_const = 0.3, K_true = 3, single_count = F, plotting = F, plotRail = 0.05, trap_spacing = "random", trap_clusters = NULL, bias = 0)
+# PAsim <- function(n_true = 100, sigma_true = 2, K_true = 3, n_traps = 64, trap_spacing = "cluster", trapExtent = 3, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), plotRail = 0.05, trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 0)
 #   {
 #   C <- 1
 #   while(C < 2)
 #   {
+#   #
+#
 #   # define search/area to generate data within
 # 	total_area <- 1
 #   trap_rad_true <- trap_const*sigma_true
-#   fakeSlong <- NULL
-#   fakeSlat <- NULL
 #
-# 	# Draw source locations from a uniform prior (i.e randomly)
+#   # cataegorise sources in real, fake or unseen
+#   sTyp <- rep("Real", K_true)
+#
+# 	# Draw source locations from a uniform prior (i.e randomly) with or without bias
 #   if(bias == 1)
 #   {
-#   source_lat <- runif(K_true - 2, lat_minMax[1], 0.5*(lat_minMax[2]- lat_minMax[1]) )
-#   source_long <- runif(K_true - 2, long_minMax[1], 0.5*(long_minMax[2]- long_minMax[1] ) )
-#   fakeSlong <- runif(1, 0.5*(long_minMax[2]- long_minMax[1]), long_minMax[2])
-#   fakeSlat <- runif(1, lat_minMax[1], 0.5*(lat_minMax[2]- lat_minMax[1]))
-#   source_lat <- c(source_lat, runif(1, 0.5*(lat_minMax[2]- lat_minMax[1]), lat_minMax[2]), fakeSlat)
-#   source_long <- c(source_long, runif(1, long_minMax[1], 0.5*(long_minMax[2]- long_minMax[1])), fakeSlong)
+#   source_lat <- runif(K_true - 2, lat_minMax[1], lat_minMax[1] + 0.5*(lat_minMax[2] - lat_minMax[1]) )
+#   source_long <- runif(K_true - 2, long_minMax[1], long_minMax[1] + 0.5*(long_minMax[2] - long_minMax[1] ) )
+#
+#   # create a source within traps that has no crimes associated with it
+#   fakeSlong <- runif(1, long_minMax[1] + 0.75*(long_minMax[2] - long_minMax[1]), long_minMax[2])
+#   fakeSlat <- runif(1, lat_minMax[1], lat_minMax[1] + 0.25*(lat_minMax[2] - lat_minMax[1]))
+#
+#   # create a source outside of traps that has crimes associated with it
+#   source_lat <- c(source_lat, runif(1, lat_minMax[1] + 0.75*(lat_minMax[2] - lat_minMax[1]), lat_minMax[2]), fakeSlat)
+#   source_long <- c(source_long, runif(1, long_minMax[1], long_minMax[1] + 0.25*(long_minMax[2] - long_minMax[1])), fakeSlong)
+#
 #   # Draw number of observations from a Poisson with rate n_true * total_area and allocate to sources
 #   n_obs <- rpois(1, n_true*total_area)
 #   alloc <- c(sample(1:(K_true - 1), size = n_obs, replace = T), 0)
-#     } else{
+#   sTyp[K_true] <- "Fake"
+#   sTyp[K_true - 1] <- "Unseen"
+#   } else{
 #     source_lat <- runif(K_true, lat_minMax[1], lat_minMax[2])
 #     source_long <- runif(K_true, long_minMax[1], long_minMax[2])
 #     n_obs <- rpois(1, n_true*total_area)
 #     alloc <- c(sample(1:(K_true), size = n_obs, replace = T), 0)
 #   }
-#   source_loc <- data.frame(source_long = source_long, source_lat = source_lat)
+#   source_loc <- data.frame(source_long = source_long, source_lat = source_lat, sTyp = sTyp)
 #   perSource <-  mapply(function(x){length(which(x == alloc))}, x = 1:K_true)
-#
-#   # Distinguish between constant or variable sigma
-#   # if(length(sigma_true) == 1)
-#   # {
-#   #   sigma_true <- rep(sigma_true, K_true)
-#   # }
 #
 #   # Draw observation locations from a bivariate norm with standard deviation sigma_true NEEDS EDITING
 #   crime_long <- unlist(mapply(rnorm_sphere, n = perSource, centre_lat = source_lat, centre_lon = source_long, sigma = sigma_true)[1,])
@@ -375,7 +378,6 @@ proposal <- function(n, mu1, mu2, Sd) {
 #   if(trap_spacing == "random")
 #   {
 #     trap_lat <- runif(n_traps, lat_minMax[1], lat_minMax[2] - (lat_minMax[2]/2 - lat_minMax[1]/2)*bias)
-#     #trap_lon <- runif(n_traps, long_minMax[1], long_minMax[2] - (long_minMax[2]/2 - long_minMax[1]/2)*bias)
 #     trap_lon <- runif(n_traps, long_minMax[1], long_minMax[2])
 #     trap_loc <- data.frame(trap_lon = trap_lon, trap_lat = trap_lat)
 #
@@ -384,38 +386,45 @@ proposal <- function(n, mu1, mu2, Sd) {
 #     trap_lat <- seq(lat_minMax[1], lat_minMax[2]/(2^bias), (lat_minMax[2]/(2^bias) - lat_minMax[1])/sqrt(n_traps))
 #     trap_lon <- seq(long_minMax[1], long_minMax[2], (long_minMax[2] - long_minMax[1])/sqrt(n_traps))
 #     trap_loc <- expand.grid(trap_lon, trap_lat)
-#
 #   } else if(trap_spacing == "cluster") {
-#
+#     #same as method for unifrom, but then extend to produce clustered trap structure
 #     trap_lat <- seq(lat_minMax[1], lat_minMax[2]/(2^bias), (lat_minMax[2]/(2^bias) - lat_minMax[1])/sqrt(n_traps))
 #     trap_lon <- seq(long_minMax[1], long_minMax[2], (long_minMax[2] - long_minMax[1])/sqrt(n_traps))
 #     trap_loc <- expand.grid(trap_lon, trap_lat)
-#     c_trap <- seq(0, 2*pi, 2*pi/trap_clusters)
-#     # Inter cluster distance between traps needs specifying
-# 		polx <- 2*sin(c_trap)
-# 		poly <- 2*cos(c_trap)
+#     c_trap <- seq(2*pi/trap_clusters, 2*pi, 2*pi/trap_clusters )
+# 		polx <- trapExtent*sin(c_trap)
+# 		poly <- trapExtent*cos(c_trap)
 # 		trap_lon <- mapply(function(x, y){cartesian_to_latlon(y, x, poly, polx)$longitude}, x = trap_loc[,1], y = trap_loc[,2])
 # 		trap_lat <- mapply(function(x, y){cartesian_to_latlon(y, x, poly, polx)$latitude}, x = trap_loc[,1], y = trap_loc[,2])
 #     trap_loc <- cbind(c(trap_lon), c(trap_lat))
 #
 #   } else { stop("trap_spacing must be set to 'uniform','random' or 'cluster'")}
-# 	# allocate raw data to traps
 #
+# 	# allocate raw data to traps
 #   all_dist <- mapply(function(x, y){latlon_to_bearing(trap_loc[,2], trap_loc[,1], x, y)$gc_dist}, x = crime_loc$latitude, y = crime_loc$longitude)
 #   all_dist <- t(all_dist) # rows are crimes, columns are traps, entries are distances between crimes and traps
 #   trapCounts <- colSums(all_dist<=trap_rad_true)  # concatonate crimes into traps given the distance is within trap radius
 #   is_observed <- rowSums(all_dist<=trap_rad_true)  # count the number of observed observations
 #   if(length(which(trapCounts > 0)) > 4) # check there are more than 5 observations overall
-#   #if(TRUE)
 #   {
 #   #allow for single or multiple trappings of the same observation
 # 	if(single_count == T)
 # 	{
-#   if(max(is_observed) == 1) # check if no trap contains more than one observation
+#   if(max(is_observed) == 1) # check traps do not already only contain a single observation
 #   {} else if(length(which(is_observed > 1)) > 1) { # check that there is more than one trap with multiple observations
-#     single_densities <- table(apply(all_dist[which(is_observed > 1),], FUN = which.min, MARGIN = 1))
-#     index <- strtoi(names(single_densities))
-#     trapCounts[index] <- single_densities
+#
+#   TF_count <- all_dist<=trap_rad_true
+#   for(G in 1:length(which(is_observed > 1)))
+#   {
+#   # for each crime observed more than once, pull out the index of traps that observe it
+#   anti_index <- which(TF_count[which(is_observed >1)[G],] == T)
+#   # remove the closest trap from this index
+#   to_remove <- which.min(all_dist[which(is_observed > 1),][G,])
+#   anti_index <- anti_index[! anti_index %in% to_remove]
+#   # reduce the trap counts of those traps that should not be observing a particular crime
+#   trapCounts[anti_index] <- trapCounts[anti_index] - 1
+#   }
+#
 #   } else { # if there is a single trap with multiple observations, then replace with a single obs
 #   single_index <- which.min(all_dist[which(is_observed > 1),])
 #   trapCounts[single_index] <- 1
@@ -424,13 +433,19 @@ proposal <- function(n, mu1, mu2, Sd) {
 #
 # 	# make final trap data
 # 	trap_data <- data.frame(longitude=trap_loc[,1], latitude=trap_loc[,2], count=trapCounts)
-#   hit_data <- subset(trap_data, trap_data$count >0 )
-#   miss_data <- subset(trap_data, trap_data$count ==0 )
+#   hit_data <- subset(trap_data, trap_data$count > 0)
+#   miss_data <- subset(trap_data, trap_data$count ==0)
 #
+#   # record number of hits and miss' within 1, 2 and 3 sd's of sources
 #   source_hits_dist <- t(mapply(function(x, y){latlon_to_bearing(hit_data[,2], hit_data[,1], x, y)$gc_dist}, x = source_loc$source_lat, y = source_loc$source_long)) # rows are sources, columns are hits, entries are distances between sources and hits
-#   nega_source1 <- rowSums(source_hits_dist <= sigma_true)
-#   nega_source2 <- rowSums(source_hits_dist <= 2*sigma_true)
-#   nega_source3 <- rowSums(source_hits_dist <= 3*sigma_true)
+#   hits1sd <- rowSums(source_hits_dist <= sigma_true)
+#   hits2sd <- rowSums(source_hits_dist <= 2*sigma_true)
+#   hits3sd <- rowSums(source_hits_dist <= 3*sigma_true)
+#
+#   source_miss_dist <- t(mapply(function(x, y){latlon_to_bearing(miss_data[,2], miss_data[,1], x, y)$gc_dist}, x = source_loc$source_lat, y = source_loc$source_long)) # rows are sources, columns are miss, entries are distances between sources and miss
+#   miss1sd <- rowSums(source_miss_dist <= sigma_true)
+#   miss2sd <- rowSums(source_miss_dist <= 2*sigma_true)
+#   miss3sd <- rowSums(source_miss_dist <= 3*sigma_true)
 #
 # 	# plot if plotting returns true
 # 	if(plotting == T)
@@ -448,32 +463,32 @@ proposal <- function(n, mu1, mu2, Sd) {
 # 		}
 # 		miss <- subset(trap_data, trap_data$count == 0)
 # 		hits <- subset(trap_data, trap_data$count > 0)
-# 		points(hits$longitude, hits$latitude, pch = 20, col = "green", cex = hits[,3])
+# 		points(hits$longitude, hits$latitude, pch = 20, col = "green", cex = 1) # hits[,3])
 # 		points(miss$longitude, miss$latitude, pch = 4, col = "red")
 # 		points(crime_loc$longitude, crime_loc$latitude, pch = 18)
 # 		points(source_loc$source_long, source_loc$source_lat, col = "blue", pch = 20)
 # 	}
-# 	return(list(trap_data = trap_data, source_loc = source_loc, crime_loc = crime_loc, n_obs = n_obs, n_true = n_true, sigma_true = sigma_true, hit_data = hit_data, miss_data = miss_data, perSource = perSource, long_minMax = long_minMax, lat_minMax= lat_minMax,
-#               n_traps = n_traps, trap_rad_true = trap_rad_true, K_true = K_true, plotRail = plotRail, nega_source1 = nega_source1, nega_source2 = nega_source2, nega_source3 = nega_source3, fakeSlong = fakeSlong, fakeSlat = fakeSlat))
+# 	return(list(trap_data = trap_data, source_loc = source_loc, crime_loc = crime_loc, n_obs = n_obs, n_true = n_true, sigma_true = sigma_true, hit_data = hit_data, miss_data = miss_data, perSource = perSource, long_minMax = long_minMax, lat_minMax= lat_minMax, trap_spacing = trap_spacing,
+#               n_traps = n_traps, trap_rad_true = trap_rad_true, K_true = K_true, plotRail = plotRail, hits1sd = hits1sd, hits2sd = hits2sd, hits3sd = hits3sd, miss1sd = miss1sd, miss2sd = miss2sd, miss3sd = miss3sd))
 #   C <- C + 1
-# }   else{} # sigma_true <- sigma_true[1]}
-#
+# }   else{}
 #   }
 # }
 #
-# # #----------------------------------------------------------------
+# ##----------------------------------------------------------------
 # # MCMC
-# PAmcmc <- function(modelSigma, sentinel_data, burnin = 100, iterations = 25e2, Clusters = 1, prop_const = 5, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, chains = NULL)
+# PAmcmc <- function(trapData, burnin = 100, iterations = 25e2, Clusters = 1, prop_const = 5, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, long_minMax = NULL, lat_minMax = NULL)
 #   {
 #   start <- Sys.time()
 #
 #   # define model parameters
-#   trap_density <- sum(sentinel_data$trap_data[,3])
-#   sig_init <- 0.5*mean(pairwise_distance(sim$hit_data)$distance_min, na.rm = TRUE)
+#   trap_density <- sum(trapData[,3])
+#   hit_data <- subset(trapData, trapData[,3]>0)
+#   sig_init <- 0.5*mean(pairwise_distance(hit_data)$distance_min, na.rm = TRUE)
 #
 #   # define MCMC parameters
-#   propSD <- prop_const*modelSigma
-#   PropSD_sig <- prop_const*modelSigma
+#   propSD <- prop_const*sig_init
+#   PropSD_sig <- prop_const*sig_init
 #
 #   ### propose starting values
 #   # source locations
@@ -484,7 +499,7 @@ proposal <- function(n, mu1, mu2, Sd) {
 #   }
 #   # sigma
 #   old_sigma <- abs(rnorm(1, mean = sig_init, sd = PropSD_sig))
-#   old_posterior <- post(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = sentinel_data$trap_data, trap_rad = trap_rad, exp_pop = trap_density)
+#   old_posterior <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = trap_density)
 #
 #   # population density
 #   new_pop_den <- rgamma(1, shape = s_prior_shape, rate = s_prior_rate)
@@ -509,7 +524,7 @@ proposal <- function(n, mu1, mu2, Sd) {
 #       new_theta[CL,] <- proposal(1, mu1 = old_theta[CL,1], mu2 = old_theta[CL,2], Sd = propSD) # returns two values a Lon and Lat
 #
 #       # calculate new joint probability
-#       new_posterior <- post(theta_x = new_theta[,1], theta_y = new_theta[,2], sigma = old_sigma, data = sentinel_data$trap_data, trap_rad = trap_rad, exp_pop = new_pop_den)
+#       new_posterior <- PAjoint(theta_x = new_theta[,1], theta_y = new_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den)
 #
 #       # Metropolis-Hastings step
 #       ratio <- new_posterior$posterior_val - old_posterior$posterior_val
@@ -529,7 +544,7 @@ proposal <- function(n, mu1, mu2, Sd) {
 #     new_sigma <- abs(rnorm(1, mean = old_sigma, sd = PropSD_sig))
 #
 #     # calculate new joint probability
-#     new_posterior <- post(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = new_sigma, data = sentinel_data$trap_data, trap_rad = trap_rad, exp_pop = new_pop_den)
+#     new_posterior <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = new_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den)
 #
 #     # Metropolis-Hastings step
 #     ratio <- new_posterior$posterior_val - old_posterior$posterior_val
@@ -545,7 +560,7 @@ proposal <- function(n, mu1, mu2, Sd) {
 #       PropSD_sig <- max(1e-4, PropSD_sig)
 #     }
 #     # update s by Gibbs sampling
-#     new_z <- post(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = sentinel_data$trap_data, trap_rad = trap_rad, exp_pop = new_pop_den)$z
+#     new_z <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den)$z
 #     new_pop_den <- rgamma(1, shape = s_prior_shape + trap_density, rate = s_prior_rate + exp(logSum(new_z)))
 #
 #     # store values of this iteration
@@ -556,18 +571,18 @@ proposal <- function(n, mu1, mu2, Sd) {
 #     propSD_vals[i] <- propSD
 #   }
 #
-#   long_seq <- seq(sentinel_data$long_minMax[1], sentinel_data$long_minMax[2], (sentinel_data$long_minMax[2] - sentinel_data$long_minMax[1])/500)
-#   lat_seq <- seq(sentinel_data$lat_minMax[1], sentinel_data$lat_minMax[2], (sentinel_data$lat_minMax[2] - sentinel_data$lat_minMax[1])/500)
-#   #rawSurface <- geoSmooth(joint_long, joint_lat, breaks_lon = long_seq, breaks_lat = lat_seq, lambda = NULL)
+#   long_seq <- seq(long_minMax[1], long_minMax[2], (long_minMax[2] - long_minMax[1])/500)
+#   lat_seq <- seq(lat_minMax[1], lat_minMax[2], (lat_minMax[2] - lat_minMax[1])/500)
+#   # rawSurface <- geoSmooth(joint_long[burnin:iterations], joint_lat[burnin:iterations], breaks_lon = long_seq, breaks_lat = lat_seq, lambda = NULL)
 #
 #   end <- Sys.time()
 #   time_elapsed <- end - start
 #   print(time_elapsed)
-#   # return ... rawSurface
+#   # return ... rawSurface = rawSurface,
 #
-#   return(list(joint_long = joint_long, joint_lat = joint_lat, joint_sig = joint_sig, pop_densities = pop_densities, propSD_vals = propSD_vals, long_seq  = long_seq, lat_seq = lat_seq, modelSigma = modelSigma, trap_rad = trap_rad))
+#   return(list(joint_long = joint_long, joint_lat = joint_lat, joint_sig = joint_sig, pop_densities = pop_densities, propSD_vals = propSD_vals, long_seq  = long_seq, lat_seq = lat_seq,
+#               trap_rad = trap_rad, Clusters = Clusters, popPriorSh = s_prior_shape , popPriorRa = s_prior_rate, sig_init = sig_init))
 #           }
-#
 # # --------------------------------------------------------------------------------------------------------------------------------
 # # set.seed(1)
 # # ---------------------------------------
