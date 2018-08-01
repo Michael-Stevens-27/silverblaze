@@ -2,9 +2,9 @@
 % Please edit documentation in R/mainFunctions.R
 \name{bvnorm}
 \alias{bvnorm}
-\title{dbvnorm}
+\title{bvnorm}
 \usage{
-bvnorm(x, y, mu_x, mu_y, Sd)
+bvnorm(x, y, mu_x, mu_y, Sd, log = T)
 }
 \arguments{
 \item{x}{The location of the point whose density we require (longitude)}

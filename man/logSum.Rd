@@ -13,7 +13,7 @@ logSum(x)
 To avoid underflow issues from R, scale the product of small values by xmax.
 }
 \examples{
-x <- seq(5e-49, 5e-48, 1e-49)
-exp(log(prod(x)))
-logSum(x)
+x <- log(seq(5e-49, 5e-48, 1e-49))
+exp(sum(x))
+exp(logSum(x))
 }

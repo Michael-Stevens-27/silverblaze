@@ -7,8 +7,8 @@ Author: Michael Stevens
 Maintainer: Michael Stevens <M.Stevens@qmul.ac.uk>
 Description: Implementing absence data into the geographic profiling model.
 License: GPL (>= 2)
-Imports: plot3D, Rcpp (>= 0.12.14)
+Imports: Rcpp (>= 0.12.14)
 LinkingTo: Rcpp
 SystemRequirements:
     C++11
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

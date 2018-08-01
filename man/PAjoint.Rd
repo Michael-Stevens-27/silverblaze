@@ -4,7 +4,9 @@
 \alias{PAjoint}
 \title{PAjoint}
 \usage{
-PAjoint(theta_x, theta_y, prior_Sd = NULL, sigma, data, trap_rad, exp_pop)
+PAjoint(theta_x, theta_y, sigma, data, trap_rad, exp_pop, priorLat,
+  priorLon, prior = NULL, meanSigprior, propLoc = NULL,
+  priorSD = NULL)
 }
 \arguments{
 \item{theta_x}{The mean longitude for the source we condition on}
@@ -17,13 +19,24 @@ PAjoint(theta_x, theta_y, prior_Sd = NULL, sigma, data, trap_rad, exp_pop)
 
 \item{trap_rad}{The trap radius we use to approximate the area under the bivariate normal (in kilometres)}
 
-\item{exp_pop}{The expected population over our entire area
-'}
+\item{exp_pop}{The expected population over our entire area}
+
+\item{priorLat}{The mean Latitude of the prior on source locations - normally the mean of hit locations}
+
+\item{priorLon}{The mean Longitude of the prior on source locations - normally the mean of hit locations}
+
+\item{prior}{Specify which parameter a prior is being set for}
+
+\item{meanSigprior}{The mean of the prior on sigma}
+
+\item{propLoc}{The proposed location for a source}
+
+\item{priorSD}{The standard devitation for any prior all are set to normals}
 }
 \description{
 Calculate the logged joint probability of observing the data. This acts as the posterior draw. Also extract the logged density of the bivariate normal at each trap location.
 }
 \examples{
 trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
-PAjoint(theta_x = 0, theta_y = 0, prior_Sd = NULL, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25)
+PAjoint(theta_x = 0, theta_y = 0, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25, priorLat = 0.5, priorLon = 0.5, prior = "sourcePrior", meanSigprior = NULL, propLoc = c(0.1, 0.3), priorSD = 10)
 }
