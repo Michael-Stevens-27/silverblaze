@@ -17,8 +17,8 @@ NULL
 #'
 #' @param centre_lat The centre latitude
 #' @param centre_lon The centre longitude
-#' @param data_lat   The data latitude
-#' @param data_lon   The data longitude
+#' @param data_lat The data latitude
+#' @param data_lon The data longitude
 #'
 #' @export
 #' @examples
@@ -49,8 +49,8 @@ latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
 #'
 #' @param origin_lat The origin latitude
 #' @param origin_lon The origin longitude
-#' @param dest_lat   The destination latitude
-#' @param dest_lon   The destination longitude
+#' @param dest_lat The destination latitude
+#' @param dest_lon The destination longitude
 #'
 #' @export
 #' @examples
@@ -89,8 +89,8 @@ latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
 #'
 #' @param origin_lat The origin latitude
 #' @param origin_lon The origin longitude
-#' @param bearing   The angle in degrees relative to due north
-#' @param gc_dist   The greater circle distance in kilometres
+#' @param bearing The angle in degrees relative to due north
+#' @param gc_dist The greater circle distance in kilometres
 #'
 #' @export
 #' @examples
@@ -238,11 +238,11 @@ logSum <- function(x){
 #'
 #' Extract the log density on the bivariate normal at (x, y) centred at (mu_x, mu_y)
 #'
-#' @param x 		The location of the point whose density we require (longitude)
-#' @param y 		The location of the point whose density we require (latitude)
-#' @param mu_x  The mean of the bivariate normal (longitude)
-#' @param mu_y  The mean of the bivariate normal (latitude)
-#' @param sd 		The standard deviation of the bivariate normal in kilometres
+#' @param x The location of the point whose density we require (longitude)
+#' @param y The location of the point whose density we require (latitude)
+#' @param mu_x The mean of the bivariate normal (longitude)
+#' @param mu_y The mean of the bivariate normal (latitude)
+#' @param sd The standard deviation of the bivariate normal in kilometres
 #'
 #' @export
 #' @examples
@@ -258,18 +258,18 @@ bvnorm <- function(x, y, mu_x, mu_y, Sd, log = T) {
 #'
 #' Calculate the logged joint probability of observing the data. This acts as the posterior draw. Also extract the logged density of the bivariate normal at each trap location.
 #'
-#' @param theta_x 					The mean longitude for the source we condition on
-#' @param theta_y 					The mean latitude for the source we condition on
-#' @param sigma  						The standard deviation of the bivariate normal (source) we condition on
-#' @param data  						The trap data consisting of locations in lat/long and associated densities
-#' @param trap_rad 					The trap radius we use to approximate the area under the bivariate normal (in kilometres)
-#' @param exp_pop						The expected population over our entire area
-#' @param priorLat					The mean Latitude of the prior on source locations - normally the mean of hit locations
-#' @param priorLon					The mean Longitude of the prior on source locations - normally the mean of hit locations
-#' @param prior 						Specify which parameter a prior is being set for
-#' @param meanSigprior			The mean of the prior on sigma
-#' @param propLoc 					The proposed location for a source
-#' @param priorSD 					The standard devitation for any prior all are set to normals
+#' @param theta_x	The mean longitude for the source we condition on
+#' @param theta_y	The mean latitude for the source we condition on
+#' @param sigma The standard deviation of the bivariate normal (source) we condition on
+#' @param data The trap data consisting of locations in lat/long and associated densities
+#' @param trap_rad The trap radius we use to approximate the area under the bivariate normal (in kilometres)
+#' @param exp_pop The expected population over our entire area
+#' @param priorLat The mean Latitude of the prior on source locations - normally the mean of hit locations
+#' @param priorLon The mean Longitude of the prior on source locations - normally the mean of hit locations
+#' @param prior Specify which parameter a prior is being set for
+#' @param meanSigprior The mean of the prior on sigma
+#' @param propLoc The proposed location for a source
+#' @param priorSD The standard devitation for any prior all are set to normals
 #'
 #' @export
 #' @examples
@@ -310,7 +310,7 @@ PAjoint <- function(theta_x, theta_y, sigma, data, trap_rad, exp_pop, priorLat, 
 #' @param n The number of new points to propose
 #' @param mu1 The centre of the bivariate norm to draw from (longitude)
 #' @param mu2 The centre of the bivariate norm to draw from (latitude)
-#' @param Sd  The standard deviation of the bivariate norm to draw from (kilometres)
+#' @param Sd The standard deviation of the bivariate norm to draw from (kilometres)
 #'
 #' @export
 #' @examples
@@ -326,20 +326,20 @@ proposal <- function(n, mu1, mu2, Sd) {
 #'
 #' A function that simulates and collects all observed and unobserved data
 #'
-#' @param n_true 					The underlying population size
-#' @param sigma_true			The underlying sigma value of the data
-#' @param K_true					The true number of sources
-#' @param n_traps					The number of traps to be used
-#' @param trap_spacing		Set to either "uniform", "random", or "cluster" describes the trap configuration
-#' @param trapExtent			When trap_spacing is clustered, this describes the distance from each trap to the centre of that cluster
-#' @param trap_clusters		When trap_spacing is clustered, this is sets the number of traps within a cluster
-#' @param long_minMax			The longitudinal extent of the data (to be set using this function)
-#' @param lat_minMax			The latitudinal extent of the data (to be set using this function)
-#' @param plotRail				A buffer to be placed around the data when plotting
-#' @param trap_const 			This governs the trap radiu, which is the trap_const multiplied by the true sigma
-#' @param single_count		Set to TRUE or FALSE this governs if a n individual can be caught by multiple traps
-#' @param plotting				Set to TRUE or FALSE should the data want to be plotted
-#' @param bias						Set to 0 or 1, if set to 1 two additional sources will be created, one surrounded by empty traps, and one far away from the traps
+#' @param n_true The underlying population size
+#' @param sigma_true The underlying sigma value of the data
+#' @param K_true The true number of sources
+#' @param n_traps The number of traps to be used
+#' @param trap_spacing Set to either "uniform", "random", or "cluster" describes the trap configuration
+#' @param trapExtent When trap_spacing is clustered, this describes the distance from each trap to the centre of that cluster
+#' @param trap_clusters	When trap_spacing is clustered, this is sets the number of traps within a cluster
+#' @param long_minMax The longitudinal extent of the data (to be set using this function)
+#' @param lat_minMax The latitudinal extent of the data (to be set using this function)
+#' @param plotRail A buffer to be placed around the data when plotting
+#' @param trap_const This governs the trap radiu, which is the trap_const multiplied by the true sigma
+#' @param single_count Set to TRUE or FALSE this governs if a n individual can be caught by multiple traps
+#' @param plotting Set to TRUE or FALSE should the data want to be plotted
+#' @param bias Set to 0 or 1, if set to 1 two additional sources will be created, one surrounded by empty traps, and one far away from the traps
 #'
 #' @export
 #' @examples
@@ -494,21 +494,21 @@ PAsim <- function(n_true = 1000, sigma_true = 2, K_true = 3, n_traps = 64, trap_
   }
 
 #------------------------------------------------
-#' PAsim
+#' PAmcmc
 #'
-#' A function that simulates and collects all observed and unobserved data
+#' Run the Metropolis-Hastings algorithm with Gibbs sampler to fit the source locations, sigma and or population density
 #'
-#' @param trapData				 The main input into the model consisting of trap longitude, latitude and densities
-#' @param burnin					 The MCMC's burn in; the number of iterations before the main sampling begins
-#' @param iterations			 The number of iterations in MCMC, this is on top of the burn in
-#' @param Clusters				 The number of clusters to be searched for
-#' @param trap_rad				 The trap radius defined as some constant times the true sigma value
-#' @param s_prior_shape		 The shape parameter for the prior on the population density
-#' @param s_prior_rate		 The rate parameter for the prior on the population density
-#' @param priorLat				 The prior mean for the source locations (Latitude)
-#' @param priorLon				 The prior mean for the source locations (Longitude)
-#' @param long_minMax			 The longitudinal limits of the data (already defined)
-#' @param lat_minMax			 The latitudinal limits of the data (already defined)
+#' @param trapData The main input into the model consisting of trap longitude, latitude and densities
+#' @param burnin The MCMC's burn in; the number of iterations before the main sampling begins
+#' @param iterations The number of iterations in MCMC, this is on top of the burn in
+#' @param Clusters The number of clusters to be searched for
+#' @param trap_rad The trap radius defined as some constant times the true sigma value
+#' @param s_prior_shape The shape parameter for the prior on the population density
+#' @param s_prior_rate The rate parameter for the prior on the population density
+#' @param priorLat The prior mean for the source locations (Latitude)
+#' @param priorLon The prior mean for the source locations (Longitude)
+#' @param long_minMax The longitudinal limits of the data (already defined)
+#' @param lat_minMax The latitudinal limits of the data (already defined)
 #'
 #' @export
 #' @examples

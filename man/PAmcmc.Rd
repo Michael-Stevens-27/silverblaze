@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainFunctions.R
 \name{PAmcmc}
 \alias{PAmcmc}
-\title{PAsim}
+\title{PAmcmc}
 \usage{
 PAmcmc(trapData, burnin = 100, iterations = 2500, Clusters = 1,
   trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1,
@@ -33,7 +33,7 @@ PAmcmc(trapData, burnin = 100, iterations = 2500, Clusters = 1,
 \item{lat_minMax}{The latitudinal limits of the data (already defined)}
 }
 \description{
-A function that simulates and collects all observed and unobserved data
+Run the Metropolis-Hastings algorithm with Gibbs sampler to fit the source locations, sigma and or population density
 }
 \examples{
 trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
