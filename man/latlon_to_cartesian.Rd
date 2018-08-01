@@ -21,5 +21,6 @@ Convert from latitude/longitude to cartesian co-ordinates
 \examples{
 centre_latLon <- c(0,1)
 data_latLon <- c(0,1)
-latlon_to_cartesian(centre_lat = centre_latLon[1], centre_lon = centre_latLon[2], data_lat = data_latLon[1], data_lon = data_latLon[2])
+latlon_to_cartesian(centre_lat = centre_latLon[1], centre_lon = centre_latLon[2],
+data_lat = data_latLon[1], data_lon = data_latLon[2])
 }

@@ -21,5 +21,6 @@ Calculate distance between latitude/longitude points
 \examples{
 origin_latLon <- c(0,0)
 dest_latLon <- c(1,1)
-latlon_to_bearing(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], dest_lat = dest_latLon[1], dest_lon = dest_latLon[2])
+latlon_to_bearing(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2],
+dest_lat = dest_latLon[1], dest_lon = dest_latLon[2])
 }

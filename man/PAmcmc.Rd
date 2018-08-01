@@ -37,5 +37,7 @@ A function that simulates and collects all observed and unobserved data
 }
 \examples{
 trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
-PAmcmc(trapData = trap_sim, burnin = 100, iterations = 25e2, Clusters = 1, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, priorLat = mean(trap_sim[,2]), priorLon = mean(trap_sim[,1]), long_minMax = c(min(trap_sim[,1]),max(trap_sim[,1])), lat_minMax = c(min(trap_sim[,2]),max(trap_sim[,2])))
+PAmcmc(trapData = trap_sim, burnin = 100, iterations = 25e2, Clusters = 1, trap_rad = 1,
+s_prior_shape = 1, s_prior_rate = 1, priorLat = mean(trap_sim[,2]), priorLon = mean(trap_sim[,1]),
+long_minMax = c(min(trap_sim[,1]),max(trap_sim[,1])), lat_minMax = c(min(trap_sim[,2]),max(trap_sim[,2])))
 }

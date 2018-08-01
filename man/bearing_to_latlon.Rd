@@ -22,5 +22,6 @@ Calculate destination lat/lon given an origin, a bearing and a greater circle di
 origin_latLon <- c(0,0)
 some_bearing <- 50
 some_gc_dist <- 27
-bearing_to_latlon(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], bearing = some_bearing, gc_dist = some_gc_dist)
+bearing_to_latlon(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2],
+bearing = some_bearing, gc_dist = some_gc_dist)
 }

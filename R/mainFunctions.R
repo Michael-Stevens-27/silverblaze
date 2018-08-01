@@ -11,21 +11,6 @@
 NULL
 
 #------------------------------------------------
-#' Dummy function
-#'
-#' This is a dummy function
-#'
-#' @param x Some parameter
-#'
-#' @export
-#' @examples
-#' dummy1()
-
-dummy1 <- function() {
-	print("dummy1")
-}
-
-#------------------------------------------------
 #' latlon_to_cartesian
 #'
 #' Convert from latitude/longitude to cartesian co-ordinates
@@ -39,7 +24,8 @@ dummy1 <- function() {
 #' @examples
 #' centre_latLon <- c(0,1)
 #' data_latLon <- c(0,1)
-#' latlon_to_cartesian(centre_lat = centre_latLon[1], centre_lon = centre_latLon[2], data_lat = data_latLon[1], data_lon = data_latLon[2])
+#' latlon_to_cartesian(centre_lat = centre_latLon[1], centre_lon = centre_latLon[2],
+#' data_lat = data_latLon[1], data_lon = data_latLon[2])
 #  From B. VERITY
 
 latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
@@ -70,7 +56,8 @@ latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
 #' @examples
 #' origin_latLon <- c(0,0)
 #' dest_latLon <- c(1,1)
-#' latlon_to_bearing(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], dest_lat = dest_latLon[1], dest_lon = dest_latLon[2])
+#' latlon_to_bearing(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2],
+#' dest_lat = dest_latLon[1], dest_lon = dest_latLon[2])
 #  From B. VERITY
 
 latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
@@ -110,7 +97,8 @@ latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
 #' origin_latLon <- c(0,0)
 #' some_bearing <- 50
 #' some_gc_dist <- 27
-#' bearing_to_latlon(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2], bearing = some_bearing, gc_dist = some_gc_dist)
+#' bearing_to_latlon(origin_lat = origin_latLon[1], origin_lon = origin_latLon[2],
+#' bearing = some_bearing, gc_dist = some_gc_dist)
 #  From B. VERITY
 
 bearing_to_latlon <- function(origin_lat, origin_lon, bearing, gc_dist) {
@@ -286,7 +274,9 @@ bvnorm <- function(x, y, mu_x, mu_y, Sd, log = T) {
 #' @export
 #' @examples
 #' trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
-#' PAjoint(theta_x = 0, theta_y = 0, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25, priorLat = 0.5, priorLon = 0.5, prior = "sourcePrior", meanSigprior = NULL, propLoc = c(0.1, 0.3), priorSD = 10)
+#' PAjoint(theta_x = 0, theta_y = 0, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25,
+#' priorLat = 0.5, priorLon = 0.5, prior = "sourcePrior"
+#' , meanSigprior = NULL, propLoc = c(0.1, 0.3), priorSD = 10)
 
 PAjoint <- function(theta_x, theta_y, sigma, data, trap_rad, exp_pop, priorLat, priorLon, prior = NULL, meanSigprior, propLoc = NULL, priorSD = NULL) {
   # extract useful parameters
@@ -353,7 +343,9 @@ proposal <- function(n, mu1, mu2, Sd) {
 #'
 #' @export
 #' @examples
-#' PAsim(n_true = 100, sigma_true = 1, K_true = 3, n_traps = 10, trap_spacing = "cluster",trapExtent = 0.5, long_minMax = c(0, 0.1), lat_minMax = c(0, 0.1), plotRail = 0.05, trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 1)
+#' PAsim(n_true = 100, sigma_true = 1, K_true = 3, n_traps = 10, trap_spacing = "cluster",
+#' trapExtent = 0.5, long_minMax = c(0, 0.1), lat_minMax = c(0, 0.1), plotRail = 0.05,
+#' trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 1)
 
 PAsim <- function(n_true = 1000, sigma_true = 2, K_true = 3, n_traps = 64, trap_spacing = "cluster", trapExtent = 3, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), plotRail = 0.05, trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 0)
   {
@@ -521,7 +513,9 @@ PAsim <- function(n_true = 1000, sigma_true = 2, K_true = 3, n_traps = 64, trap_
 #' @export
 #' @examples
 #' trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
-#' PAmcmc(trapData = trap_sim, burnin = 100, iterations = 25e2, Clusters = 1, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, priorLat = mean(trap_sim[,2]), priorLon = mean(trap_sim[,1]), long_minMax = c(min(trap_sim[,1]),max(trap_sim[,1])), lat_minMax = c(min(trap_sim[,2]),max(trap_sim[,2])))
+#' PAmcmc(trapData = trap_sim, burnin = 100, iterations = 25e2, Clusters = 1, trap_rad = 1,
+#' s_prior_shape = 1, s_prior_rate = 1, priorLat = mean(trap_sim[,2]), priorLon = mean(trap_sim[,1]),
+#' long_minMax = c(min(trap_sim[,1]),max(trap_sim[,1])), lat_minMax = c(min(trap_sim[,2]),max(trap_sim[,2])))
 
 PAmcmc <- function(trapData, burnin = 100, iterations = 25e2, Clusters = 1, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, priorLat = NULL, priorLon = NULL, long_minMax = NULL, lat_minMax = NULL)
   {
@@ -638,60 +632,6 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 25e2, Clusters = 1, trap
 # # # library(silverblaze)
 # # # rm(list = ls()) #remove all objects
 
-# # --------------------------------------------------------------------------------------------------------------------------------
-# # set.seed(1)
-# # ---------------------------------------
-# # Diagnostics code
-# # ---------------------------------------
-# par(mfrow = c(1,2))
-# sim_number <- 20
-# TR_seq <- seq(0.2, 1, 0.05)
-# diagnosticsData <- matrix(NA, nrow = sim_number*length(TR_seq), ncol = 5)
-# colnames(diagnosticsData) <- c("Population", "Estimated_Population", "True_Sigma", "Estimated_Sigma", "Constant")
-#
-# true_pop.sim  <- 100
-# # true_pop.sim <- sample(50:100, 1) # randomly draw true population
-# sigma_true.sim <- 10  # randomly draw true sigma
-# # sigma_true.sim <- 1             # fix the true sigma value
-# K_true.sim <- 2  # randomly draw a number of sources
-# traps.sim <- 36
-# # traps.sim <- sample(20:100, 1)    # randomly draw a number of traps
-# search_cluster.sim <- K_true.sim           # Search for this number of clusters (Presence Absence)
-# MCMC_burn <- 1e3
-# MCMC_iterations <- 5e3
-#
-# lat_minMax.sim <- c(0,1) # Set spatial extent to london
-# long_minMax.sim <- c(0,1) # set spatial extent to london
-#
-# # set up sim params
-#
-# for(i in 1:length(TR_seq))
-# {
-#   for(j in 1:sim_number)
-#   {
-#     trap_rad_constant <- TR_seq[i]  # Set the constant, multiplied with sigma to obtain trap radius
-#     # sim data given these values
-#     sim <- PAsim(n_true = true_pop.sim, trap_const = trap_rad_constant, plotting = F, sigma_true = sigma_true.sim, plotRail = 0.1, K_true = K_true.sim, lat_minMax = lat_minMax.sim, long_minMax = long_minMax.sim,
-#                  n_traps = traps.sim, single_count = T, trap_spacing = "uniform", bias = 0)  #, trap_clusters = 4)
-#
-#     # Define a prior on sigma
-#     # priorSigma_mean <- 0.5*mean(pairwise_distance(sim$hit_data)$distance_min, na.rm = TRUE)
-#
-#     ### Run the presence absence with the fitted sigma and number of clusters from the DPM
-#     pa <- PAmcmc(modelSigma = sigma_true.sim, sentinel_data = sim, burnin = MCMC_burn, iterations = MCMC_iterations, Clusters = K_true.sim, prop_const = 3, trap_rad = trap_rad_constant*sigma_true.sim, s_prior_shape = 0.1, s_prior_rate = 0.001, chains = 2)
-#
-#     est <- hist(pa$pop_densities, 200)
-#     est <- mean(est$breaks[which(est$counts == max(est$counts))])
-#     est2 <- hist(pa$joint_sig, 200)
-#     est2 <- mean(est2$breaks[which(est2$counts == max(est2$counts))])
-#     diagnosticsData[sim_number*(i - 1) + j  , 1] <- sim$n_obs
-#     diagnosticsData[sim_number*(i - 1) + j  , 2] <- est
-#     diagnosticsData[sim_number*(i - 1) + j  , 3] <- sigma_true.sim
-#     diagnosticsData[sim_number*(i - 1) + j  , 4] <- est2
-#     diagnosticsData[sim_number*(i - 1) + j  , 5] <- TR_seq[i]
-#     }
-#     print(TR_seq[i])
-#     }
-# df <- as.data.frame(diagnosticsData)
-# df$Constant <- as.factor(df$Constant)
-# save(df, file = "diagnostics_Data.Rdata")
+# pack <- "silverblaze"
+# path <- find.package(pack)
+# system(paste(shQuote(file.path(R.home("bin"), "R")), "CMD", "Rd2pdf", shQuote(path)))

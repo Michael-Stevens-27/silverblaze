@@ -38,5 +38,7 @@ Calculate the logged joint probability of observing the data. This acts as the p
 }
 \examples{
 trap_sim <- cbind(runif(10), runif(10), sample(0:5, 10, replace = T))
-PAjoint(theta_x = 0, theta_y = 0, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25, priorLat = 0.5, priorLon = 0.5, prior = "sourcePrior", meanSigprior = NULL, propLoc = c(0.1, 0.3), priorSD = 10)
+PAjoint(theta_x = 0, theta_y = 0, sigma = 10, data = trap_sim, trap_rad = 2, exp_pop = 25,
+priorLat = 0.5, priorLon = 0.5, prior = "sourcePrior"
+, meanSigprior = NULL, propLoc = c(0.1, 0.3), priorSD = 10)
 }
