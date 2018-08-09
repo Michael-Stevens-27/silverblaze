@@ -9,7 +9,6 @@ Description: Implementing absence data into the geographic profiling model.
 License: GPL (>= 2)
 Imports:
     Rcpp (>= 0.12.14),
-    fftw3,
     fftwtools
 LinkingTo: Rcpp
 SystemRequirements:

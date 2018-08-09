@@ -1,5 +1,12 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
+r: bioc-devel
+addons:
+  apt:
+    packages:
+      - libfftw3-3
+      - libfftw3-dev
+      - libtiff5-dev
 sudo: false
 cache: packages

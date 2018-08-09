@@ -9,7 +9,6 @@
 # NAMESPACE file.
 
 #' @import fftwtools
-#' @import fftw3
 #' @useDynLib silverblaze
 #' @importFrom Rcpp evalCpp
 #' @import graphics
