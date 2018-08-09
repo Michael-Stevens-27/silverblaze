@@ -16,6 +16,7 @@
 #' @import utils
 NULL
 
+
 #-------------------------------------------------------------------
 #' @title PAjoint
 #'
@@ -48,17 +49,17 @@ NULL
 #' , meanSigprior = NULL, priorSD = 10)
 
 PAjoint <- function(theta_x, theta_y, sigma, data, trap_rad, exp_pop, priorLat, priorLon, prior = "None", meanSigprior, priorSD) {
-  
+
   # extract useful parameters
   K <- length(theta_x)  # K clusters
   n <- nrow(data)       # n traps
-  
+
 	# sum poisson params across sources with EQUAL waitings dictated by log(K)
 	heights <- mapply(function(x, y) {
 	    bvnorm(data[,1], data[,2], x, y, sd = sigma, log = TRUE)
 	  }, x = theta_x, y = theta_y)
 	z <- log(pi) + 2*log(trap_rad) + apply(heights, 1, logSum) - log(K)
-  
+
 	# log-likelihood
   log_lambda <- log(exp_pop) + z
   likeli_val  <- sum( data[,3]*log_lambda - exp(log_lambda) - lfactorial(data[,3]) )
@@ -70,7 +71,7 @@ PAjoint <- function(theta_x, theta_y, sigma, data, trap_rad, exp_pop, priorLat, 
     prior_val <- 0
 	}
   posterior_val <- prior_val + likeli_val
-  
+
   # return list
   return(list(posterior_val = posterior_val, z = z))
 }
@@ -99,20 +100,20 @@ proposal <- function(n, mu1, mu2, sd) {
 #------------------------------------------------
 #' @title PAmcmc
 #'
-#' @description Run the Metropolis-Hastings algorithm with Gibbs sampler to fit 
+#' @description Run the Metropolis-Hastings algorithm with Gibbs sampler to fit
 #'   the source locations, sigma and or population density
 #'
 #' @param trapData The main input into the model, consisting of a matrix or data
 #'   frame with three columns: trap longitude, latitude and counts
-#' @param burnin The MCMC's burn in; the number of iterations before the main 
+#' @param burnin The MCMC's burn in; the number of iterations before the main
 #'   sampling begins
-#' @param iterations The number of iterations in MCMC, this is on top of the 
+#' @param iterations The number of iterations in MCMC, this is on top of the
 #'   burn in
 #' @param clusters The number of clusters to be searched for
 #' @param trap_rad The trap radius in km
-#' @param s_prior_shape The shape parameter for the prior on the population 
+#' @param s_prior_shape The shape parameter for the prior on the population
 #'   density
-#' @param s_prior_rate The rate parameter for the prior on the population 
+#' @param s_prior_rate The rate parameter for the prior on the population
 #'   density
 #' @param priorLon The prior mean for the source locations (Longitude)
 #' @param priorLat The prior mean for the source locations (Latitude). Uses mean
@@ -129,48 +130,48 @@ proposal <- function(n, mu1, mu2, sd) {
 #' s_prior_shape = 1, s_prior_rate = 1)
 
 PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_rad = 1, s_prior_shape = 1, s_prior_rate = 1, priorLon = mean(trapData[,1]), priorLat = mean(trapData[,2]), lon_minMax = range(trapData[,1]), lat_minMax = range(trapData[,2]), produce_surface = TRUE) {
-  
+
   # start timer
   start <- Sys.time()
-  
+
   # process data
   trapData <- as.matrix(trapData)
   trap_density <- sum(trapData[,3])
   hit_data <- subset(trapData, trapData[,3]>0)
-  
+
   # define sigma prior mean based on minimum distance between points
   d <- dist_gc(hit_data[,1:2])
   diag(d) <- NA
   d[d==0] <- NA
   distance_min <- apply(d, 1, min, na.rm = TRUE)
   sigma_prior_mean <- 0.5*mean(distance_min, na.rm = TRUE)
-  
+
   # get diagonal distance from corner to corner of domain
   areaKm <- latlon_to_bearing(origin_lat = lat_minMax[1], origin_lon = lon_minMax[1], dest_lat = lat_minMax[2], dest_lon = lon_minMax[2])$gc_dist
-  
+
   # define MCMC parameters
 	# Robbins-Monro Step Constant
   RMcM <- 5
   RMcS <- 5.579
-  
+
 	# initial proposal standard deviations
   propSD_mu <- rep(1, clusters) #rep(areaKm, clusters)  # TODO - swap back
   propSD_sig <- 1 #10*areaKm  # TODO - swap back
-  
+
 	### propose starting values
   # source locations
 	old_theta <- proposal(clusters, mu1 = 0, mu2 = 0, sd = 2*areaKm)
   colnames(old_theta) <- c("Long", "Lat")
-  
+
   # sigma
   old_sigma <- 2 #abs(rnorm(1, mean = sigma_prior_mean, sd = propSD_sig)) # TODO - swap back
-  
+
 	# population density
 	new_pop_den <- 1 #rgamma(1, shape = s_prior_shape, rate = s_prior_rate)  # TODO - swap back
-  
+
 	# calculate intial joint probability
   old_posterior <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den, priorLat = priorLat, priorLon = priorLon, prior = "sourcePrior", meanSigprior = sigma_prior_mean, priorSD = areaKm)
-  
+
   ### create objects for storing results
   joint_lat <- joint_lon <- matrix(NA, ncol = clusters, nrow = iterations)
   joint_sig <- rep(NA, iterations)
@@ -179,25 +180,25 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_
   a_r_rate_sig <- rep(0, iterations)
   propSD_mu_vals <- matrix(NA, ncol = clusters, nrow = iterations)
   propSD_sig_vals <- rep(NA, iterations)
-  
+
   # run MCMC
   for (i in 1:iterations) {
-    
+
     # report current iteration
     if ((i %% 500)==0) {
       cat(paste("  iteration:", i, "\n"))
     }
-    
+
     # loop through clusters
     for (j in 1:clusters) {
-      
+
       # propose new theta, accept or reject. proposal() returns two values, a Lon and Lat
       new_theta <- old_theta
       new_theta[j,] <- proposal(1, mu1 = old_theta[j,1], mu2 = old_theta[j,2], sd = propSD_mu[j])
-      
+
       # calculate new joint probability
       new_posterior <- PAjoint(theta_x = new_theta[,1], theta_y = new_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den, priorLat = priorLat, priorLon = priorLon, prior = "sourcePrior", meanSigprior = sigma_prior_mean, priorSD = areaKm)
-      
+
       # Metropolis-Hastings step
       ratio <- new_posterior$posterior_val - old_posterior$posterior_val
       if (log(runif(1)) < ratio) {
@@ -207,21 +208,21 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_
       }
       if (i <= burnin) {
         theta_shift <- ((RMcM*0.766)^a_r_rate_theta[i,j])*(-RMcM*0.234)^(1 - a_r_rate_theta[i,j])/sqrt(i)
-        
+
         # Robbins Monro step for source location proposal
         propSD_mu[j] <- propSD_mu[j] + theta_shift
         propSD_mu[j] <- max(1e-6, propSD_mu[j])
       }
-      
+
     }  # end loop over clusters
-    
+
     if (FALSE) {  # TODO - remove
     # propose new sigma, accept or reject
     new_sigma <- abs(rnorm(1, mean = old_sigma, sd = propSD_sig))
-    
+
     # calculate new joint probability
     new_posterior <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = new_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den, priorLat = priorLat, priorLon = priorLon, prior = "sigPrior", meanSigprior = sigma_prior_mean, priorSD = areaKm)
-    
+
     # Metropolis-Hastings step
     ratio <- new_posterior$posterior_val - old_posterior$posterior_val
     if (log(runif(1)) < ratio) {
@@ -235,11 +236,11 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_
       propSD_sig <- max(1e-6, propSD_sig)
     }
     }  # end temporary FALSE statement
-    
+
     #update s by Gibbs sampling
     #new_z <- PAjoint(theta_x = old_theta[,1], theta_y = old_theta[,2], sigma = old_sigma, data = trapData, trap_rad = trap_rad, exp_pop = new_pop_den, priorLat = priorLat, priorLon = priorLon, prior = "None", meanSigprior = sigma_prior_mean)$z
     #new_pop_den <- rgamma(1, shape = s_prior_shape + trap_density, rate = s_prior_rate + exp(logSum(new_z)))
-    
+
     # store values of this iteration
     joint_lon[i,] <- old_theta[,1]
     joint_lat[i,] <- old_theta[,2]
@@ -248,13 +249,13 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_
     propSD_mu_vals[i,] <- propSD_mu
     propSD_sig_vals[i] <- propSD_sig
   }
-  
+
   # trim burn-in
   lon_draws_burnin <- joint_lon[1:burnin,]
   lat_draws_burnin <- joint_lat[1:burnin,]
   lon_draws_samples <- joint_lon[-(1:burnin),]
   lat_draws_samples <- joint_lat[-(1:burnin),]
-  
+
   # produce smooth surface using geoSmooth()
   rawSurface <- lon_seq <- lat_seq <- NULL
   if (produce_surface) {
@@ -263,12 +264,12 @@ PAmcmc <- function(trapData, burnin = 100, iterations = 1e3, clusters = 1, trap_
     rawSurface <- geoSmooth(lon_draws_samples, lat_draws_samples, breaks_lon = lon_seq, breaks_lat = lat_seq, lambda = NULL)
     cat("\n")
   }
-  
+
   # end timer
   end <- Sys.time()
   time_elapsed <- end - start
   print(time_elapsed)
-  
+
   # return as list
   ret <- list(lon_draws_burnin = lon_draws_burnin,
               lat_draws_burnin = lat_draws_burnin,
