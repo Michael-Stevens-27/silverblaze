@@ -24,5 +24,5 @@ Extract the log density on the bivariate normal at (x, y)
   centred at (mu_x, mu_y)
 }
 \examples{
-bvnorm(x = 1, y = 1, mu_x = 0, mu_y = 0, Sd = 10)
+bvnorm(x = 1, y = 1, mu_x = 0, mu_y = 0, sd = 10)
 }

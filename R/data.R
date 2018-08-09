@@ -32,7 +32,7 @@
 #' @examples
 #' PAsim(n_true = 100, sigma_true = 1, K_true = 3, n_traps = 10, trap_spacing = "cluster",
 #' trap_extent = 0.5, long_minMax = c(0, 0.1), lat_minMax = c(0, 0.1), plotRail = 0.05,
-#' trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 1)
+#' trap_const = 0.5, trap_clusters = 4, single_count = TRUE, plotting = TRUE, bias = 1)
 
 PAsim <- function(n_true = 1000, sigma_true = 2, K_true = 3, n_traps = 64, trap_spacing = "cluster", trap_extent = 3, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), plotRail = 0.05, trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 0) {
   

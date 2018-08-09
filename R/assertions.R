@@ -102,7 +102,7 @@ assert_scalar_pos_int <- function(x, zero_allowed = TRUE, name = deparse(substit
 }
 
 #------------------------------------------------
-# equals (any type)
+# x and y are equal (accepts any type)
 assert_eq <- function(x, y, name = deparse(substitute(x))) {
   if (!isTRUE(all.equal(x,y))) {
     stop(sprintf("%s must equal %s", name, y), call. = FALSE)
@@ -251,14 +251,4 @@ assert_dataframe <- function(x, name = deparse(substitute(x))) {
   }
   return(TRUE)
 }
-
-#------------------------------------------------
-# is class cluster
-assert_cluster <- function(x, name = deparse(substitute(x))) {
-  if (!is.cluster(x)) {
-    stop(sprintf("%s must be of class 'cluster'", name), call. = FALSE)
-  }
-  return(TRUE)
-}
-
 

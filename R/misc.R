@@ -248,7 +248,7 @@ logSum <- function(logx) {
 #'
 #' @export
 #' @examples
-#' bvnorm(x = 1, y = 1, mu_x = 0, mu_y = 0, Sd = 10)
+#' bvnorm(x = 1, y = 1, mu_x = 0, mu_y = 0, sd = 10)
 
 bvnorm <- function(x, y, mu_x, mu_y, sd, log = TRUE) {
   dnorm(latlon_to_bearing(y, x, y, mu_x)$gc_dist, mean = 0, sd = sd, log = log) + dnorm(latlon_to_bearing(y, mu_x, mu_y, mu_x)$gc_dist, mean = 0, sd = sd, log = log)

@@ -53,5 +53,5 @@ A function that simulates all observed and unobserved data from
 \examples{
 PAsim(n_true = 100, sigma_true = 1, K_true = 3, n_traps = 10, trap_spacing = "cluster",
 trap_extent = 0.5, long_minMax = c(0, 0.1), lat_minMax = c(0, 0.1), plotRail = 0.05,
-trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 1)
+trap_const = 0.5, trap_clusters = 4, single_count = TRUE, plotting = TRUE, bias = 1)
 }
