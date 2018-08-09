@@ -12,7 +12,8 @@
 # specific files and folders #
 ##############################
 ignore/
-^.*\.Rproj$
-^\.Rproj\.user$
+*.Rhistory
+*.Rproj*
+*.Rapp.history
+R/.Rd*
 .Rproj.user
-pkgname.Rproj
