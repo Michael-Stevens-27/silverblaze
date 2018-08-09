@@ -1,7 +1,7 @@
 Package: silverblaze
 Type: Package
 Title: Geographic profiling with presence and absence data
-Version: 1.0
+Version: 0.0.0
 Date: 2018-03-29
 Author: Michael Stevens
 Maintainer: Michael Stevens <M.Stevens@qmul.ac.uk>
