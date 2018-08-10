@@ -6,7 +6,7 @@
 #----------------------------------------------------------------#
 
 # The following commands ensure that package dependencies are listed in the
-# NAMESPACE file.
+# NAMESPACE file
 
 #' @import fftwtools
 #' @useDynLib silverblaze
@@ -15,7 +15,6 @@
 #' @import stats
 #' @import utils
 NULL
-
 
 #-------------------------------------------------------------------
 #' @title PAjoint
