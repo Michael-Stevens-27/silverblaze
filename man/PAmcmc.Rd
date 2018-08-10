@@ -14,20 +14,20 @@ PAmcmc(trapData, burnin = 100, iterations = 1000, clusters = 1,
 \item{trapData}{The main input into the model, consisting of a matrix or data
 frame with three columns: trap longitude, latitude and counts}
 
-\item{burnin}{The MCMC's burn in; the number of iterations before the main 
+\item{burnin}{The MCMC's burn in; the number of iterations before the main
 sampling begins}
 
-\item{iterations}{The number of iterations in MCMC, this is on top of the 
+\item{iterations}{The number of iterations in MCMC, this is on top of the
 burn in}
 
 \item{clusters}{The number of clusters to be searched for}
 
 \item{trap_rad}{The trap radius in km}
 
-\item{s_prior_shape}{The shape parameter for the prior on the population 
+\item{s_prior_shape}{The shape parameter for the prior on the population
 density}
 
-\item{s_prior_rate}{The rate parameter for the prior on the population 
+\item{s_prior_rate}{The rate parameter for the prior on the population
 density}
 
 \item{priorLon}{The prior mean for the source locations (Longitude)}
@@ -43,7 +43,7 @@ of data by default.}
 draws}
 }
 \description{
-Run the Metropolis-Hastings algorithm with Gibbs sampler to fit 
+Run the Metropolis-Hastings algorithm with Gibbs sampler to fit
   the source locations, sigma and or population density
 }
 \examples{
