@@ -5,19 +5,32 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _silverblaze_rcpp_hello_world() {
+// run_mcmc_cpp
+Rcpp::List run_mcmc_cpp(Rcpp::List args);
+RcppExport SEXP _silverblaze_run_mcmc_cpp(SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(run_mcmc_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// call_hungarian_cpp
+Rcpp::List call_hungarian_cpp(Rcpp::List args);
+RcppExport SEXP _silverblaze_call_hungarian_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(call_hungarian_cpp(args));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_silverblaze_rcpp_hello_world", (DL_FUNC) &_silverblaze_rcpp_hello_world, 0},
+    {"_silverblaze_run_mcmc_cpp", (DL_FUNC) &_silverblaze_run_mcmc_cpp, 1},
+    {"_silverblaze_call_hungarian_cpp", (DL_FUNC) &_silverblaze_call_hungarian_cpp, 1},
     {NULL, NULL, 0}
 };
 

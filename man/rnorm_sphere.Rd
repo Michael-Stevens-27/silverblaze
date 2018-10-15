@@ -2,29 +2,25 @@
 % Please edit documentation in R/misc.R
 \name{rnorm_sphere}
 \alias{rnorm_sphere}
-\title{rnorm_sphere}
+\title{Draw from spherical normal distribution}
 \usage{
-rnorm_sphere(n, centre_lat, centre_lon, sigma)
+rnorm_sphere(n, centre_lon, centre_lat, sigma = 1)
 }
 \arguments{
 \item{n}{The number of points to draw}
 
-\item{centre_lat}{The mean latitude of the normal being drawn from}
+\item{centre_lon}{The mean longitude of the normal distribution}
 
-\item{centre_lon}{The mean longitude of the normal being drawn from}
+\item{centre_lat}{The mean latitude of the normal distribution}
 
-\item{sigma}{The standard deviation of the normal being drawn from}
+\item{sigma}{The standard deviation of the normal distribution}
 }
 \description{
 Draw from normal distribution converted to spherical coordinate
   system. Points are first drawn from an ordinary cartesian 2D normal
   distribution. The distances to points are then assumed to be great circle
   distances, and are combined with a random bearing from the point
-  {centre_lat, centre_lon} to produce a final set of lat/lon points. Note
-  that this is not a truly spherical normal distribution, as the domain of
-  the distribution is not the sphere - rather it is a transformation from one
-  coordinate system to another that is satisfactory when the curvature of the
-  sphere is not severe.
+  {centre_lat, centre_lon} to produce a final set of lat/lon points.
 }
 \examples{
 rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)

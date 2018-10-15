@@ -2,18 +2,16 @@
 % Please edit documentation in R/misc.R
 \name{dist_gc}
 \alias{dist_gc}
-\title{Pairwise Great-Circle Distance}
+\title{Calculate pairwise great circle distance between points}
 \usage{
-dist_gc(points)
+dist_gc(x)
 }
 \arguments{
-\item{points}{a matrix with two columns specifying latitude and longitude}
+\item{x}{a two-column matrix or dataframe with longitude in the first column
+and latitude in the second}
 }
 \description{
-Analogue of \code{dist()} function, but returning great-circle
-  distances.
-}
-\examples{
-some_points <- cbind(1:10, 1:10)
-dist_gc(some_points)
+Analogue of the \code{dist()} function, but calculating great
+  circle distances. Points should be input as a two-column matrix or
+  dataframe with longitude in the first column and latitude in the second.
 }

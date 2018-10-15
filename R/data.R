@@ -1,225 +1,133 @@
 
 #------------------------------------------------
-#' @title PAsim
+#' @title Simulate data
 #'
-#' @description A function that simulates all observed and unobserved data from 
-#'   the presence-absence model.
+#' @description Simulate data from the same presence-absence model used in the
+#'   inference step.
 #'
-#' @param n_true The underlying population size
-#' @param sigma_true The underlying sigma value of the data
-#' @param K_true The true number of sources
-#' @param n_traps The number of traps to be used
-#' @param trap_spacing Set to either "uniform", "random", or "cluster" describes
-#'   the trap configuration
-#' @param trap_extent When trap_spacing is clustered, this describes the distance
-#'   from each trap to the centre of that cluster
-#' @param trap_clusters	When trap_spacing is clustered, this is sets the number
-#'   of traps within a cluster
-#' @param long_minMax The longitudinal extent of the data (to be set using this
-#'   function)
-#' @param lat_minMax The latitudinal extent of the data (to be set using this
-#'   function)
-#' @param plotRail A buffer to be placed around the data when plotting
-#' @param trap_const This governs the trap radius, which is the trap_const
-#'   multiplied by the true sigma
-#' @param single_count Set to TRUE or FALSE this governs if a n individual can
-#'   be caught by multiple traps
-#' @param plotting Set to TRUE or FALSE should the data want to be plotted
-#' @param bias Set to 0 or 1, if set to 1 two additional sources will be
-#'   created, one surrounded by empty traps, and one far away from the traps
+#' @param sentinel_lon vector giving longitudes of sentinel sites
+#' @param sentinel_lat vector giving latitudes of sentinel sites
+#' @param sentinel_radius observation radius of the sentinel site (km)
+#' @param K the number of sources
+#' @param source_lon_min minimum limit on source longitudes
+#' @param source_lon_max maximum limit on source longitudes
+#' @param source_lat_min minimum limit on source latitudes
+#' @param source_lat_max maximum limit on source latitudes
+#' @param sigma_model set as "single" to use the same dispersal distance for all
+#'   sources, or "separate" to use an independently drawn dispersal distance for
+#'   each source
+#' @param sigma_mean the prior mean of the parameter sigma (km)
+#' @param sigma_var the prior variance of the parameter sigma (km). Set to zero 
+#'   to use a fixed distance
+#' @param expected_popsize the expected total number of observations (observed
+#'   and unobserved) in the study area
 #'
 #' @export
 #' @examples
-#' PAsim(n_true = 100, sigma_true = 1, K_true = 3, n_traps = 10, trap_spacing = "cluster",
-#' trap_extent = 0.5, long_minMax = c(0, 0.1), lat_minMax = c(0, 0.1), plotRail = 0.05,
-#' trap_const = 0.5, trap_clusters = 4, single_count = TRUE, plotting = TRUE, bias = 1)
+#' # TODO
 
-PAsim <- function(n_true = 1000, sigma_true = 2, K_true = 3, n_traps = 64, trap_spacing = "cluster", trap_extent = 3, long_minMax = c(0, 0.5), lat_minMax = c(0, 0.5), plotRail = 0.05, trap_const = 0.5, trap_clusters = 4, single_count = T, plotting = T, bias = 0) {
+sim_data <- function(sentinel_lon,
+                     sentinel_lat,
+                     sentinel_radius = 0.1,
+                     K = 3,
+                     source_lon_min = -0.2,
+                     source_lon_max = 0.0,
+                     source_lat_min = 51.45,
+                     source_lat_max = 51.55,
+                     sigma_model = "single",
+                     sigma_mean = 1.0,
+                     sigma_var = 0.1,
+                     expected_popsize = 100) {
   
-  # define search/area to generate data within
-	total_area <- 1
-  trap_rad_true <- trap_const*sigma_true
+  # check inputs
+  assert_numeric(sentinel_lon)
+  assert_numeric(sentinel_lat)
+  assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+  assert_single_numeric(source_lon_min)
+  assert_single_numeric(source_lon_max)
+  assert_single_numeric(source_lat_min)
+  assert_single_numeric(source_lat_max)
+  assert_same_length(sentinel_lon, sentinel_lat)
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  assert_single_pos(sigma_mean, zero_allowed = FALSE)
+  assert_single_pos(sigma_var, zero_allowed = TRUE)
+  assert_single_string(sigma_model)
+  assert_in(sigma_model, c("single", "independent"))
+  assert_single_pos(expected_popsize, zero_allowed = FALSE)
   
-  # cataegorise sources in real, fake or unseen
-  sTyp <- rep("Real", K_true + 2*bias)
+  # draw source locations from prior
+  source_lon <- runif(K, source_lon_min, source_lon_max)
+  source_lat <- runif(K, source_lat_min, source_lat_max)
   
-	# Draw source locations from a uniform prior (i.e randomly) with or without bias
-  if (bias == 1) {
-    source_lat <- runif(K_true, lat_minMax[1], lat_minMax[1] + 0.5*(lat_minMax[2] - lat_minMax[1]) )
-    source_long <- runif(K_true, long_minMax[1], long_minMax[1] + 0.5*(long_minMax[2] - long_minMax[1] ) )
-    
-    # create a source within traps that has no individuals associated with it
-    fakeSlong <- runif(1, long_minMax[1] + 0.99*(long_minMax[2] - long_minMax[1]), long_minMax[2])
-    fakeSlat <- runif(1, lat_minMax[1], lat_minMax[1] + 0.25*(lat_minMax[2] - lat_minMax[1]))
-    
-    # create a source outside of traps that has individuals associated with it
-    source_lat <- c(source_lat, runif(1, lat_minMax[1] + 0.9*(lat_minMax[2] - lat_minMax[1]), lat_minMax[2]), fakeSlat)
-    source_long <- c(source_long, runif(1, long_minMax[1], long_minMax[2] - 0.5*(long_minMax[2] - long_minMax[1])), fakeSlong)
-    
-    # Draw number of observations from a Poisson with rate n_true * total_area and allocate to sources
-    n_obs <- rpois(1, n_true*total_area)
-    alloc <- sample(1:(K_true + 1), size = n_obs, replace = TRUE)
-    
-  	# Update the sources type object to include those extra two
-  	sTyp[K_true + 2] <- "Fake"
-    sTyp[K_true + 1] <- "Unseen"
-    
-  } else {
-    
-    # if there is no bias create the objects as normal
-	  source_lat <- runif(K_true, lat_minMax[1], lat_minMax[2])
-    source_long <- runif(K_true, long_minMax[1], long_minMax[2])
-    n_obs <- rpois(1, n_true*total_area)
-    alloc <- sample(1:(K_true), size = n_obs, replace = TRUE)
-  }
+  # draw total number of points
+  N <- rpois(1, expected_popsize)
   
-	source_loc <- data.frame(source_long = source_long, source_lat = source_lat, sTyp = sTyp)
-	
-	# create an object to state individuals per sources
-	perSource <-  mapply(function(x){length(which(x == alloc))}, x = 1:(K_true + bias))
-	
-	if (bias ==  1) {
-  	# include the number of individuals associated with the fake source, zero.
-  	perSource <-  c(perSource, 0)
-	}
+  # draw true allocation of all points to sources
+  group <- sort(sample(K, N, replace = TRUE))
+  source_N <- tabulate(group)
   
-  # Draw individuals' locations from a bivariate norm with standard deviation sigma_true NEEDS EDITING
-  indiv_long <- unlist(mapply(rnorm_sphere, n = perSource, centre_lat = source_lat, centre_lon = source_long, sigma = sigma_true)[1,])
-  indiv_lat <- unlist(mapply(rnorm_sphere, n = perSource, centre_lat = source_lat, centre_lon = source_long, sigma = sigma_true)[2,])
-	indiv_loc <- data.frame(longitude = indiv_long, latitude = indiv_lat)
+  # draw sigma
+  varlog <- log(sigma_var/sigma_mean^2 + 1)
+  meanlog <- log(sigma_mean) - varlog/2
+  switch(sigma_model,
+         "single" = {
+           sigma <- rep(rlnorm(1, meanlog, sqrt(varlog)), K)
+         },
+         "independent" = {
+           sigma <- rlnorm(K, meanlog, sqrt(varlog))
+         })
   
-  # set trap spacing to random, uniform, or clustered/uniform (trap_clusters dictates the number of traps in each uniform location)
-  if (trap_spacing == "random") {
-    trap_lat <- runif(n_traps, lat_minMax[1], lat_minMax[2] - (lat_minMax[2]/2 - lat_minMax[1]/2)*bias)
-    trap_lon <- runif(n_traps, long_minMax[1], long_minMax[2])
-    trap_loc <- data.frame(trap_lon = trap_lon, trap_lat = trap_lat)
-
-  } else {
-    trap_lat <- seq(lat_minMax[1], (lat_minMax[1]*(bias) + lat_minMax[2])/(2^bias), (lat_minMax[2]/(2^bias) - lat_minMax[1])/ceiling(sqrt(n_traps)))
-		trap_lon <- seq(long_minMax[1], long_minMax[2], (long_minMax[2] - long_minMax[1])/ceiling(sqrt(n_traps)))
-    trap_loc <- expand.grid(trap_lon, trap_lat)
-  }
-	
-  if (trap_spacing == "cluster") {
-    
-    #same as method for unifrom, but then extend to produce clustered trap structure
-    c_trap <- seq(2*pi/trap_clusters, 2*pi, 2*pi/trap_clusters )
-		polx <- trap_extent*sin(c_trap)
-		poly <- trap_extent*cos(c_trap)
-		trap_lon <- mapply(function(x, y){cartesian_to_latlon(y, x, poly, polx)$longitude}, x = trap_loc[,1], y = trap_loc[,2])
-		trap_lat <- mapply(function(x, y){cartesian_to_latlon(y, x, poly, polx)$latitude}, x = trap_loc[,1], y = trap_loc[,2])
-    trap_loc <- cbind(c(trap_lon), c(trap_lat))
-  }
-	
-	if (length(trap_lat) == 0 ) {
-	  stop("trap_spacing must be set to 'uniform','random' or 'cluster'")
-	}
-	
-	# allocate raw data to traps
-	# rows are individuals, columns are traps, entries are distances between individuals and traps
-  all_dist <- mapply(function(x, y) {
-      latlon_to_bearing(trap_loc[,2], trap_loc[,1], x, y)$gc_dist
-    }, x = indiv_loc$latitude, y = indiv_loc$longitude)
-  all_dist <- t(all_dist) 
-  
-  # concatonate individuals into traps given the distance is within trap radius
-  trapCounts <- colSums(all_dist <= trap_rad_true)
-  
-  # count the number of observed observations
-  is_observed <- rowSums(all_dist <= trap_rad_true) 
-
-  # check there are more than 5 observations overall
-	if (length(which(trapCounts > 0)) < 5) {
-	  stop("Not enough observations, increase sigma_true, n_traps or reduce long_minMax/lat_minMax ")
-	}
-  
-  # allow for single or multiple trappings of the same observation
-	if (single_count == T) {
-	  
-	  # check traps do not already only contain a single observation
-    if (max(is_observed) == 1) {
-      
-    } else if (length(which(is_observed > 1)) > 1) { # check that there is more than one trap with multiple observations
-      TF_count <- all_dist<=trap_rad_true
-      for (G in 1:length(which(is_observed > 1))) {
-          
-        # for each individual observed more than once, pull out the index of traps that observe it
-        anti_index <- which(TF_count[which(is_observed >1)[G],] == T)
-        
-        # remove the closest trap from this index
-        to_remove <- which.min(all_dist[which(is_observed > 1),][G,])
-        anti_index <- anti_index[! anti_index %in% to_remove]
-        
-        # reduce the trap counts of those traps that should not be observing a particular individual
-        trapCounts[anti_index] <- trapCounts[anti_index] - 1
-      }
-      
-    } else { # if there is a single trap with multiple observations, then replace with a single obs
-      single_index <- which.min(all_dist[which(is_observed > 1),])
-      trapCounts[single_index] <- 1
+  # draw points around sources
+  df_all <- NULL
+  for (k in 1:K) {
+    if (source_N[k]>0) {
+      rand_k <- rnorm_sphere(source_N[k], source_lon[k], source_lat[k], sigma[k])
+      df_all <- rbind(df_all, as.data.frame(rand_k))
     }
-	}
+  }
   
-	# make final trap data
-	trap_data <- data.frame(longitude=trap_loc[,1], latitude=trap_loc[,2], count=trapCounts)
-  hit_data <- subset(trap_data, trap_data$count > 0)
-  miss_data <- subset(trap_data, trap_data$count ==0)
+  # get distance between all points and sentinel sites
+  gc_dist <- mapply(function(x, y) {
+    lonlat_to_bearing(x, y, df_all$longitude, df_all$latitude)$gc_dist
+  }, x = sentinel_lon, y = sentinel_lat)
   
-  # record number of hits and miss' within 1, 2 and 3 sd's of sources
-  # rows are sources, columns are hits, entries are distances between sources and hits
-  source_hits_dist <- t(mapply(function(x, y) {
-      latlon_to_bearing(hit_data[,2], hit_data[,1], x, y)$gc_dist
-    }, x = source_loc$source_lat, y = source_loc$source_long))
-  hitsWSD <- cbind(rowSums(source_hits_dist <= sigma_true), rowSums(source_hits_dist <= 2*sigma_true), rowSums(source_hits_dist <= 3*sigma_true))
+  # assign points as observed or unobserved based on distance to sentinel sites
+  counts <- colSums(gc_dist < sentinel_radius)
+  df_observed <- data.frame(longitude = sentinel_lon,
+                            latitude = sentinel_lat,
+                            counts = counts)
   
-  # rows are sources, columns are miss, entries are distances between sources and miss
-  source_miss_dist <- t(mapply(function(x, y) {
-      latlon_to_bearing(miss_data[,2], miss_data[,1], x, y)$gc_dist
-    }, x = source_loc$source_lat, y = source_loc$source_long))
-  missWSD <- cbind(rowSums(source_miss_dist <= sigma_true) , rowSums(source_miss_dist <= 2*sigma_true), rowSums(source_miss_dist <= 3*sigma_true))
+  # add record of whether data point is observed or unobserved to df_all
+  df_all$observed <- rowSums(gc_dist < sentinel_radius)
+  df_all$observed_by <- as.list(apply(gc_dist, 1, function(x) which(x < sentinel_radius)))
   
-	# plot if plotting returns true
-	if (plotting == TRUE) {
-		c_seq <- seq(0, 2*pi, 0.25)
-		datax <- trap_rad_true*sin(c_seq)
-		datay <- trap_rad_true*cos(c_seq)
-		circle_longs <- mapply(function(x, y) {
-		    cartesian_to_latlon(y, x, datay, datax)$longitude
-		  }, x = trap_data$longitude, y = trap_data$latitude)
-		circle_lats <- mapply(function(x, y) {
-		    cartesian_to_latlon(y, x, datay, datax)$latitude
-		  }, x = trap_data$longitude, y = trap_data$latitude)
-    
-		plot(0,0, type = "n", xlim = c(long_minMax[1] - plotRail, long_minMax[2] + plotRail), ylim = c(lat_minMax[1] - plotRail, lat_minMax[2] + plotRail), xlab = "Longitude", ylab = "Latitude")
-		for (i in 1:length(trap_data[,1])) {
-		  polygon(circle_longs[,i], circle_lats[,i])
-		}
-		miss <- subset(trap_data, trap_data$count == 0)
-		hits <- subset(trap_data, trap_data$count > 0)
-		points(hits$longitude, hits$latitude, pch = 20, col = "green", cex = 1) # hits[,3])
-		points(miss$longitude, miss$latitude, pch = 4, col = "red")
-		points(indiv_loc$longitude, indiv_loc$latitude, pch = 18, cex = 0.75)
-		points(source_loc$source_long, source_loc$source_lat, col = "blue", pch = 15, cex = 1.5)
-	}
+  # create true q-matrix as proportion of points belonging to each group per sentinel site
+  true_qmatrix <- t(apply(gc_dist, 2, function(x) {
+    ret <- tabulate(group[x < sentinel_radius], nbins = K)
+    ret <- ret/sum(ret)
+    ret[is.na(ret)] <- NA
+    ret
+  }))
+  class(true_qmatrix) <- "rgeoprofile_qmatrix"
   
-  # return list
-  ret <- list(trap_data = trap_data,
-              source_loc = source_loc,
-              indiv_loc = indiv_loc,
-              n_obs = n_obs,
-              n_true = n_true,
-              sigma_true = sigma_true,
-              hit_data = hit_data,
-              miss_data = miss_data,
-              perSource = perSource,
-              long_minMax = long_minMax,
-              lat_minMax= lat_minMax,
-              trap_spacing = trap_spacing,
-              n_traps = n_traps,
-              trap_rad_true = trap_rad_true,
-              K_true = K_true,
-              plotRail = plotRail,
-              hitsWSD = hitsWSD,
-              missWSD = missWSD)
-	return(ret)
+  # return simulated data and true parameter values
+  ret_data <- df_observed
+  ret_record <- list()
+  
+  ret_record$sentinel_radius <- sentinel_radius
+  ret_record$true_source <- data.frame(longitude = source_lon, latitude = source_lat)
+  ret_record$true_source_N <- source_N
+  ret_record$true_group <- group
+  ret_record$true_sigma <- sigma
+  ret_record$true_qmatrix <- true_qmatrix
+  ret_record$data_all <- df_all
+  
+  ret <- list(data = ret_data,
+              record = ret_record)
+  
+  # make custom class
+  class(ret) <- "rgeoprofile_simdata"
+  
+  return(ret)
 }
+
