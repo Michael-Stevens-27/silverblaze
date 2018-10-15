@@ -1,0 +1,20 @@
+
+title: silverblaze
+template:
+  params:
+    bootswatch: flatly
+    
+navbar:
+  title: "silverblaze"
+  left:
+    - text: "Vignettes"
+      menu:
+        - text: "Installation"
+          href: articles/installation.html
+        - text: "Tutorial 1: basic implementation"
+          href: articles/basic-implementation.html
+    - text: "Functions"
+      href: reference/index.html
+  right:
+   - icon: fa-github
+     href: https://github.com/Michael-Stevens-27/silverblaze

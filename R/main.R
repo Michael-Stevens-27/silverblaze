@@ -35,15 +35,15 @@
 NULL
 
 #------------------------------------------------
-#' @title Check that RgeoProfile package has loaded successfully
+#' @title Check that silverblaze package has loaded successfully
 #'
-#' @description Simple function to check that RgeoProfile package has loaded 
-#'   successfully. Prints "RgeoProfile loaded successfully!" if so.
+#' @description Simple function to check that silverblaze package has loaded 
+#'   successfully. Prints "silverblaze loaded successfully!" if so.
 #'
 #' @export
 
-check_rgeoprofile_loaded <- function() {
-  message("RgeoProfile loaded successfully!")
+check_silverblaze_loaded <- function() {
+  message("silverblaze loaded successfully!")
 }
 
 #------------------------------------------------

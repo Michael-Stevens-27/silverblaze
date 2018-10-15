@@ -1,3 +1,4 @@
+inst/doc
 # Compiled source #
 ###################
 *.o
@@ -8,7 +9,6 @@
 # OS generated files #
 ######################
 .DS_Store
-
 # specific files and folders #
 ##############################
 ignore/
