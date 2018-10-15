@@ -1,0 +1,13 @@
+---
+title: "Tutorial 1: basic implementation"
+author: "Bob Verity"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Tutorial 1: basic implementation"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+(TODO)
