@@ -3,7 +3,7 @@ title: silverblaze
 template:
   params:
     bootswatch: flatly
-    
+
 navbar:
   title: "silverblaze"
   left:
@@ -13,6 +13,14 @@ navbar:
           href: articles/installation.html
         - text: "Tutorial 1: basic implementation"
           href: articles/basic-implementation.html
+        - text: "Tutorial 2: Parameter Sets"
+          href: articles/parameter-sets.html
+        - text: "Tutorial 3: Running the model"
+          href: articles/running-the-model.html
+        - text: "Tutorial 4: Plotting"
+          href: articles/plotting.html
+        - text: "Tutorial 5: Diagnostics"
+          href: articles/diagnostics.html          
     - text: "Functions"
       href: reference/index.html
   right:

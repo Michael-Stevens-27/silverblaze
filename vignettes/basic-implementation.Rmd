@@ -1,13 +1,59 @@
 ---
-title: "Tutorial 1: basic implementation"
-author: "Bob Verity"
+title: "Tutorial 1: Basic Implementation"
+author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 1: basic implementation"}
+  %\VignetteIndexEntry{"Tutorial 1: Basic Implementation"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+## Introduction
 
+The following series of tutorials will introduce the user to the to general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, reffered to in these tutorials as p, that describes the entire project. Hence the tutorials will describe each chunk of this p. These are:  
+
+1. Processing and simulation of data  
+2. Setting the model's parameters  
+3. Running the data  
+
+The final turorials describe plotting and analysing the output from step 3.  
+
+## Creating a blank project
+
+We start by creating a blank project p, that we will slowly add to. Load the silverblaze package  
+```{r, eval = FALSE}
+library(silverblaze)
+```
+and create the empty project using the rgeoprofile_project function.
+```{r, eval = FALSE}
+p <- rgeoprofile_project()
+```
+The first thing to go into this project will be the data.
+
+## Simulating data
+
+The aim of this tutorial is introduce the sim_data function for simulating data acquired by for example, a trap survey. Define the sentinel site locations for the data.
+```{r, eval = FALSE}
+sentinal_lon <- seq(-0.2, 0.0, l=11)
+sentinal_lat <- seq(51.45, 51.55, l=11)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+names(sentinal_grid) <- c("longitude", "latitude")
+```
+Although the configuration of these sentintel sites are in a lattice shape the user can define any list of longitude/latitude locations they would like. Using these locations and underlying parameters values (TODO) we generate our data using the sim_data function.  
+```{r, eval = FALSE}
+sim1 <- sim_data(sentinal_grid$longitude,
+                 sentinal_grid$latitude,
+                 sentinel_radius = 0.5,
+                 K = 3,
+                 sigma_model = "independent",
+                 sigma_mean = 1,
+                 sigma_var = 0.5,
+                 expected_popsize = 300)
+
+```
+The bind_data function then places our freshly simulated data into the project p. 
+```{r, eval = FALSE}
+p <- bind_data(p, sim1$data)
+```
 (TODO)

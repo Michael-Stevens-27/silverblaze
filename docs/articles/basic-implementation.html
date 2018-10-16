@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutorial 1: basic implementation • silverblaze</title>
+<title>Tutorial 1: Basic Implementation • silverblaze</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 1: basic implementation">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 1: Basic Implementation">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -48,6 +48,18 @@
     <li>
       <a href="../articles/basic-implementation.html">Tutorial 1: basic implementation</a>
     </li>
+    <li>
+      <a href="../articles/parameter-sets.html">Tutorial 2: Parameter Sets</a>
+    </li>
+    <li>
+      <a href="../articles/running-the-model.html">Tutorial 3: Running the model</a>
+    </li>
+    <li>
+      <a href="../articles/plotting.html">Tutorial 4: Plotting</a>
+    </li>
+    <li>
+      <a href="../articles/diagnostics.html">Tutorial 5: Diagnostics</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -73,8 +85,8 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Tutorial 1: basic implementation</h1>
-                        <h4 class="author">Bob Verity</h4>
+      <h1>Tutorial 1: Basic Implementation</h1>
+                        <h4 class="author">Michael Stevens</h4>
             
             <h4 class="date">2018-10-16</h4>
       
@@ -85,10 +97,61 @@
 
     
     
+<div id="introduction" class="section level2">
+<h2 class="hasAnchor">
+<a href="#introduction" class="anchor"></a>Introduction</h2>
+<p>The following series of tutorials will introduce the user to the to general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, reffered to in these tutorials as p, that describes the entire project. Hence the tutorials will describe each chunk of this p. These are:</p>
+<ol style="list-style-type: decimal">
+<li>Processing and simulation of data<br>
+</li>
+<li>Setting the model’s parameters<br>
+</li>
+<li>Running the data</li>
+</ol>
+<p>The final turorials describe plotting and analysing the output from step 3.</p>
+</div>
+<div id="creating-a-blank-project" class="section level2">
+<h2 class="hasAnchor">
+<a href="#creating-a-blank-project" class="anchor"></a>Creating a blank project</h2>
+<p>We start by creating a blank project p, that we will slowly add to. Load the silverblaze package</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(silverblaze)</code></pre></div>
+<p>and create the empty project using the rgeoprofile_project function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_project.html">rgeoprofile_project</a></span>()</code></pre></div>
+<p>The first thing to go into this project will be the data.</p>
+</div>
+<div id="simulating-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#simulating-data" class="anchor"></a>Simulating data</h2>
+<p>The aim of this tutorial is introduce the sim_data function for simulating data acquired by for example, a trap survey. Define the sentinel site locations for the data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sentinal_lon &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="fl">0.2</span>, <span class="fl">0.0</span>, <span class="dt">l=</span><span class="dv">11</span>)
+sentinal_lat &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">51.45</span>, <span class="fl">51.55</span>, <span class="dt">l=</span><span class="dv">11</span>)
+sentinal_grid &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(sentinal_lon, sentinal_lat)
+<span class="kw">names</span>(sentinal_grid) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</code></pre></div>
+<p>Although the configuration of these sentintel sites are in a lattice shape the user can define any list of longitude/latitude locations they would like. Using these locations and underlying parameters values (TODO) we generate our data using the sim_data function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(sentinal_grid<span class="op">$</span>longitude,
+                 sentinal_grid<span class="op">$</span>latitude,
+                 <span class="dt">sentinel_radius =</span> <span class="fl">0.5</span>,
+                 <span class="dt">K =</span> <span class="dv">3</span>,
+                 <span class="dt">sigma_model =</span> <span class="st">"independent"</span>,
+                 <span class="dt">sigma_mean =</span> <span class="dv">1</span>,
+                 <span class="dt">sigma_var =</span> <span class="fl">0.5</span>,
+                 <span class="dt">expected_popsize =</span> <span class="dv">300</span>)</code></pre></div>
+<p>The bind_data function then places our freshly simulated data into the project p.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data.html">bind_data</a></span>(p, sim1<span class="op">$</span>data)</code></pre></div>
 <p>(TODO)</p>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#introduction">Introduction</a></li>
+      <li><a href="#creating-a-blank-project">Creating a blank project</a></li>
+      <li><a href="#simulating-data">Simulating data</a></li>
+      </ul>
+</div>
       </div>
 
 </div>
