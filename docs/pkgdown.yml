@@ -3,9 +3,5 @@ pkgdown: 1.1.0
 pkgdown_sha: ~
 articles:
   basic-implementation: basic-implementation.html
-  diagnostics: diagnostics.html
   installation: installation.html
-  parameter-sets: parameter-sets.html
-  plotting: plotting.html
-  running-the-model: running-the-model.html
 

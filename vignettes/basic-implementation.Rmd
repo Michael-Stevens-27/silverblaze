@@ -9,51 +9,165 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Introduction
-
-The following series of tutorials will introduce the user to the to general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, reffered to in these tutorials as p, that describes the entire project. Hence the tutorials will describe each chunk of this p. These are:  
-
-1. Processing and simulation of data  
-2. Setting the model's parameters  
-3. Running the data  
-
-The final turorials describe plotting and analysing the output from step 3.  
-
-## Creating a blank project
-
-We start by creating a blank project p, that we will slowly add to. Load the silverblaze package  
-```{r, eval = FALSE}
+```{r, echo = FALSE}
+set.seed(14)
 library(silverblaze)
 ```
-and create the empty project using the rgeoprofile_project function.
-```{r, eval = FALSE}
-p <- rgeoprofile_project()
-```
-The first thing to go into this project will be the data.
+## Introduction
+
+The following tutorial will introduce the user to the to general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, reffered to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:  
+
+1. The data used to run the model  
+2. The parameter settings for the model  
+3. The output of running the model  
+
+Following this, the user will learn how to plot and diagnose the output of the model.
 
 ## Simulating data
 
-The aim of this tutorial is introduce the sim_data function for simulating data acquired by for example, a trap survey. Define the sentinel site locations for the data.
-```{r, eval = FALSE}
+Before any data simulation happens, we must first define the sentinel site locations for the data.
+
+```{r}
 sentinal_lon <- seq(-0.2, 0.0, l=11)
 sentinal_lat <- seq(51.45, 51.55, l=11)
 sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
 names(sentinal_grid) <- c("longitude", "latitude")
 ```
-Although the configuration of these sentintel sites are in a lattice shape the user can define any list of longitude/latitude locations they would like. Using these locations and underlying parameters values (TODO) we generate our data using the sim_data function.  
-```{r, eval = FALSE}
+
+Here we've chosen a lattice configuration but the user may define any list of longitude/latitude locations they would like. With these sentinel sites we can generate our data from a given model using `sim_data()`.  
+
+```{r}
 sim1 <- sim_data(sentinal_grid$longitude,
                  sentinal_grid$latitude,
-                 sentinel_radius = 0.5,
-                 K = 3,
+                 sentinel_radius = 0.25,
+                 K = 2,
                  sigma_model = "independent",
                  sigma_mean = 1,
                  sigma_var = 0.5,
                  expected_popsize = 300)
-
 ```
-The bind_data function then places our freshly simulated data into the project p. 
-```{r, eval = FALSE}
+
+These parameters describe the underlying behaviour of the data in question:
+
+* `sentinal_radius` describes the overall reach of our sentinel sites.  
+* `K` is the number of sources with which individuals are spatially based.  
+* `sigma_model` defines homogeneity or independence of dispersal across sources.     
+* `sigma_mean` and `sigma_var` govern the dispersal associated with each source. Set `sigma_var = 0` to set an explicit dispersal via `sigma_mean`.    
+* `expected_popsize` tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.  
+
+From the simulation we extract two key objects: the true sources and the data required for the model.   
+
+```{r}
+true_source <- sim1$record$true_source
+data_all <- sim1$record$data_all
+head(data_all)
+```
+
+We will require these for plotting later. Notice the structure of the `data_all` object, it lists the location of every individual as well as if and where said individual was observed.
+
+```{r}
+head(sim1$data)
+```
+
+Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts.  
+
+## Creating a project
+
+We initialise a blank project `p` using the `rgeoprofile_project()` function.
+
+```{r}
+p <- rgeoprofile_project()
+```
+
+We then add in our simulated data using `bind_data()`.   
+
+```{r}
 p <- bind_data(p, sim1$data)
 ```
+
+## Simple spatial priors
+
+We wish to impose a spatial prior on our model. Here we implemet some very simple priors, for example instructing the model to restrict the area of interest to a london borough. This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
+
+```{r}
+s <- rgeoprofile_shapefile("London_north")
+spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
+```
+
+If no shapefile is to hand, we can produce a uniform spatial prior with `raster_grid()`.
+
+```{r}
+uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55), cells_lon = 100, cells_lat = 100)
+```
+
+## Parameter sets
+Next we define the various priors on the vairables we wish to estimate when running the model. We define these parameters via `new_set()`. Notice the project `p` is one of the functions arguments. This is such that the parameter set we define is added into our project.      
+
+```{r}
+p <- new_set(project = p,
+             spatial_prior = spatial_prior,
+             sentinel_radius = 0.25,
+             sigma_model = "independent",
+             sigma_prior_mean = 1,
+             sigma_prior_sd = 1,
+             expected_popsize_prior_mean = 100,
+             expected_popsize_prior_sd = -1)
+names(p)
+```
+
+The project `p` is now taking shape as we have defined the data and parameters for the model. Each time the `new_set()` function is run it will add a new set of parameters to `p$parameters_sets` and will regard this new set as the `active_set`. To delete an old parameter set, we use `delete_set()`. The `"output"` object within `p` is empty right now, but will be populated once the model has run.
+
+## Running the model
+
+We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each iteration and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:3` as our data was generated with two sources. The `pb_markdown = TRUE` argument ensures a neater version of the concole output is printed below, this should be removed when run by you.       
+
+```{r}
+p <- run_mcmc(project = p,
+              K = 1:3,
+              burnin = 2e4,
+              samples = 2e4,
+              converge_test = 1e2,
+              auto_converge = TRUE,
+              pb_markdown = TRUE)
+```                
+
+## Plotting
+Now the model has run, we can start to visualise different aspects of the project. Plotting objects in silverblaze follow a similar structure to [Leaflet](https://rstudio.github.io/leaflet/) and [ggplot2](https://ggplot2.tidyverse.org/). We start with a base layer
+
+```{r}
+plot1 <- plot_map()
+```
+
+and overlay different parts of our project using the set of overlay functions. Lets start with the underlying locations of individuals and their sources.  
+
+```{r}
+plot1 <- overlay_points(plot1, data_all$longitude, data_all$latitude)
+plot1 <- overlay_sources(plot1, true_source$longitude, true_source$latitude)
+plot1
+```
+
+This isn't too interesting yet, so let's add to this the spatial prior and the sentinel site locations.
+
+```{r}
+plot1 <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
+plot1 <- overlay_sentinels(plot1, p, fill_opacity = 0.9,
+                            fill = TRUE, fill_colour = c(grey(0.7), "red"),
+                            border = c(FALSE, TRUE), border_colour = "black", border_weight = 0.5)
+plot1
+
+```
+
+Finally, we add in the geoprofile produced by running the MCMC.
+
+```{r}
+plot1 <- overlay_geoprofile(plot1, p, threshold = 0.1, opacity = 0.8, K = 2)
+plot1
+```
+
+## Diagnostics
+
+```{r}
+plot_DIC_gelman(p)
+```
+
 (TODO)
