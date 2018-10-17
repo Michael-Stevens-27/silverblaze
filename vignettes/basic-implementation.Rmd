@@ -101,6 +101,7 @@ uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55)
 ```
 
 ## Parameter sets
+
 Next we define the various priors on the vairables we wish to estimate when running the model. We define these parameters via `new_set()`. Notice the project `p` is one of the functions arguments. This is such that the parameter set we define is added into our project.      
 
 ```{r}
@@ -132,6 +133,7 @@ p <- run_mcmc(project = p,
 ```                
 
 ## Plotting
+
 Now the model has run, we can start to visualise different aspects of the project. Plotting objects in silverblaze follow a similar structure to [Leaflet](https://rstudio.github.io/leaflet/) and [ggplot2](https://ggplot2.tidyverse.org/). We start with a base layer
 
 ```{r}
@@ -164,76 +166,75 @@ plot1 <- overlay_geoprofile(plot1, p, threshold = 0.1, opacity = 0.8, K = 2)
 plot1
 ```
 
-# (TODO) VVVVVV
-
 ## Diagnostics
 
-```{r}
-plot_DIC_gelman(p)
-```
-
-start by producing diagnostic plots of the log-likelihood. We should do this
-for each value of K to check for good MCMC behaviour
+Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.  
 
 ```{r}
 plot_loglike_dignostic(p, K = 3)
 ```
 
-we can also plot 95% quantiles over this distribution. This is not so useful
-now, but will become very useful if we ever move to multiple temperature rungs
-as we can plot them all together
+Using the `plot_loglike()` function we can collapse the density plot just produced into a 95% quantile plot. For now this will only show the result of one trace plot but with the addition of multiple temperature rungs. In this case, the result of each rung could be plotted next to one another.  
 
 ```{r}
 plot_loglike(p, K = 1)
 ```
 
-we should also look at the effective sample size. We should keep this number
-in mind when looking at the trace plots. For example, if we have 10,000
-sampling iterations but an ESS of 80 then we really only have 80 samples from
-the posterior, and so we should run it out for longer
+Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
 
 ```{r}
 get_ESS(p, K = 3)
 # get_output(p, name = "K1", type = “ESS”)
 ```
 
-next we can plot posterior 95% credible intervals of each sigma. At the moment
-we get one quantile for each source even under the single sigma model - I need
-to fix this
+We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
 
 ```{r}
-plot_sigma(p, K = 3)
-
+plot_sigma(p, K = 2)
 ```
 
-next is the expected population size
+Similarly the same can be done for the expected population size.
 
 ```{r}
 plot_expected_popsize(p, K = 3)
 ```
 
-Note that we often get these interesting bands of colour. This is because we
-are scanning through sentinel sites in rows, leading to a repeating pattern
+With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.    
 
 ```{r}
 plot_structure(p, divide_ind_on = TRUE)
-plot_structure(p, K = 3, divide_ind_on = FALSE)
 ```
 
-we can plot the true group allocation directly from the simulated data for
-comparison. Note that the actual group colours are arbitrary and so might not
-match up between the true matrix and the posterior matrix
+When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. The case of `K = 3` is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
+
 ```{r}
 plot(sim1$record$true_qmatrix)
 ```
 
-Report hitscore and use plot lorenz for the gini co-efficent.
+The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.   
 
-Finished gini() function, which takes hitscores as input the same as plot_lorenz(). For example:
 ```{r}
 hs <- get_hitscores(p, true_source$longitude, true_source$latitude)
+hs
+```
+
+Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.
+
+```{r}
 plot2 <- plot_lorenz(hs)
 plot2
-plot3 <- gini(hs)
-plot3
 ```
+
+This `plot_lorenz()` function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.  
+
+```{r}
+gini(hs)
+```
+
+Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to. We've seen many functions silverblaze has to offer for checking the ability of the model but we've done very little to compare the difference between models fitting different values of `K`. Hence we introduce the `plot_DIC_gelman` function to calculate the deviance information criterion (DIC) for each model.
+
+```{r}
+plot_DIC_gelman(p)
+```
+
+As we can see the model with the lowest DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. This is to be built upon with a potential altered AIC (TODO).  
