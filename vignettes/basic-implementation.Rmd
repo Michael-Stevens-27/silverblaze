@@ -15,7 +15,7 @@ library(silverblaze)
 ```
 ## Introduction
 
-The following tutorial will introduce the user to the to general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, reffered to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:  
+The following tutorial will introduce the user to the general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:  
 
 1. The data used to run the model  
 2. The parameter settings for the model  
@@ -55,7 +55,7 @@ These parameters describe the underlying behaviour of the data in question:
 * `sigma_mean` and `sigma_var` govern the dispersal associated with each source. Set `sigma_var = 0` to set an explicit dispersal via `sigma_mean`.    
 * `expected_popsize` tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.  
 
-From the simulation we extract two key objects: the true sources and the data required for the model.   
+From the simulation we can extract two key objects: the true sources and a record of which individuals were captured and where.   
 
 ```{r}
 true_source <- sim1$record$true_source
@@ -87,7 +87,7 @@ p <- bind_data(p, sim1$data)
 
 ## Simple spatial priors
 
-We wish to impose a spatial prior on our model. Here we implemet some very simple priors, for example instructing the model to restrict the area of interest to a london borough. This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
+We wish to impose a spatial prior on our model. Here we implement some very simple priors, for example instructing the model to restrict the area of interest to a london borough. This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
 
 ```{r}
 s <- rgeoprofile_shapefile("London_north")
@@ -164,10 +164,76 @@ plot1 <- overlay_geoprofile(plot1, p, threshold = 0.1, opacity = 0.8, K = 2)
 plot1
 ```
 
+# (TODO) VVVVVV
+
 ## Diagnostics
 
 ```{r}
 plot_DIC_gelman(p)
 ```
 
-(TODO)
+start by producing diagnostic plots of the log-likelihood. We should do this
+for each value of K to check for good MCMC behaviour
+
+```{r}
+plot_loglike_dignostic(p, K = 3)
+```
+
+we can also plot 95% quantiles over this distribution. This is not so useful
+now, but will become very useful if we ever move to multiple temperature rungs
+as we can plot them all together
+
+```{r}
+plot_loglike(p, K = 1)
+```
+
+we should also look at the effective sample size. We should keep this number
+in mind when looking at the trace plots. For example, if we have 10,000
+sampling iterations but an ESS of 80 then we really only have 80 samples from
+the posterior, and so we should run it out for longer
+
+```{r}
+get_ESS(p, K = 3)
+# get_output(p, name = "K1", type = “ESS”)
+```
+
+next we can plot posterior 95% credible intervals of each sigma. At the moment
+we get one quantile for each source even under the single sigma model - I need
+to fix this
+
+```{r}
+plot_sigma(p, K = 3)
+
+```
+
+next is the expected population size
+
+```{r}
+plot_expected_popsize(p, K = 3)
+```
+
+Note that we often get these interesting bands of colour. This is because we
+are scanning through sentinel sites in rows, leading to a repeating pattern
+
+```{r}
+plot_structure(p, divide_ind_on = TRUE)
+plot_structure(p, K = 3, divide_ind_on = FALSE)
+```
+
+we can plot the true group allocation directly from the simulated data for
+comparison. Note that the actual group colours are arbitrary and so might not
+match up between the true matrix and the posterior matrix
+```{r}
+plot(sim1$record$true_qmatrix)
+```
+
+Report hitscore and use plot lorenz for the gini co-efficent.
+
+Finished gini() function, which takes hitscores as input the same as plot_lorenz(). For example:
+```{r}
+hs <- get_hitscores(p, true_source$longitude, true_source$latitude)
+plot2 <- plot_lorenz(hs)
+plot2
+plot3 <- gini(hs)
+plot3
+```
