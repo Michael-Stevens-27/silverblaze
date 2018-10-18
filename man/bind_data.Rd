@@ -15,7 +15,7 @@ bind_data(project, df, name = NULL, check_delete_output = TRUE)
 
 \item{name}{optional name of the data set to aid in record keeping}
 
-\item{check_delete_output}{whether to prompt the user before overwriting 
+\item{check_delete_output}{whether to prompt the user before overwriting
 existing data}
 }
 \description{

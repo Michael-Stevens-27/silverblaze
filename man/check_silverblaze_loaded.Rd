@@ -7,6 +7,6 @@
 check_silverblaze_loaded()
 }
 \description{
-Simple function to check that silverblaze package has loaded 
+Simple function to check that silverblaze package has loaded
   successfully. Prints "silverblaze loaded successfully!" if so.
 }

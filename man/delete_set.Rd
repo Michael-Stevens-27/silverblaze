@@ -7,7 +7,7 @@
 delete_set(project, set = NULL, check_delete_output = TRUE)
 }
 \arguments{
-\item{project}{an rgeoprofile_project, as produced by the function 
+\item{project}{an rgeoprofile_project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{set}{which set to delete. Defaults to the current active set}

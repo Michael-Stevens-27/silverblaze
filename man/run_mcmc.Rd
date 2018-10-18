@@ -9,7 +9,7 @@ run_mcmc(project, K = 3, burnin = 100, samples = 1000,
   pb_markdown = FALSE, store_raw = TRUE, silent = !is.null(cluster))
 }
 \arguments{
-\item{project}{an rgeoprofile_project, as produced by the function 
+\item{project}{an rgeoprofile_project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{K}{the number of sources}
@@ -18,36 +18,36 @@ run_mcmc(project, K = 3, burnin = 100, samples = 1000,
 
 \item{samples}{the number of sampling iterations}
 
-\item{auto_converge}{whether convergence should be assessed automatically 
-every \code{converge_test} iterations, leading to termination of the 
-burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are 
+\item{auto_converge}{whether convergence should be assessed automatically
+every \code{converge_test} iterations, leading to termination of the
+burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
 used}
 
-\item{converge_test}{test for convergence every \code{convergence_test} 
+\item{converge_test}{test for convergence every \code{convergence_test}
 iterations if \code{auto_converge} is being used}
 
-\item{cluster}{option to pass in a cluster environment (see package 
+\item{cluster}{option to pass in a cluster environment (see package
 "parallel")}
 
-\item{pb_markdown}{whether to run progress bars in markdown mode, in which 
+\item{pb_markdown}{whether to run progress bars in markdown mode, in which
 case they are updated once at the end to avoid large amounts of output}
 
-\item{store_raw}{whether to store raw MCMC output in addition to summary 
+\item{store_raw}{whether to store raw MCMC output in addition to summary
 output. Setting to FALSE can considerably reduce output size in memory}
 
 \item{silent}{whether to suppress all console output}
 }
 \description{
 Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as 
+  the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project.
 }
 \details{
-Both longitude and latitude values can be represented to a given 
-  precision level using the arguments \code{precision_lon} and 
-  \code{precision_lat} - for example, a precision of 0.01 means that values 
-  are rounded to the nearest hundredth of a degree. This allows the use of 
-  look-up tables for the likelihood calculation, which significantly speeds 
+Both longitude and latitude values can be represented to a given
+  precision level using the arguments \code{precision_lon} and
+  \code{precision_lat} - for example, a precision of 0.01 means that values
+  are rounded to the nearest hundredth of a degree. This allows the use of
+  look-up tables for the likelihood calculation, which significantly speeds
   up the MCMC. Set to 0 to use exact values (up to C++ "double" precision)
   rather than using look-up tables.
 }

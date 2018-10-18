@@ -10,7 +10,7 @@ new_set(project, spatial_prior = NULL, sentinel_radius = 0.2,
   name = "(no name)")
 }
 \arguments{
-\item{project}{an rgeoprofile_project, as produced by the function 
+\item{project}{an rgeoprofile_project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{spatial_prior}{a raster file defining the spatial prior. Precision
@@ -24,7 +24,7 @@ independently drawn dispersal distance for each source}
 
 \item{sigma_prior_mean}{the prior mean of the parameter sigma (km)}
 
-\item{sigma_prior_sd}{the prior standard deviation of the parameter sigma 
+\item{sigma_prior_sd}{the prior standard deviation of the parameter sigma
 (km). Set to 0 to use a fixed value for sigma (fixed at
 \code{sigma_prior_mean})}
 
@@ -39,6 +39,6 @@ infinitely diffuse prior}
 \item{name}{an optional name for the parameter set}
 }
 \description{
-Create a new parameter set within an \code{rgeoprofile_project}. The new 
+Create a new parameter set within an \code{rgeoprofile_project}. The new
   parameter set becomes the active set once created.
 }
