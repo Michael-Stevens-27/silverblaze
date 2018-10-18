@@ -30,7 +30,7 @@ rgeoprofile_file <- function(name) {
 rgeoprofile_shapefile <- function(name) {
 
   # load file from inst/extdata folder
-  name_full <- system.file("extdata/", name, package = 'RgeoProfile', mustWork = TRUE)
+  name_full <- system.file("extdata/", name, package = 'silverblaze', mustWork = TRUE)
   ret <- readOGR(name_full)
 
   # return
