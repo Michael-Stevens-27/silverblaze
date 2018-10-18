@@ -7,7 +7,7 @@
 plot_DIC_gelman(project)
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 }
 \description{

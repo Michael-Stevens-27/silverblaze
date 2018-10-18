@@ -8,7 +8,7 @@ plot_loglike(project, K = NULL, axis_type = 1,
   connect_points = FALSE, connect_whiskers = FALSE)
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{K}{which value of K to produce the plot for}

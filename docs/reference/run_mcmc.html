@@ -33,7 +33,7 @@
 <meta property="og:title" content="Run main MCMC — run_mcmc" />
 
 <meta property="og:description" content="Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as 
+  the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project." />
 <meta name="twitter:card" content="summary" />
 
@@ -116,7 +116,7 @@
     <div class="ref-description">
     
     <p>Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as 
+  the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project.</p>
     
     </div>
@@ -130,7 +130,7 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>project</th>
-      <td><p>an rgeoprofile_project, as produced by the function 
+      <td><p>an rgeoprofile_project, as produced by the function
 <code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
     </tr>
     <tr>
@@ -147,29 +147,29 @@
     </tr>
     <tr>
       <th>auto_converge</th>
-      <td><p>whether convergence should be assessed automatically 
-every <code>converge_test</code> iterations, leading to termination of the 
-burn-in phase. If <code>FALSE</code> then the full <code>burnin</code> iterations are 
+      <td><p>whether convergence should be assessed automatically
+every <code>converge_test</code> iterations, leading to termination of the
+burn-in phase. If <code>FALSE</code> then the full <code>burnin</code> iterations are
 used</p></td>
     </tr>
     <tr>
       <th>converge_test</th>
-      <td><p>test for convergence every <code>convergence_test</code> 
+      <td><p>test for convergence every <code>convergence_test</code>
 iterations if <code>auto_converge</code> is being used</p></td>
     </tr>
     <tr>
       <th>cluster</th>
-      <td><p>option to pass in a cluster environment (see package 
+      <td><p>option to pass in a cluster environment (see package
 "parallel")</p></td>
     </tr>
     <tr>
       <th>pb_markdown</th>
-      <td><p>whether to run progress bars in markdown mode, in which 
+      <td><p>whether to run progress bars in markdown mode, in which
 case they are updated once at the end to avoid large amounts of output</p></td>
     </tr>
     <tr>
       <th>store_raw</th>
-      <td><p>whether to store raw MCMC output in addition to summary 
+      <td><p>whether to store raw MCMC output in addition to summary
 output. Setting to FALSE can considerably reduce output size in memory</p></td>
     </tr>
     <tr>
@@ -180,11 +180,11 @@ output. Setting to FALSE can considerably reduce output size in memory</p></td>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Both longitude and latitude values can be represented to a given 
-  precision level using the arguments <code>precision_lon</code> and 
-  <code>precision_lat</code> - for example, a precision of 0.01 means that values 
-  are rounded to the nearest hundredth of a degree. This allows the use of 
-  look-up tables for the likelihood calculation, which significantly speeds 
+    <p>Both longitude and latitude values can be represented to a given
+  precision level using the arguments <code>precision_lon</code> and
+  <code>precision_lat</code> - for example, a precision of 0.01 means that values
+  are rounded to the nearest hundredth of a degree. This allows the use of
+  look-up tables for the likelihood calculation, which significantly speeds
   up the MCMC. Set to 0 to use exact values (up to C++ "double" precision)
   rather than using look-up tables.</p>
     

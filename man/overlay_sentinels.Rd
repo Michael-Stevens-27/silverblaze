@@ -12,7 +12,7 @@ overlay_sentinels(myplot, project, sentinel_radius = NULL, fill = TRUE,
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
 
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{sentinel_radius}{the radius of sentinel sites. Taken from the active

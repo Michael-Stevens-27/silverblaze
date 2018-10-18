@@ -10,7 +10,7 @@ overlay_ringsearch(myplot, project, threshold = 0.1,
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
 
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{threshold}{what proportion of geoprofile to plot}

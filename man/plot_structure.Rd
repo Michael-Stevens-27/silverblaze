@@ -7,7 +7,7 @@
 plot_structure(project, K = NULL, divide_ind_on = FALSE)
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{K}{which value of K to produce the plot for}

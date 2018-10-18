@@ -12,8 +12,8 @@ more_colours(n = 5, raw_cols = brewer.pal(12, "Paired"))
 \item{raw_cols}{vector of colours to interpolate}
 }
 \description{
-Expand a series of colours by interpolation to produce any 
-  number of colours from a given series. The pattern of interpolation is 
+Expand a series of colours by interpolation to produce any
+  number of colours from a given series. The pattern of interpolation is
   designed so that (n+1)th value contains the nth value plus one more colour,
   rather than being a completely different series. For example, running
   \code{more_colours(5)} and \code{more_colours(4)}, the first 4 colours will

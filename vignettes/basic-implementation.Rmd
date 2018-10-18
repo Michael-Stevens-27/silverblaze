@@ -238,4 +238,8 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 plot_DIC_gelman(p)
 ```
 
-As we can see the model with the lowest DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. This is to be built upon with a potential altered AIC (TODO).  
+As we can see the model with the lowest absolute DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. Instead we can attempt to produce a kind of pseudo AIC. In its calculation, the AIC requires the maximum likelihood however we do not have this to hand. Instead we have a number of draws from the posterior distribution. Although the maximum likelihood has been extracted from the MCMC, there is no guarantee this is the true maximum likelihood. This can be plotted for each `K` using a similar plot function.
+
+```{r}
+plot_pseudoAIC(p)
+```   
