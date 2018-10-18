@@ -594,7 +594,7 @@ run_mcmc <- function(project,
     # # ---------- pseudo-AIC  ----------
     # # calculate the AIC base on sigma_model
     maxLogLike <- max(loglike_sampling)
-    switch(sigma_model,
+    switch(args_model$sigma_model,
            "single" = {
              pseudoAIC <- -2*maxLogLike + 2*K[i] + 2
            },
