@@ -171,7 +171,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 <p>We wish to impose a spatial prior on our model. Here we implement some very simple priors, for example instructing the model to restrict the area of interest to a london borough. This shapefile is built into the package, any other shapefile should be loaded using the <code>readOGR</code> function from <a href="https://cran.r-project.org/web/packages/rgdal/index.html">rgdal</a>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_north"</span>)</code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/home/mstevens/R/x86_64-pc-linux-gnu-library/3.4/RgeoProfile/extdata/London_north", layer: "boroughs"
+## Source: "/home/mstevens/R/x86_64-pc-linux-gnu-library/3.4/silverblaze/extdata/London_north", layer: "boroughs"
 ## with 8 features
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spatial_prior &lt;-<span class="st"> </span><span class="kw"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(s, <span class="dt">cells_lon =</span> <span class="dv">100</span>, <span class="dt">cells_lat =</span> <span class="dv">100</span>)</code></pre></div>
@@ -215,7 +215,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.944431 seconds
+##    completed in 0.91089 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -227,7 +227,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.9563 seconds
+##    completed in 1.92916 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -239,10 +239,10 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.45535 seconds
+##    completed in 3.38728 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 12.69 seconds</code></pre>
+<pre><code>## Total run-time: 11.86 seconds</code></pre>
 </div>
 <div id="plotting" class="section level2">
 <h2 class="hasAnchor">
@@ -316,7 +316,9 @@ plot2</code></pre></div>
 <p>Both the <code><a href="../reference/gini.html">gini()</a></code> and <code><a href="../reference/get_hitscores.html">get_hitscores()</a></code> functions refer to a “ringsearch” strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to. We’ve seen many functions silverblaze has to offer for checking the ability of the model but we’ve done very little to compare the difference between models fitting different values of <code>K</code>. Hence we introduce the <code>plot_DIC_gelman</code> function to calculate the deviance information criterion (DIC) for each model.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman</a></span>(p)</code></pre></div>
 <p><img src="basic-implementation_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
-<p>As we can see the model with the lowest DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. This is to be built upon with a potential altered AIC (TODO).</p>
+<p>As we can see the model with the lowest absolute DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. Instead we can attempt to produce a kind of pseudo AIC. In its calculation, the AIC requires the maximum likelihood however we do not have this to hand. Instead we have a number of draws from the posterior distribution. Although the maximum likelihood has been extracted from the MCMC, there is no guarantee this is the true maximum likelihood. This can be plotted for each <code>K</code> using a similar plot function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_pseudoAIC.html">plot_pseudoAIC</a></span>(p)</code></pre></div>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
 </div>
   </div>
 
