@@ -3,17 +3,17 @@
 #' @title Import file
 #'
 #' @description Import file from the inst/extdata folder of this package
-#' 
+#'
 #' @param name name of file
 #'
 #' @export
 
 rgeoprofile_file <- function(name) {
-  
+
   # load file from inst/extdata folder
-  name_full <- system.file("extdata/", name, package = 'RgeoProfile', mustWork = TRUE)
+  name_full <- system.file("extdata/", name, package = 'silverblaze', mustWork = TRUE)
   ret <- readRDS(name_full)
-  
+
   # return
   return(ret)
 }
@@ -22,17 +22,17 @@ rgeoprofile_file <- function(name) {
 #' @title Import shapefile
 #'
 #' @description Import shapefile from the inst/extdata folder of this package
-#' 
+#'
 #' @param name name of file
 #'
 #' @export
 
 rgeoprofile_shapefile <- function(name) {
-  
+
   # load file from inst/extdata folder
   name_full <- system.file("extdata/", name, package = 'RgeoProfile', mustWork = TRUE)
   ret <- readOGR(name_full)
-  
+
   # return
   return(ret)
 }
@@ -175,19 +175,19 @@ update_progress <- function(pb_list, name, i, max_i) {
 #' rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)
 
 rnorm_sphere <- function(n, centre_lon, centre_lat, sigma = 1) {
-  
+
   # draw points centred at zero
   x <- rnorm(n, sd = sigma)
   y <- rnorm(n, sd = sigma)
-  
+
   # calculate angle and euclidian distance of all points from origin. Angles are
   # in degrees relative to due north
   d <- sqrt(x^2 + y^2)
   theta <- atan2(x, y)*360/(2*pi)
-  
+
   # get lon/lat relative to origin
   ret <- bearing_to_lonlat(centre_lon, centre_lat, theta, d)
-  
+
   return(ret)
 }
 
@@ -211,21 +211,21 @@ rnorm_sphere <- function(n, centre_lon, centre_lat, sigma = 1) {
 #' bearing_to_lonlat(0, 0, 90, 111)
 
 bearing_to_lonlat <- function(origin_lon, origin_lat, bearing, gc_dist) {
-  
+
   # convert origin_lat, origin_lon and bearing from degrees to radians
   origin_lat <- origin_lat*2*pi/360
   origin_lon <- origin_lon*2*pi/360
   bearing <- bearing*2*pi/360
-  
+
   # calculate new lat/lon using great circle distance
   earth_rad <- 6371
   new_lat <- asin(sin(origin_lat)*cos(gc_dist/earth_rad) + cos(origin_lat)*sin(gc_dist/earth_rad)*cos(bearing))
   new_lon <- origin_lon + atan2(sin(bearing)*sin(gc_dist/earth_rad)*cos(origin_lat), cos(gc_dist/earth_rad)-sin(origin_lat)*sin(new_lat))
-  
+
   # convert new_lat and new_lon from radians to degrees
   new_lat <- new_lat*360/(2*pi)
   new_lon <- new_lon*360/(2*pi)
-  
+
   return(list(longitude = new_lon,
               latitude = new_lat))
 }
@@ -247,32 +247,32 @@ bearing_to_lonlat <- function(origin_lon, origin_lat, bearing, gc_dist) {
 #' lonlat_to_bearing(0, 0, 1, 0)
 
 lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
-  
+
   # convert input arguments to radians
   origin_lon <- origin_lon*2*pi/360
   origin_lat <- origin_lat*2*pi/360
   dest_lon <- dest_lon*2*pi/360
   dest_lat <- dest_lat*2*pi/360
-  
+
   delta_lon <- dest_lon - origin_lon
-  
+
   # calculate bearing
   bearing <- atan2(sin(delta_lon)*cos(dest_lat), cos(origin_lat)*sin(dest_lat)-sin(origin_lat)*cos(dest_lat)*cos(delta_lon))
-  
-  # calculate great circle angle. Use temporary variable to avoid acos(>1) or 
+
+  # calculate great circle angle. Use temporary variable to avoid acos(>1) or
   # acos(<0), which can happen due to underflow issues
   tmp <- sin(origin_lat)*sin(dest_lat) + cos(origin_lat)*cos(dest_lat)*cos(delta_lon)
   tmp <- ifelse(tmp > 1, 1, tmp)
   tmp <- ifelse(tmp < 0, 0, tmp)
   gc_angle <- acos(tmp)
-  
+
   # convert bearing from radians to degrees measured clockwise from due north,
   # and convert gc_angle to great circle distance via radius of earth (km)
   bearing <- bearing*360/(2*pi)
   bearing <- (bearing+360)%%360
   earth_rad <- 6371
   gc_dist <- earth_rad*gc_angle
-  
+
   # return list
   ret <-list(bearing = bearing,
              gc_dist = gc_dist)
@@ -292,14 +292,14 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
 #' @export
 
 dist_gc <- function(x) {
-  
+
   # check inputs
   assert_ncol(x, 2)
-  
+
   # calculate distance matrix
   ret <- apply(x, 1, function(y) {lonlat_to_bearing(x[,1], x[,2], y[1], y[2])$gc_dist})
   diag(ret) <- 0
-  
+
   return(ret)
 }
 
@@ -322,16 +322,16 @@ dist_gc <- function(x) {
 #' # TODO
 
 lonlat_to_cartesian <- function(centre_lon, centre_lat, data_lon, data_lat) {
-  
+
   # calculate bearing and great circle distance of data relative to centre
   data_trans <- lonlat_to_bearing(centre_lon, centre_lat, data_lon, data_lat)
-  
+
   # use bearing and distance to calculate cartesian coordinates
   theta <- data_trans$bearing*2*pi/360
   d <- data_trans$gc_dist
   data_x <- d*sin(theta)
   data_y <- d*cos(theta)
-  
+
   # return list
   ret <- list(x = data_x,
               y = data_y)
@@ -353,31 +353,31 @@ dts <- function(x, df = 3, scale = 1, log = FALSE) {
 # Bin values in two dimensions
 #' @noRd
 bin2D <- function(x, y, x_breaks, y_breaks) {
-  
+
   # get number of breaks in each dimension
   nx <- length(x_breaks)
   ny <- length(y_breaks)
-  
+
   # create table of binned values
   tab1 <- table(findInterval(x, x_breaks), findInterval(y, y_breaks))
-  
+
   # convert to dataframe and force numeric
   df1 <- as.data.frame(tab1, stringsAsFactors = FALSE)
   names(df1) <- c("x", "y", "count")
   df1$x <- as.numeric(df1$x)
   df1$y <- as.numeric(df1$y)
-  
+
   # subset to within breaks range
   df2 <- subset(df1, x > 0 & x < nx & y > 0 & y < ny)
-  
+
   # fill in matrix
   mat1 <- matrix(0, ny-1, nx-1)
   mat1[cbind(df2$y, df2$x)] <- df2$count
-  
+
   # calculate cell midpoints
   x_mids <- (x_breaks[-1] + x_breaks[-nx])/2
   y_mids <- (y_breaks[-1] + y_breaks[-ny])/2
-  
+
   # return output as list
   ret <- list(x_mids = x_mids,
               y_mids = y_mids,
@@ -388,8 +388,8 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #------------------------------------------------
 #' Produce a smooth surface using 2D kernel density smoothing
 #'
-#' Takes lon/lat coordinates, bins in two dimensions and smooths using kernel 
-#' density smoothing. Kernel densities are computed using the fast Fourier 
+#' Takes lon/lat coordinates, bins in two dimensions and smooths using kernel
+#' density smoothing. Kernel densities are computed using the fast Fourier
 #' transform method, which is many times faster than simple summation when using
 #' a large number of points. Each Kernel is student's-t distributed and scaled
 #' by the bandwidth lambda. If lambda is set to \code{NULL} then the optimal
@@ -400,7 +400,7 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #' @param latitude latitude of input points
 #' @param breaks_lon positions of longitude breaks
 #' @param breaks_lat positions of latitude breaks
-#' @param lambda bandwidth to use in posterior smoothing. If NULL then optimal 
+#' @param lambda bandwidth to use in posterior smoothing. If NULL then optimal
 #'   bandwidth is chosen automatically by maximum-likelihood
 #' @param nu degrees of freedom of student's-t kernel
 #'
@@ -412,7 +412,7 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #' # TODO
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
-  
+
   # check inputs
   assert_numeric(longitude)
   assert_numeric(latitude)
@@ -423,7 +423,7 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
     assert_single_pos(lambda, zero_allowed = FALSE)
   }
   assert_single_pos(nu, zero_allowed = FALSE)
-  
+
   # get properties of cells in each dimension
   cells_lon <- length(breaks_lon) - 1
   cells_lat <- length(breaks_lat) - 1
@@ -431,35 +431,35 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   centre_lat <- mean(breaks_lat)
   cellSize_lon <- diff(breaks_lon[1:2])
   cellSize_lat <- diff(breaks_lat[1:2])
-  
+
   # bin lon/lat values in two dimensions and check that at least one value in
   # chosen region
   surface_raw <- bin2D(longitude, latitude, breaks_lon, breaks_lat)$z
   if (all(surface_raw == 0)) {
     stop('chosen lat/long window contains no posterior draws')
   }
-  
+
   # temporarily add guard rail to surface to avoid Fourier series bleeding round
   # edges
   rail_size_lon <- cells_lon
   rail_size_lat <- cells_lat
   rail_mat_lon <- matrix(0, cells_lat, rail_size_lon)
   rail_mat_lat <- matrix(0, rail_size_lat, cells_lon + 2*rail_size_lon)
-  
+
   surface_normalised <- surface_raw/sum(surface_raw)
   surface_normalised <- cbind(rail_mat_lon, surface_normalised, rail_mat_lon)
   surface_normalised <- rbind(rail_mat_lat, surface_normalised, rail_mat_lat)
-  
+
   # calculate Fourier transform of posterior surface
   f1 = fftw2d(surface_normalised)
-  
+
   # calculate x and y size of one cell in cartesian space. Because of
   # transformation, this size will technically be different for each cell, but
   # use centre of space to get a middling value
   cellSize_trans <- lonlat_to_cartesian(centre_lon, centre_lat, centre_lon + cellSize_lon, centre_lat + cellSize_lat)
   cellSize_trans_lon <- cellSize_trans$x
   cellSize_trans_lat <- cellSize_trans$y
-  
+
   # produce surface over which kernel will be calculated. This surface wraps
   # around in both x and y (i.e. the kernel is actually defined over a torus)
   kernel_lon <- cellSize_trans_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised) - 1)/2):1)
@@ -467,48 +467,48 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
   kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
   kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
-  
+
   # create loss function to minimise
   loss <- function(x, return_loss = TRUE) {
-    
+
     kernel <- dts(kernel_s_mat, df = 3, scale = x)
     f2 = fftw2d(kernel)
-    
+
     # combine Fourier transformed surfaces and take inverse. f4 will ultimately
     # become the main surface of interest.
     f3 = f1*f2
     f4 = Re(fftw2d(f3, inverse = T))/length(surface_normalised)
-    
+
     # subtract from f4 the probability density of each point measured from
     # itself. In other words, move towards a leave-one-out kernel density method
     f5 <- f4 - surface_normalised*dts(0, df = nu, scale = x)
     f5[f5<0] <- 0
     f5 <- f5/sum(f4)
-    
+
     # calculate leave-one-out log-likelihood at each point on surface
     f6 <- surface_normalised*log(f5)
     loglike <- sum(f6,na.rm=T)
-    
+
     # return negative log-likelihood
     if (return_loss) {
       return(-loglike)
     }
-    
+
     # return surface
     return(f4)
   }
-  
+
   # find best lambda using optim
   lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
   lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)
-  
+
   # get smoothed surface
   f4 <- loss(lambda_ml$par, return_loss = FALSE)
-  
+
   # remove guard rail
   f4 <- f4[,(rail_size_lon+1):(ncol(f4)-rail_size_lon)]
   f4 <- f4[(rail_size_lat+1):(nrow(f4)-rail_size_lat),]
-  
+
   # return surface
   return(f4)
 }
@@ -518,7 +518,7 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
 #'
 #' @description Returns effective sample size (ESS) of chosen model run.
 #'
-#' @param project an RgeoProfile project, as produced by the function 
+#' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
 #' @param K get ESS for this value of K
 #'
@@ -527,19 +527,19 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
 #' # TODO
 
 get_ESS <- function(project, K = NULL) {
-  
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(K)) {
     assert_single_pos_int(K, zero_allowed = FALSE)
   }
-  
+
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
     stop("no active parameter set")
   }
-  
+
   # set default K to first value with output
   null_output <- mapply(function(x) {is.null(x$summary$ESS)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
@@ -549,13 +549,13 @@ get_ESS <- function(project, K = NULL) {
     K <- which(!null_output)[1]
     message(sprintf("using K = %s by default", K))
   }
-  
+
   # check output exists for chosen K
   ESS <- project$output$single_set[[s]]$single_K[[K]]$summary$ESS
   if (is.null(ESS)) {
     stop(sprintf("no ESS output for K = %s of active set", K))
   }
-  
+
   return(ESS)
 }
 
@@ -564,7 +564,7 @@ get_ESS <- function(project, K = NULL) {
 #'
 #' @description Get output from a project for a given value of K.
 #'
-#' @param project an RgeoProfile project, as produced by the function 
+#' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
 #' @param name name of output to get
 #' @param K get output for this value of K
@@ -573,19 +573,19 @@ get_ESS <- function(project, K = NULL) {
 #' @export
 
 get_output <- function(project, name, K = NULL, type = "summary") {
-  
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_single_string(name)
   assert_single_string(type)
   assert_in(type, c("summary", "raw"))
-  
+
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
     stop("  no active parameter set")
   }
-  
+
   # set default K to first value with output
   null_output <- mapply(function(x) {is.null(x[[type]][[name]])}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
@@ -595,13 +595,13 @@ get_output <- function(project, name, K = NULL, type = "summary") {
     K <- which(!null_output)[1]
     message(sprintf("using K = %s by default", K))
   }
-  
+
   # check output exists for chosen K
   x <- project$output$single_set[[s]]$single_K[[K]][[type]][[name]]
   if (is.null(x)) {
     stop(sprintf("no %s output for K = %s of active set", name, K))
   }
-  
+
   return(x)
 }
 
@@ -610,7 +610,7 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #'
 #' @description Get hitscores
 #'
-#' @param project an RgeoProfile project, as produced by the function 
+#' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
 #' @param source_lon longitudes of known sources
 #' @param source_lat latitudes of known sources
@@ -618,7 +618,7 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #' @export
 
 get_hitscores <- function(project, source_lon, source_lat) {
-  
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_numeric(source_lon)
@@ -626,34 +626,34 @@ get_hitscores <- function(project, source_lon, source_lat) {
   assert_numeric(source_lat)
   assert_vector(source_lat)
   assert_same_length(source_lon, source_lat)
-  
+
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
     stop("  no active parameter set")
   }
-  
+
   # set default K to all values with output
   null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
   if (all(null_output)) {
     stop("no output for active parameter set")
   }
   K <- which(!null_output)
-  
+
   # initialise hitscore dataframe
   df <- data.frame(longitude = source_lon, latitude = source_lat)
-  
+
   # add ring-search hitscores
   ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
   df$hs_ringsearch <- round(extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
-  
+
   # add geoprofile hitscores for all K
   for (k in K) {
     geoprofile <- get_output(project, "geoprofile", k)
     df$x <- round(extract(geoprofile, cbind(source_lon, source_lat)), digits = 2)
     names(df)[ncol(df)] <- paste0("hs_geoprofile_K", k)
   }
-  
+
   return(df)
 }
 

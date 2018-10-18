@@ -7,7 +7,7 @@
 get_ESS(project, K = NULL)
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{K}{get ESS for this value of K}

@@ -7,7 +7,7 @@
 get_hitscores(project, source_lon, source_lat)
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{source_lon}{longitudes of known sources}

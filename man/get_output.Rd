@@ -7,7 +7,7 @@
 get_output(project, name, K = NULL, type = "summary")
 }
 \arguments{
-\item{project}{an RgeoProfile project, as produced by the function 
+\item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}}
 
 \item{name}{name of output to get}

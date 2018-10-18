@@ -16,14 +16,14 @@ kernel_smooth(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL,
 
 \item{breaks_lat}{positions of latitude breaks}
 
-\item{lambda}{bandwidth to use in posterior smoothing. If NULL then optimal 
+\item{lambda}{bandwidth to use in posterior smoothing. If NULL then optimal
 bandwidth is chosen automatically by maximum-likelihood}
 
 \item{nu}{degrees of freedom of student's-t kernel}
 }
 \description{
-Takes lon/lat coordinates, bins in two dimensions and smooths using kernel 
-density smoothing. Kernel densities are computed using the fast Fourier 
+Takes lon/lat coordinates, bins in two dimensions and smooths using kernel
+density smoothing. Kernel densities are computed using the fast Fourier
 transform method, which is many times faster than simple summation when using
 a large number of points. Each Kernel is student's-t distributed and scaled
 by the bandwidth lambda. If lambda is set to \code{NULL} then the optimal
