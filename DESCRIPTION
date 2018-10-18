@@ -12,7 +12,7 @@ Description: Can be used to infer multiple source locations from spatial data
 License: MIT + file LICENSE
 BugReports: https://github.com/bobverity/RgeoProfile/issues
 Imports:
-    Rcpp (== 0.12.08),
+    Rcpp (== 0.12.18),
     parallel,
     coda,
     fftwtools,
