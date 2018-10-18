@@ -13,6 +13,7 @@ vignette: >
 set.seed(14)
 library(silverblaze)
 ```
+
 ## Introduction
 
 The following tutorial will introduce the user to the general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:  
@@ -171,19 +172,19 @@ plot1
 Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.  
 
 ```{r}
-plot_loglike_dignostic(p, K = 3)
+plot_loglike_dignostic(p, K = 2)
 ```
 
-Using the `plot_loglike()` function we can collapse the density plot just produced into a 95% quantile plot. For now this will only show the result of one trace plot but with the addition of multiple temperature rungs. In this case, the result of each rung could be plotted next to one another.  
+Using the `plot_loglike()` function we can collapse the density plot just produced into a 95% quantile plot. For now this will only show the result of one trace plot but with the addition of multiple temperature rungs each result could be plotted next to one another for easy comparison.  
 
 ```{r}
-plot_loglike(p, K = 1)
+plot_loglike(p, K = 2)
 ```
 
 Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
 
 ```{r}
-get_ESS(p, K = 3)
+get_ESS(p, K = 2)
 # get_output(p, name = "K1", type = “ESS”)
 ```
 
@@ -196,7 +197,7 @@ plot_sigma(p, K = 2)
 Similarly the same can be done for the expected population size.
 
 ```{r}
-plot_expected_popsize(p, K = 3)
+plot_expected_popsize(p, K = 2)
 ```
 
 With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.    
