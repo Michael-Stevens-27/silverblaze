@@ -24,3 +24,9 @@ overlay_piecharts(myplot, project, K = NULL, min_size = 10,
 \description{
 Add pie charts to dynamic map
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot1 <- plot_map()
+plot1 <- overlay_piecharts(myplot = plot1, project = p, K = 2)
+plot1
+}

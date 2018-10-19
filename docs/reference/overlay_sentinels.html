@@ -170,12 +170,19 @@ parameter set if unspecified</p></td>
     </table>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='no'>plot1</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='plot_map.html'>plot_map</a></span>()
+<span class='no'>plot1</span> <span class='kw'>&lt;-</span> <span class='fu'>overlay_sentinels</span>(<span class='no'>plot1</span>, <span class='kw'>project</span> <span class='kw'>=</span> <span class='no'>p</span>, <span class='kw'>fill_opacity</span> <span class='kw'>=</span> <span class='fl'>0.9</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+                           <span class='kw'>fill_colour</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fu'>grey</span>(<span class='fl'>0.7</span>), <span class='st'>"red"</span>), <span class='kw'>border</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>FALSE</span>, <span class='fl'>TRUE</span>),
+                           <span class='kw'>border_colour</span> <span class='kw'>=</span> <span class='st'>"black"</span>,<span class='kw'>border_weight</span> <span class='kw'>=</span> <span class='fl'>0.5</span>)</div><div class='output co'>#&gt; <span class='message'>getting sentinel radius from active parameter set:</span></div><div class='output co'>#&gt; <span class='message'>  sentinal radius = 0.25km</span></div><div class='input'><span class='no'>plot1</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>

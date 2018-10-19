@@ -27,3 +27,9 @@ applied using the \code{raster} function \code{disaggregate}, with
 \description{
 Add ring-search geoprofile to dynamic map.
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot1 <- plot_map()
+plot1 <- overlay_ringsearch(myplot = plot1, project = p)
+show(plot1)
+}

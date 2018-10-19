@@ -113,6 +113,11 @@ theme_empty <- function() {
 #' @param connect_whiskers whether to connect points at the ends of the whiskers
 #'
 #' @export
+#' @examples
+#'
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_loglike(project = p, K = 2)
 
 plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
 
@@ -219,6 +224,12 @@ plot.rgeoprofile_qmatrix <- function(x, y, ...) {
 #' @param divide_ind_on whether to add dividing lines between bars
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' # Plot the structure for a single K value.
+#' plot_structure(project = p, K = 2)
+#' #Similarly, plot the allocation structure for every K.
+#' plot_structure(project = p, divide_ind_on = TRUE)
 
 plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
 
@@ -306,7 +317,8 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
 #'
 #' @export
 #' @examples
-#' # TODO
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_sigma(project = p)
 
 plot_sigma <- function(project, K = NULL) {
 
@@ -346,7 +358,9 @@ plot_sigma <- function(project, K = NULL) {
 #'
 #' @export
 #' @examples
-#' # TODO
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_expected_popsize(project = p)
+
 
 plot_expected_popsize <- function(project, K = NULL) {
 
@@ -382,6 +396,11 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' @param col colour of the trace
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_trace(project = p, K = 2)
+#' Similarly, plot the trace for every K value.
+#' plot_sigma(project = p)
 
 plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 
@@ -433,6 +452,9 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param col colour of the trace
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_acf(project = p)
 
 plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 
@@ -485,11 +507,14 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
+#' @param which value of K to plot
 #' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_density(project = p)
 
 plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 
@@ -533,6 +558,8 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @description Produce diagnostic plots of the log-likelihood.
 #'
+#' @details For a value of K produce the auto-correlation, trace and density plots of the MCMC.
+#'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
 #' @param K which value of K to plot
@@ -540,6 +567,9 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param col colour of the trace
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_loglike_dignostic(project = p, K = 2)
 
 plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black") {
 
@@ -583,6 +613,10 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
 #'   map types are taken from \code{leaflet::providers}. Defaults to "CartoDB"
 #'
 #' @export
+#' @examples
+#' # Standard OSM format is given by map_type = 1, though this value can take anywhere between 1 and 137.
+#' plot_map(map_type = 1)
+
 
 plot_map <- function(map_type = 97) {
 
@@ -606,6 +640,9 @@ plot_map <- function(map_type = 97) {
 #'   \code{rgeoprofile_project()}
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_DIC_gelman(p)
 
 plot_DIC_gelman <- function(project) {
 
@@ -638,6 +675,9 @@ plot_DIC_gelman <- function(project) {
 #'   \code{rgeoprofile_project()}
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot_pseudoAIC(p)
 
 plot_pseudoAIC <- function(project) {
 
@@ -666,6 +706,8 @@ plot_pseudoAIC <- function(project) {
 #'
 #' @description Produce Lorenz plot of hitscores
 #'
+#' @details  The hs object is obtained from the \code{get_hitscores()} function.
+#'
 #' @param hs dataframe of hitscores
 #' @param col vector of group colours. Uses \code{more_colours()} by default
 #' @param counts optional vector of counts corresponding to each source. If
@@ -673,6 +715,9 @@ plot_pseudoAIC <- function(project) {
 #'   sources found
 #'
 #' @export
+#' @examples
+#' \dontshow{hs <- rgeoprofile_file("tutorial1_hitscore.rds")}
+#' plot_lorenz(hs)
 
 plot_lorenz <- function(hs, col = NULL, counts = NULL) {
 
@@ -748,6 +793,13 @@ plot_lorenz <- function(hs, col = NULL, counts = NULL) {
 #' @param border_opacity opacity of circle borders
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <- overlay_sentinels(plot1, project = p, fill_opacity = 0.9, fill = TRUE,
+#'                            fill_colour = c(grey(0.7), "red"), border = c(FALSE, TRUE),
+#'                            border_colour = "black",border_weight = 0.5)
+#' plot1
 
 overlay_sentinels <- function(myplot,
                               project,
@@ -851,6 +903,12 @@ overlay_sentinels <- function(myplot,
 #' @param opacity opacity of points
 #'
 #' @export
+#' @examples
+#' \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
+#' all_records <- mysim$record$data_all
+#' plot1 <- plot_map()
+#' plot1 <- overlay_points(myplot = plot1, all_records$longitude, all_records$latitude)
+#' show(plot1)
 
 overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 1.0) {
 
@@ -887,6 +945,12 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
 #'   \code{method = "bilinear"}
 #'
 #' @export
+#' @examples
+#' \dontshow{library(silverblaze)}
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <- overlay_spatial_prior(myplot = plot1, project = p)
+#' plot1
 
 overlay_spatial_prior <- function(myplot,
                                   project,
@@ -943,6 +1007,11 @@ overlay_spatial_prior <- function(myplot,
 #'   \code{method = "bilinear"}
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <-overlay_geoprofile(myplot = plot1, project = p, K = 2, source = NULL, threshold = 0.5)
+#' plot1
 
 overlay_geoprofile <- function(myplot,
                                project,
@@ -1017,6 +1086,11 @@ overlay_geoprofile <- function(myplot,
 #'   \code{disaggregate}, with \code{method = "bilinear"}
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <-overlay_surface(myplot = plot1, project = p, K = 2, source = NULL, threshold = 0.5)
+#' plot1
 
 overlay_surface <- function(myplot,
                             project,
@@ -1094,6 +1168,12 @@ overlay_surface <- function(myplot,
 #'   point is at the marker's geographical location
 #'
 #' @export
+#' @examples
+#' \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
+#' source_locations <- mysim$record$true_source
+#' plot1 <- plot_map()
+#' plot1 <- overlay_sources(myplot = plot1, lon = source_locations$longitude, lat = source_locations$latitude)
+#' plot1
 
 overlay_sources <- function(myplot,
                             lon,
@@ -1142,6 +1222,11 @@ overlay_sources <- function(myplot,
 #' @param col segment colours
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <- overlay_piecharts(myplot = plot1, project = p, K = 2)
+#' plot1
 
 overlay_piecharts <- function(myplot,
                               project,
@@ -1200,6 +1285,11 @@ overlay_piecharts <- function(myplot,
 #'   \code{method = "bilinear"}
 #'
 #' @export
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <- overlay_ringsearch(myplot = plot1, project = p)
+#' show(plot1)
 
 overlay_ringsearch <- function(myplot,
                                project,

@@ -23,3 +23,10 @@ overlay_points(myplot, lon, lat, col = "black", size = 1,
 \description{
 Add points to dynamic map
 }
+\examples{
+\dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
+all_records <- mysim$record$data_all
+plot1 <- plot_map()
+plot1 <- overlay_points(myplot = plot1, all_records$longitude, all_records$latitude)
+show(plot1)
+}

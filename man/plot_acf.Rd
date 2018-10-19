@@ -19,3 +19,7 @@ plot_acf(project, K = NULL, rung = NULL, col = "black")
 \description{
 Produce MCMC autocorrelation plot of the log-likelihood
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_acf(project = p)
+}

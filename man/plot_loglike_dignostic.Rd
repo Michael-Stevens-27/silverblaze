@@ -19,3 +19,10 @@ plot_loglike_dignostic(project, K = NULL, rung = NULL, col = "black")
 \description{
 Produce diagnostic plots of the log-likelihood.
 }
+\details{
+For a value of K produce the auto-correlation, trace and density plots of the MCMC.
+}
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_loglike_dignostic(project = p, K = 2)
+}

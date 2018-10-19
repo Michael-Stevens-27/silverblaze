@@ -79,7 +79,7 @@
       <h1>Tutorial 1: Basic Implementation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2018-10-18</h4>
+            <h4 class="date">2018-10-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/basic-implementation.Rmd"><code>vignettes/basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>basic-implementation.Rmd</code></div>
@@ -110,7 +110,7 @@ sentinal_lat &lt;-<span class="st"> </span><span class="kw">seq</span>(<span cla
 sentinal_grid &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(sentinal_lon, sentinal_lat)
 <span class="kw">names</span>(sentinal_grid) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</code></pre></div>
 <p>Here we’ve chosen a lattice configuration but the user may define any list of longitude/latitude locations they would like. With these sentinel sites we can generate our data from a given model using <code><a href="../reference/sim_data.html">sim_data()</a></code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(sentinal_grid<span class="op">$</span>longitude,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mysim &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_data.html">sim_data</a></span>(sentinal_grid<span class="op">$</span>longitude,
                  sentinal_grid<span class="op">$</span>latitude,
                  <span class="dt">sentinel_radius =</span> <span class="fl">0.25</span>,
                  <span class="dt">K =</span> <span class="dv">2</span>,
@@ -136,8 +136,8 @@ sentinal_grid &lt;-<span class="st"> </span><span class="kw">expand.grid</span>(
 <code>expected_popsize</code> tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.</li>
 </ul>
 <p>From the simulation we can extract two key objects: the true sources and a record of which individuals were captured and where.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">true_source &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span class="op">$</span>true_source
-data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span class="op">$</span>data_all
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">true_source &lt;-<span class="st"> </span>mysim<span class="op">$</span>record<span class="op">$</span>true_source
+data_all &lt;-<span class="st"> </span>mysim<span class="op">$</span>record<span class="op">$</span>data_all
 <span class="kw">head</span>(data_all)</code></pre></div>
 <pre><code>##    longitude latitude observed observed_by
 ## 1 -0.1332002 51.53492        0            
@@ -147,7 +147,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 5 -0.1436310 51.54311        0            
 ## 6 -0.1500073 51.54161        0</code></pre>
 <p>We will require these for plotting later. Notice the structure of the <code>data_all</code> object, it lists the location of every individual as well as if and where said individual was observed.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(sim1<span class="op">$</span>data)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(mysim<span class="op">$</span>data)</code></pre></div>
 <pre><code>##   longitude latitude counts
 ## 1     -0.20    51.45      0
 ## 2     -0.18    51.45      0
@@ -163,7 +163,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 <p>We initialise a blank project <code>p</code> using the <code><a href="../reference/rgeoprofile_project.html">rgeoprofile_project()</a></code> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_project.html">rgeoprofile_project</a></span>()</code></pre></div>
 <p>We then add in our simulated data using <code><a href="../reference/bind_data.html">bind_data()</a></code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data.html">bind_data</a></span>(p, sim1<span class="op">$</span>data)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bind_data.html">bind_data</a></span>(p, mysim<span class="op">$</span>data)</code></pre></div>
 </div>
 <div id="simple-spatial-priors" class="section level2">
 <h2 class="hasAnchor">
@@ -215,7 +215,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 0.91089 seconds
+##    completed in 0.947268 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -227,7 +227,7 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 1.92916 seconds
+##    completed in 2.27203 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -239,10 +239,10 @@ data_all &lt;-<span class="st"> </span>sim1<span class="op">$</span>record<span 
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 3.38728 seconds
+##    completed in 3.87815 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 11.86 seconds</code></pre>
+<pre><code>## Total run-time: 13.32 seconds</code></pre>
 </div>
 <div id="plotting" class="section level2">
 <h2 class="hasAnchor">
@@ -293,7 +293,7 @@ plot1</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(p, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <p><img src="basic-implementation_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
 <p>When <code>K = 1</code> the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to <code>K = 2</code> and we see a clear 40-60 split between sources. The case of <code>K = 3</code> is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let’s take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(sim1<span class="op">$</span>record<span class="op">$</span>true_qmatrix)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(mysim<span class="op">$</span>record<span class="op">$</span>true_qmatrix)</code></pre></div>
 <p><img src="basic-implementation_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use <code>get_hitscores</code> to produce these.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hs &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_hitscores.html">get_hitscores</a></span>(p, true_source<span class="op">$</span>longitude, true_source<span class="op">$</span>latitude)

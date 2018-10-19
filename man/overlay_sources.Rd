@@ -35,3 +35,10 @@ point is at the marker's geographical location}
 \description{
 Add sources to dynamic map
 }
+\examples{
+\dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
+source_locations <- mysim$record$true_source
+plot1 <- plot_map()
+plot1 <- overlay_sources(myplot = plot1, lon = source_locations$longitude, lat = source_locations$latitude)
+plot1
+}

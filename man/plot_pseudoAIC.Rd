@@ -13,3 +13,7 @@ plot_pseudoAIC(project)
 \description{
 Plot pseudoAIC over all K for the current active parameter set.
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_pseudoAIC(p)
+}

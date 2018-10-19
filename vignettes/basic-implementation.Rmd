@@ -38,7 +38,7 @@ names(sentinal_grid) <- c("longitude", "latitude")
 Here we've chosen a lattice configuration but the user may define any list of longitude/latitude locations they would like. With these sentinel sites we can generate our data from a given model using `sim_data()`.  
 
 ```{r}
-sim1 <- sim_data(sentinal_grid$longitude,
+mysim <- sim_data(sentinal_grid$longitude,
                  sentinal_grid$latitude,
                  sentinel_radius = 0.25,
                  K = 2,
@@ -59,15 +59,15 @@ These parameters describe the underlying behaviour of the data in question:
 From the simulation we can extract two key objects: the true sources and a record of which individuals were captured and where.   
 
 ```{r}
-true_source <- sim1$record$true_source
-data_all <- sim1$record$data_all
+true_source <- mysim$record$true_source
+data_all <- mysim$record$data_all
 head(data_all)
 ```
 
 We will require these for plotting later. Notice the structure of the `data_all` object, it lists the location of every individual as well as if and where said individual was observed.
 
 ```{r}
-head(sim1$data)
+head(mysim$data)
 ```
 
 Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts.  
@@ -83,7 +83,7 @@ p <- rgeoprofile_project()
 We then add in our simulated data using `bind_data()`.   
 
 ```{r}
-p <- bind_data(p, sim1$data)
+p <- bind_data(p, mysim$data)
 ```
 
 ## Simple spatial priors
@@ -209,7 +209,7 @@ plot_structure(p, divide_ind_on = TRUE)
 When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. The case of `K = 3` is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
 
 ```{r}
-plot(sim1$record$true_qmatrix)
+plot(mysim$record$true_qmatrix)
 ```
 
 The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.   
@@ -242,4 +242,12 @@ As we can see the model with the lowest absolute DIC is the one fitting three so
 
 ```{r}
 plot_pseudoAIC(p)
-```   
+```
+
+```{r, echo=FALSE}
+# secretly save/load data from file so results are consistent between tutorials
+saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
+#  mysim <- malecot_file("tutorial1_mysim.rds")
+saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
+saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
+```

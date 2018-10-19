@@ -19,5 +19,6 @@ Plot COI 95\% credible intervals of current active set
 TODO
 }
 \examples{
-# TODO
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_expected_popsize(project = p)
 }

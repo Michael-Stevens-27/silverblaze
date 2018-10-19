@@ -23,3 +23,8 @@ beta, 3 = values of beta raised to the GTI power}
 \description{
 Plot loglikelihood 95\% credible intervals of current active set
 }
+\examples{
+
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_loglike(project = p, K = 2)
+}

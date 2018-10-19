@@ -13,3 +13,7 @@ plot_DIC_gelman(project)
 \description{
 Plot DIC over all K for the current active parameter set.
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot_DIC_gelman(p)
+}

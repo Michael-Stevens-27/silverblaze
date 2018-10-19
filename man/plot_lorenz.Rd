@@ -18,3 +18,10 @@ sources found}
 \description{
 Produce Lorenz plot of hitscores
 }
+\details{
+The hs object is obtained from the \code{get_hitscores()} function.
+}
+\examples{
+\dontshow{hs <- rgeoprofile_file("tutorial1_hitscore.rds")}
+plot_lorenz(hs)
+}

@@ -35,3 +35,11 @@ parameter set if unspecified}
 \description{
 Add sentinel sites to dynamic map
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot1 <- plot_map()
+plot1 <- overlay_sentinels(plot1, project = p, fill_opacity = 0.9, fill = TRUE,
+                           fill_colour = c(grey(0.7), "red"), border = c(FALSE, TRUE),
+                           border_colour = "black",border_weight = 0.5)
+plot1
+}

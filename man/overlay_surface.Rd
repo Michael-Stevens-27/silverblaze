@@ -32,3 +32,9 @@ surface. Smoothing is applied using the \code{raster} function
 \description{
 Add posterior probability surface to dynamic map
 }
+\examples{
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+plot1 <- plot_map()
+plot1 <-overlay_surface(myplot = plot1, project = p, K = 2, source = NULL, threshold = 0.5)
+plot1
+}
