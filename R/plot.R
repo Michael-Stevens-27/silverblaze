@@ -399,7 +399,7 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_trace(project = p, K = 2)
-#' Similarly, plot the trace for every K value.
+#' # Similarly, plot the trace for every K value.
 #' plot_sigma(project = p)
 
 plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
