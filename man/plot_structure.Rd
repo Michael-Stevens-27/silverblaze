@@ -21,6 +21,6 @@ Produce posterior allocation plot of current active set.
 \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 # Plot the structure for a single K value.
 plot_structure(project = p, K = 2)
-#Similarly, plot the allocation structure for every K.
+# Similarly, plot the allocation structure for every K.
 plot_structure(project = p, divide_ind_on = TRUE)
 }

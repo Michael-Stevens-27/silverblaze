@@ -32,7 +32,7 @@ each source}
 
 \item{sigma_mean}{the prior mean of the parameter sigma (km)}
 
-\item{sigma_var}{the prior variance of the parameter sigma (km). Set to zero 
+\item{sigma_var}{the prior variance of the parameter sigma (km). Set to zero
 to use a fixed distance}
 
 \item{expected_popsize}{the expected total number of observations (observed
@@ -43,5 +43,21 @@ Simulate data from the same presence-absence model used in the
   inference step.
 }
 \examples{
-# TODO
+# State the number of sources to be generated
+K_sim <- 3
+# Create some sentinel site locations
+sentinal_lon <- seq(-0.2, 0.0, l=11)
+sentinal_lat <- seq(51.45, 51.55, l=11)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+names(sentinal_grid) <- c("longitude", "latitude")
+# Set their sentinel radius (this constant times true sigma)
+sentinel_radius <- 0.25
+sim1 <- sim_data(sentinal_grid$longitude,
+                sentinal_grid$latitude,
+                sigma_model = "single",
+                sigma_mean = 1,
+                sigma_var = 0.5,
+                sentinel_radius = sentinel_radius,
+                K = K_sim,
+                expected_popsize = 300)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{lonlat_to_cartesian}
 \alias{lonlat_to_cartesian}
-\title{Convert lat/lon to cartesian coordinates}
+\title{Convert lon/lat to cartesian coordinates}
 \usage{
 lonlat_to_cartesian(centre_lon, centre_lat, data_lon, data_lat)
 }
@@ -16,12 +16,18 @@ lonlat_to_cartesian(centre_lon, centre_lat, data_lon, data_lat)
 \item{data_lat}{The data latitude}
 }
 \description{
-Convert lat/lon coordinates to cartesian coordinates by first
+Convert lon/lat coordinates to cartesian coordinates by first
   calculating great circle distance and bearing and then mapping these
   coordinates into cartesian space. This mapping is relative to the point
   {centre_lat, centre_lon}, which should be roughly at the midpoint of the
   observed data.
 }
 \examples{
-# TODO
+# Centre at QMUL
+centre_lon <- -0.040827
+centre_lat <- 51.523775
+# Data point at Queen Elizabeth Park
+data_lon <- -0.016546
+data_lat <- 51.542473
+lonlat_to_cartesian(centre_lon = centre_lon, centre_lat = centre_lat, data_lon = data_lon, data_lat = data_lat)
 }

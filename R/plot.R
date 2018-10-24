@@ -228,7 +228,7 @@ plot.rgeoprofile_qmatrix <- function(x, y, ...) {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' # Plot the structure for a single K value.
 #' plot_structure(project = p, K = 2)
-#' #Similarly, plot the allocation structure for every K.
+#' # Similarly, plot the allocation structure for every K.
 #' plot_structure(project = p, divide_ind_on = TRUE)
 
 plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
@@ -400,7 +400,7 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_trace(project = p, K = 2)
 #' # Similarly, plot the trace for every K value.
-#' plot_sigma(project = p)
+#' plot_trace(project = p)
 
 plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 

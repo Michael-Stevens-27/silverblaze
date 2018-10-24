@@ -31,7 +31,7 @@ value of lambda is chosen automatically using the leave-one-out maximum
 likelihood method.
 }
 \examples{
-# TODO
+TODO
 }
 \references{
 Barnard, Etienne. "Maximum leave-one-out likelihood for kernel

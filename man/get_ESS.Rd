@@ -16,5 +16,8 @@ get_ESS(project, K = NULL)
 Returns effective sample size (ESS) of chosen model run.
 }
 \examples{
-# TODO
+\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+get_ESS(project = p, K = 1)
+get_ESS(project = p, K = 2)
+get_ESS(project = p, K = 3)
 }

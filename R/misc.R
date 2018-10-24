@@ -290,6 +290,13 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
 #'   and latitude in the second
 #'
 #' @export
+#' @examples
+#' london_lon <- runif(20, min = -0.2, max = 0)
+#' london_lat <- runif(20, min = 51.47, max = 51.53)
+#' some_data  <- data.frame(longitude = london_lon, latitude = london_lat)
+#' head(some_data)
+#' distance_matrix <- dist_gc(some_data)
+#' head(distance_matrix)
 
 dist_gc <- function(x) {
 
@@ -304,9 +311,9 @@ dist_gc <- function(x) {
 }
 
 #------------------------------------------------
-#' @title Convert lat/lon to cartesian coordinates
+#' @title Convert lon/lat to cartesian coordinates
 #'
-#' @description Convert lat/lon coordinates to cartesian coordinates by first
+#' @description Convert lon/lat coordinates to cartesian coordinates by first
 #'   calculating great circle distance and bearing and then mapping these
 #'   coordinates into cartesian space. This mapping is relative to the point
 #'   {centre_lat, centre_lon}, which should be roughly at the midpoint of the
@@ -319,7 +326,13 @@ dist_gc <- function(x) {
 #'
 #' @export
 #' @examples
-#' # TODO
+#' # Centre at QMUL
+#' centre_lon <- -0.040827
+#' centre_lat <- 51.523775
+#' # Data point at Queen Elizabeth Park
+#' data_lon <- -0.016546
+#' data_lat <- 51.542473
+#' lonlat_to_cartesian(centre_lon = centre_lon, centre_lat = centre_lat, data_lon = data_lon, data_lat = data_lat)
 
 lonlat_to_cartesian <- function(centre_lon, centre_lat, data_lon, data_lat) {
 
@@ -409,7 +422,7 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #'   the Pattern Recognition Association of South Africa. 2010
 #' @export
 #' @examples
-#' # TODO
+#' TODO
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
 
@@ -524,7 +537,10 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
 #'
 #' @export
 #' @examples
-#' # TODO
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' get_ESS(project = p, K = 1)
+#' get_ESS(project = p, K = 2)
+#' get_ESS(project = p, K = 3)
 
 get_ESS <- function(project, K = NULL) {
 
@@ -571,6 +587,7 @@ get_ESS <- function(project, K = NULL) {
 #' @param type the type of output ("summary" or "raw")
 #'
 #' @export
+
 
 get_output <- function(project, name, K = NULL, type = "summary") {
 

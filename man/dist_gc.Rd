@@ -15,3 +15,11 @@ Analogue of the \code{dist()} function, but calculating great
   circle distances. Points should be input as a two-column matrix or
   dataframe with longitude in the first column and latitude in the second.
 }
+\examples{
+london_lon <- runif(20, min = -0.2, max = 0)
+london_lat <- runif(20, min = 51.47, max = 51.53)
+some_data  <- data.frame(longitude = london_lon, latitude = london_lat)
+head(some_data)
+distance_matrix <- dist_gc(some_data)
+head(distance_matrix)
+}

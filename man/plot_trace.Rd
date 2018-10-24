@@ -22,6 +22,6 @@ Produce MCMC trace plot of the log-likelihood at each iteration.
 \examples{
 \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 plot_trace(project = p, K = 2)
-Similarly, plot the trace for every K value.
-plot_sigma(project = p)
+# Similarly, plot the trace for every K value.
+plot_trace(project = p)
 }
