@@ -507,7 +507,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
-#' @param which value of K to plot
+#' @param K value of K to plot
 #' @param rung which rung to plot. Defaults to the cold chain
 #' @param col colour of the trace
 #'

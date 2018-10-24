@@ -422,7 +422,7 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #'   the Pattern Recognition Association of South Africa. 2010
 #' @export
 #' @examples
-#' TODO
+#' # TODO
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
 
