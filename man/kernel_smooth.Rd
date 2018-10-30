@@ -30,9 +30,6 @@ by the bandwidth lambda. If lambda is set to \code{NULL} then the optimal
 value of lambda is chosen automatically using the leave-one-out maximum
 likelihood method.
 }
-\examples{
-TODO
-}
 \references{
 Barnard, Etienne. "Maximum leave-one-out likelihood for kernel
   density estimation." Proceedings of the Twenty-First Annual Symposium of

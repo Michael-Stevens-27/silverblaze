@@ -134,12 +134,46 @@ and latitude in the second</p></td>
     </table>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='no'>london_lon</span> <span class='kw'>&lt;-</span> <span class='fu'>runif</span>(<span class='fl'>20</span>, <span class='kw'>min</span> <span class='kw'>=</span> -<span class='fl'>0.2</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='fl'>0</span>)
+<span class='no'>london_lat</span> <span class='kw'>&lt;-</span> <span class='fu'>runif</span>(<span class='fl'>20</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='fl'>51.47</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='fl'>51.53</span>)
+<span class='no'>some_data</span>  <span class='kw'>&lt;-</span> <span class='fu'>data.frame</span>(<span class='kw'>longitude</span> <span class='kw'>=</span> <span class='no'>london_lon</span>, <span class='kw'>latitude</span> <span class='kw'>=</span> <span class='no'>london_lat</span>)
+<span class='fu'>head</span>(<span class='no'>some_data</span>)</div><div class='output co'>#&gt;     longitude latitude
+#&gt; 1 -0.18384997 51.48739
+#&gt; 2 -0.03313339 51.51070
+#&gt; 3 -0.07984782 51.51412
+#&gt; 4 -0.16855831 51.48176
+#&gt; 5 -0.19852011 51.52883
+#&gt; 6 -0.10672130 51.51449</div><div class='input'><span class='no'>distance_matrix</span> <span class='kw'>&lt;-</span> <span class='fu'>dist_gc</span>(<span class='no'>some_data</span>)
+<span class='fu'>head</span>(<span class='no'>distance_matrix</span>)</div><div class='output co'>#&gt;           [,1]      [,2]     [,3]     [,4]      [,5]     [,6]     [,7]     [,8]
+#&gt; [1,]  0.000000 10.750022 7.788216 1.230421  4.718320 6.130372 5.990944 3.308461
+#&gt; [2,] 10.750022  0.000000 3.254958 9.912062 11.619390 5.109775 6.261946 7.602526
+#&gt; [3,]  7.788216  3.254958 0.000000 7.117520  8.372088 1.860071 4.780219 4.516941
+#&gt; [4,]  1.230421  9.912062 7.117520 0.000000  5.630304 5.618867 4.814723 2.888278
+#&gt; [5,]  4.718320 11.619390 8.372088 5.630304  0.000000 6.548465 9.192897 4.929269
+#&gt; [6,]  6.130372  5.109775 1.860071 5.618867  6.548465 0.000000 4.624433 2.822148
+#&gt;           [,9]      [,10]     [,11]     [,12]      [,13]    [,14]    [,15]
+#&gt; [1,]  9.425713  9.9395591 11.129654 1.3731921  0.6481672 4.043951 4.627977
+#&gt; [2,]  1.408966  0.8582072  4.353442 9.6161488 11.3594885 7.119154 6.126218
+#&gt; [3,]  1.847466  2.3975927  6.036787 6.8059058  8.3613291 3.936235 3.235487
+#&gt; [4,]  8.639836  9.1310421  9.997286 0.3151568  1.8410705 3.706989 3.884212
+#&gt; [5,] 10.217302 10.7654695 13.573713 5.5452284  4.5500049 4.901971 6.408599
+#&gt; [6,]  3.700809  4.2515756  7.375834 5.3038386  6.6660230 2.138940 1.963023
+#&gt;         [,16]    [,17]      [,18]    [,19]     [,20]
+#&gt; [1,] 1.852873 5.262366  4.4009024 4.326970 12.401247
+#&gt; [2,] 8.992371 5.965391 10.8161222 7.007785  3.647174
+#&gt; [3,] 5.961092 2.736371  7.5672648 4.725403  6.235863
+#&gt; [4,] 1.663514 4.819767  5.1855426 3.207817 11.334404
+#&gt; [5,] 4.491633 5.778699  0.8071014 7.507415 14.337152
+#&gt; [6,] 4.278243 0.900866  5.7415853 3.895488  7.870122</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>

@@ -421,8 +421,6 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #'   density estimation." Proceedings of the Twenty-First Annual Symposium of
 #'   the Pattern Recognition Association of South Africa. 2010
 #' @export
-#' @examples
-#' # TODO
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
 
