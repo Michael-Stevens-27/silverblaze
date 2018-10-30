@@ -36,9 +36,6 @@ double Parameters::expected_popsize_prior_sd;
 double Parameters::expected_popsize_prior_shape;
 double Parameters::expected_popsize_prior_rate;
 
-int Parameters::index_lon_min;
-int Parameters::index_lat_min;
-
 //------------------------------------------------
 // constructor for Parameters class
 Parameters::Parameters(const Rcpp::List &args) {
@@ -84,10 +81,5 @@ Parameters::Parameters(const Rcpp::List &args) {
     expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
     expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
   }
-  
-  // get index limits. These are used when converting continuous lon/lat values
-  // to an integer index starting at zero
-  index_lon_min = min_lon/res_lon;
-  index_lat_min = min_lat/res_lat;
   
 }

@@ -29,11 +29,10 @@ Spatial_prior::Spatial_prior(const Rcpp::List &args) {
 double Spatial_prior::get_value(double lon, double lat) {
   
   // convert lon/lat to index using precision
-  int lon_index = floor(lon / res_lon) - index_lon_min;
-  int lat_index = floor(lat / res_lat) - index_lat_min;
+  int lon_index = floor((lon - min_lon)/res_lon);
+  int lat_index = floor((lat - min_lat)/res_lat);
   
   // lookup value
   return spatial_prior_mask[(n_lat-lat_index)*n_lon + lon_index];
-  //return spatial_prior_mask[lon_index*n_lat + lat_index];
   
 }
