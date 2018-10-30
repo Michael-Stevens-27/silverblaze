@@ -1,3 +1,4 @@
+^index.md
 ignore/
 R_ignore/
 ^.*\.Rproj$
@@ -9,3 +10,4 @@ R_ignore/
 ^docs$
 ^README\.Rmd$
 ^README-.*\.png$
+
