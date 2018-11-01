@@ -1,0 +1,10 @@
+---
+title: "Tutorial 2: Complex Spatial Priors"
+author: "Michael Stevens"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Tutorial 2: Complex Spatial Priors"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---

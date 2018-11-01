@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r, echo = FALSE}
-set.seed(14)
+set.seed(58)
 library(silverblaze)
 ```
 
@@ -29,8 +29,8 @@ Following this, the user will learn how to plot and diagnose the output of the m
 Before any data simulation happens, we must first define the sentinel site locations for the data.
 
 ```{r}
-sentinal_lon <- seq(-0.2, 0.0, l=11)
-sentinal_lat <- seq(51.45, 51.55, l=11)
+sentinal_lon <- seq(-0.2, 0.0, l = 12)
+sentinal_lat <- seq(51.45, 51.55, l = 12)
 sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
 names(sentinal_grid) <- c("longitude", "latitude")
 ```
@@ -42,7 +42,7 @@ mysim <- sim_data(sentinal_grid$longitude,
                  sentinal_grid$latitude,
                  sentinel_radius = 0.25,
                  K = 2,
-                 sigma_model = "independent",
+                 sigma_model = "single",
                  sigma_mean = 1,
                  sigma_var = 0.5,
                  expected_popsize = 300)
@@ -61,16 +61,15 @@ From the simulation we can extract two key objects: the true sources and a recor
 ```{r}
 true_source <- mysim$record$true_source
 data_all <- mysim$record$data_all
-head(data_all)
 ```
 
-We will require these for plotting later. Notice the structure of the `data_all` object, it lists the location of every individual as well as if and where said individual was observed.
+We will require these objects for plotting later on.
 
 ```{r}
 head(mysim$data)
 ```
 
-Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts.  
+Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.   
 
 ## Creating a project
 
@@ -88,18 +87,38 @@ p <- bind_data(p, mysim$data)
 
 ## Simple spatial priors
 
-We wish to impose a spatial prior on our model. Here we implement some very simple priors, for example instructing the model to restrict the area of interest to a london borough. This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
+We wish to impose a spatial prior on our model. Here we implement some very simple priors, for example instructing the model to restrict the area of interest to to that which contains our sentinel sites. We can produce a uniform spatial prior with `raster_grid()`.
+
+```{r}
+uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
+                             cells_lon = 100, cells_lat = 100)
+```
+
+```{r, echo = FALSE}
+spatialProject <- rgeoprofile_project()
+spatialProject <- new_set(project = spatialProject,
+                          spatial_prior = uniform_prior)
+
+plot_spatial <- plot_map()
+plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
+plot_spatial
+```
+
+It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.
 
 ```{r}
 s <- rgeoprofile_shapefile("London_north")
 spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
 ```
-
-If no shapefile is to hand, we can produce a uniform spatial prior with `raster_grid()`.
-
-```{r}
-uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55), cells_lon = 100, cells_lat = 100)
+```{r, echo = FALSE}
+spatialProject <- new_set(project = spatialProject,
+                          spatial_prior = spatial_prior)
+plot_spatial <- plot_map()
+plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
+plot_spatial
 ```
+
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
 
 ## Parameter sets
 
@@ -109,31 +128,49 @@ Next we define the various priors on the vairables we wish to estimate when runn
 p <- new_set(project = p,
              spatial_prior = spatial_prior,
              sentinel_radius = 0.25,
-             sigma_model = "independent",
+             sigma_model = "single",
              sigma_prior_mean = 1,
              sigma_prior_sd = 1,
-             expected_popsize_prior_mean = 100,
-             expected_popsize_prior_sd = -1)
-names(p)
+             expected_popsize_prior_mean = 200,
+             expected_popsize_prior_sd = 30,
+             name = "Tutorial Parameters")
+p
 ```
 
 The project `p` is now taking shape as we have defined the data and parameters for the model. Each time the `new_set()` function is run it will add a new set of parameters to `p$parameters_sets` and will regard this new set as the `active_set`. To delete an old parameter set, we use `delete_set()`. The `"output"` object within `p` is empty right now, but will be populated once the model has run.
 
 ## Running the model
 
-We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each iteration and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:3` as our data was generated with two sources. The `pb_markdown = TRUE` argument ensures a neater version of the concole output is printed below, this should be removed when run by you.       
+We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:4` as our data was generated with two sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.       
 
 ```{r}
 p <- run_mcmc(project = p,
-              K = 1:3,
-              burnin = 2e4,
-              samples = 2e4,
+              K = 1:4,
+              burnin = 1e4,
+              samples = 1e4,
               converge_test = 1e2,
               auto_converge = TRUE,
               pb_markdown = TRUE)
-```                
+```           
 
-## Plotting
+An immediate indication that the MCMC is acting sensibly is that the model `converged within X iterations` for every `K` value, so the choice of burn-in sufficed. Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.  
+
+## Diagnosing the Model
+
+Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.  
+
+```{r}
+plot_loglike_dignostic(p, K = 2)
+```
+
+Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
+
+```{r}
+get_ESS(p, K = 2)
+```
+
+## Results
+### Mapping
 
 Now the model has run, we can start to visualise different aspects of the project. Plotting objects in silverblaze follow a similar structure to [Leaflet](https://rstudio.github.io/leaflet/) and [ggplot2](https://ggplot2.tidyverse.org/). We start with a base layer
 
@@ -145,48 +182,29 @@ and overlay different parts of our project using the set of overlay functions. L
 
 ```{r}
 plot1 <- overlay_points(plot1, data_all$longitude, data_all$latitude)
-plot1 <- overlay_sources(plot1, true_source$longitude, true_source$latitude)
-plot1
+plot2 <- overlay_sources(plot1, true_source$longitude, true_source$latitude)
+plot2
 ```
 
 This isn't too interesting yet, so let's add to this the spatial prior and the sentinel site locations.
 
 ```{r}
-plot1 <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
-plot1 <- overlay_sentinels(plot1, p, fill_opacity = 0.9,
+plot3 <- overlay_spatial_prior(plot2, p, col = "red", opacity = 0.2)
+plot4 <- overlay_sentinels(plot3, p, fill_opacity = 0.9,
                             fill = TRUE, fill_colour = c(grey(0.7), "red"),
                             border = c(FALSE, TRUE), border_colour = "black", border_weight = 0.5)
-plot1
+plot4
 
 ```
 
 Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot1 <- overlay_geoprofile(plot1, p, threshold = 0.1, opacity = 0.8, K = 2)
-plot1
+plot5 <- overlay_geoprofile(plot4, p, threshold = 0.1, opacity = 0.8, K = 2)
+plot5
 ```
 
-## Diagnostics
-
-Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.  
-
-```{r}
-plot_loglike_dignostic(p, K = 2)
-```
-
-Using the `plot_loglike()` function we can collapse the density plot just produced into a 95% quantile plot. For now this will only show the result of one trace plot but with the addition of multiple temperature rungs each result could be plotted next to one another for easy comparison.  
-
-```{r}
-plot_loglike(p, K = 2)
-```
-
-Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
-
-```{r}
-get_ESS(p, K = 2)
-# get_output(p, name = "K1", type = “ESS”)
-```
+### Other Parameter Estimation
 
 We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
 
@@ -206,10 +224,17 @@ With `plot_structure()` we are able to visualise the model's allocation of posit
 plot_structure(p, divide_ind_on = TRUE)
 ```
 
-When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. The case of `K = 3` is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
+When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear XX-XX split between sources. The case of `K = 3` is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
 
 ```{r}
 plot(mysim$record$true_qmatrix)
+```
+
+It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.  
+
+```{r}
+piePlot <- overlay_piecharts(plot5, project = p, K = 2, min_size = 10, max_size = 30)
+piePlot
 ```
 
 The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.   
@@ -232,22 +257,11 @@ This `plot_lorenz()` function returns a graph that describes the number of sourc
 gini(hs)
 ```
 
-Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to. We've seen many functions silverblaze has to offer for checking the ability of the model but we've done very little to compare the difference between models fitting different values of `K`. Hence we introduce the `plot_DIC_gelman` function to calculate the deviance information criterion (DIC) for each model.
-
-```{r}
-plot_DIC_gelman(p)
-```
-
-As we can see the model with the lowest absolute DIC is the one fitting three sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. Instead we can attempt to produce a kind of pseudo AIC. In its calculation, the AIC requires the maximum likelihood however we do not have this to hand. Instead we have a number of draws from the posterior distribution. Although the maximum likelihood has been extracted from the MCMC, there is no guarantee this is the true maximum likelihood. This can be plotted for each `K` using a similar plot function.
-
-```{r}
-plot_pseudoAIC(p)
-```
+Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to.
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so results are consistent between tutorials
 saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-#  mysim <- malecot_file("tutorial1_mysim.rds")
 saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
 saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
 ```

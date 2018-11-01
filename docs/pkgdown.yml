@@ -3,5 +3,7 @@ pkgdown: 1.1.0
 pkgdown_sha: ~
 articles:
   basic-implementation: basic-implementation.html
+  complex-spatial-priors: complex-spatial-priors.html
   installation: installation.html
+  model-validation: model-validation.html
 
