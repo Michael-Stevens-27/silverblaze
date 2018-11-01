@@ -38,9 +38,6 @@ public:
   static double expected_popsize_prior_shape;
   static double expected_popsize_prior_rate;
   
-  static int index_lon_min;
-  static int index_lat_min;
-  
   // constructors
   Parameters() {};
   Parameters(const Rcpp::List &args);
