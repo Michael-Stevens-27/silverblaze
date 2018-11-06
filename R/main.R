@@ -589,7 +589,7 @@ run_mcmc <- function(project,
     # ---------- DIC ----------
     mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
     sigma_sq <- var(loglike_sampling[,ncol(loglike_sampling)])
-    DIC_gelman <- mu + sigma_sq/2
+    DIC_gelman <- mu + sigma_sq
 
     # # ---------- pseudo-AIC  ----------
     # # calculate the AIC base on sigma_model
@@ -823,12 +823,12 @@ align_qmatrix <- function(project) {
 # ring-search
 #' @noRd
 ring_search <- function(project, r) {
-  
+
   # extract sentinel locations with at least one observation
   data <- subset(project$data, counts > 0)
   sentinel_lon <- data$longitude
   sentinel_lat <- data$latitude
-  
+
   # get breaks, midpoints, and coordinates of all points in grid
   breaks_lon <- seq(xmin(r), xmax(r), xres(r))
   breaks_lat <- seq(ymin(r), ymax(r), yres(r))
