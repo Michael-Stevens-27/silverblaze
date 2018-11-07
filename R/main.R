@@ -589,7 +589,7 @@ run_mcmc <- function(project,
     # ---------- DIC ----------
     mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
     sigma_sq <- var(loglike_sampling[,ncol(loglike_sampling)])
-    DIC_gelman <- mu + sigma_sq
+    DIC_gelman <- mu + 0.5*sigma_sq
 
     # # ---------- pseudo-AIC  ----------
     # # calculate the AIC base on sigma_model
