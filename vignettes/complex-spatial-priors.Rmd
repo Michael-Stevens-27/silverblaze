@@ -8,3 +8,26 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+```{r, echo = FALSE}
+library(silverblaze)
+```
+
+## Using shapefiles
+
+It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.
+
+```{r}
+s <- rgeoprofile_shapefile("London_north")
+spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
+```
+```{r, echo = FALSE}
+spatialProject <- rgeoprofile_project()
+spatialProject <- new_set(project = spatialProject,
+                          spatial_prior = spatial_prior)
+plot_spatial <- plot_map()
+plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
+plot_spatial
+```
+
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).

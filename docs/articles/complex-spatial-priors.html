@@ -76,13 +76,16 @@
 <!--/.navbar -->
 
       
-      </header><div class="row">
+      </header><script src="complex-spatial-priors_files/htmlwidgets-1.3/htmlwidgets.js"></script><script src="complex-spatial-priors_files/jquery-1.12.4/jquery.min.js"></script><link href="complex-spatial-priors_files/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+<script src="complex-spatial-priors_files/leaflet-1.3.1/leaflet.js"></script><link href="complex-spatial-priors_files/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+<script src="complex-spatial-priors_files/Proj4Leaflet-1.0.1/proj4-compressed.js"></script><script src="complex-spatial-priors_files/Proj4Leaflet-1.0.1/proj4leaflet.js"></script><link href="complex-spatial-priors_files/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+<script src="complex-spatial-priors_files/leaflet-binding-2.0.2/leaflet.js"></script><script src="complex-spatial-priors_files/leaflet-providers-1.1.17/leaflet-providers.js"></script><script src="complex-spatial-priors_files/leaflet-providers-plugin-2.0.2/leaflet-providers-plugin.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>Tutorial 2: Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2018-11-05</h4>
+            <h4 class="date">2018-12-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -91,10 +94,29 @@
 
     
     
-
+<div id="using-shapefiles" class="section level2">
+<h2 class="hasAnchor">
+<a href="#using-shapefiles" class="anchor"></a>Using shapefiles</h2>
+<p>It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_north"</span>)</code></pre></div>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: "/home/mstevens/R/x86_64-pc-linux-gnu-library/3.4/silverblaze/extdata/London_north", layer: "boroughs"
+## with 8 features
+## It has 7 fields</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spatial_prior &lt;-<span class="st"> </span><span class="kw"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(s, <span class="dt">cells_lon =</span> <span class="dv">100</span>, <span class="dt">cells_lat =</span> <span class="dv">100</span>)</code></pre></div>
+<div id="htmlwidget-26498860433cb2fcd244" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-26498860433cb2fcd244">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAAB+CAYAAAD86pU7AAAC80lEQVR4nO3d3XKrMAxGUdE57//K9CrTHA8G/0iWZPa67KQB/EUiYAIiAAAAAAAAAAAACOYUOU+R03s9REQO7xWI7BPSIXLUAjucx3DLAMvB7hnkkcryDHG7AEcrZaYlEmDhbjDvBusphNr/zu7PCPBLz2B+D1zr/10NNgEqWPWtziLA2vuu8OOx0FKUr+QzvLbBPcDVG14uL/uHx7WFeg/e3fHdzHtqvl/D8nx4h2dpZYjuLRRzCNDAyu7i0kJ3bp9XLFvq8gDfFl5JO8ylAb49vA/NENkHJresAqm+/2lVoVmABPZMI0STFkp467APdKQ0C2KDKmw300rNKtD7Yp+3oIUmZxogVWiPCkzOPECq0BYVmNySAKlCO1RgADPHzMsCpAptUIEBhDwTc4Uq1EcFJsdFTc5muxIVmBwBJkeAyZnuA79vElD+DX9m9oP/Wl50Neg9P3U+RU4OIWw8ttBaxdTulXL3+v7Vw5PHquj9zTpBjRntUGa33kC/kRCHb9kBG70hchiRHAEmR4DJEWByBJhcNUDOnORABSZHgMH0Hn8TYEA9IRJgUK0hEmBgLSESYHANt5GeewOsUTusowKTqBUSASbXdE3MDqxudu6t6XTZJhu6bFvLZWmN39U2vCLA0fO6mo/hsXo2xSu+hWqcmG8ZB83H+7Su8+2XmB3C03KIHKtmaHqWUw2Q8K7dtLL3Prklm7IaPedOX3MYYSHCpDcz8snRQpMjwORuA6SNxvdYgYQY2/YtdPcP4PYBRmJxQp0AkyPAoLgqTWLu/1rXqfV1TafSPr9933VWO7Ml82QeIlbft7txU5lOyix6eCJ601IqGxqpCjOEV7q6o1WrlAHWLhrKGN6sNAG+MZwWoSd0Ce1ZyAAJrl24b6GE1ydUgITXL1SA6KcSIJXjJ1QFRjohkIVagFShj1AVyIegX6gA0U81QCpovTAVSPhj1AMkiLWWPLmlYSUIfZB7CyW8OeaDp3XtBwAAAAAAAAAASOoXY/KkyvIGqyIAAAAASUVORK5CYII=",[[51.5934340910359,-0.269761048903247],[51.4485340910359,0.0259189510967518]],0.2,null,null,null]}],"limits":{"lat":[51.4485340910359,51.5934340910359],"lng":[-0.269761048903247,0.0259189510967518]}},"evals":[],"jsHooks":[]}</script><p>This shapefile is built into the package, any other shapefile should be loaded using the <code>readOGR</code> function from <a href="https://cran.r-project.org/web/packages/rgdal/index.html">rgdal</a>.</p>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#using-shapefiles">Using shapefiles</a></li>
+      </ul>
+</div>
       </div>
 
 </div>

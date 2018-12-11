@@ -82,7 +82,7 @@
       <h1>Tutorial 3: Model Validation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2018-11-05</h4>
+            <h4 class="date">2018-12-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/model-validation.Rmd"><code>vignettes/model-validation.Rmd</code></a></small>
       <div class="hidden name"><code>model-validation.Rmd</code></div>
@@ -91,8 +91,7 @@
 
     
     
-<p>The majority of the following methodology on Bayesian model validation is adopted from <span class="citation">Spiegelhalter et al. (2014)</span>.<br>
-There are many functions silverblaze has to offer for checking the ability of the model but we’ve done very little to compare the difference between models fitting different values of <code>K</code>. Hence we introduce the <code>plot_DIC_gelman</code> function to calculate the deviance information criterion (DIC) for each model.</p>
+<p>The majority of the following methodology on Bayesian model validation is adopted from <span class="citation">Spiegelhalter et al. (2014)</span>. There are many functions silverblaze has to offer for checking the ability of the model but we’ve done very little to compare the difference between models fitting different values of <code>K</code>. Hence we introduce the <code><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman()</a></code> function to calculate the deviance information criterion (DIC) for each model.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman</a></span>(p)</code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <p>As we can see the model with the lowest absolute DIC is the one fitting XXXX sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. Instead we can attempt to produce a kind of pseudo AIC. In its calculation, the AIC requires the maximum likelihood however we do not have this to hand. Instead we have a number of draws from the posterior distribution. Although the maximum likelihood has been extracted from the MCMC, there is no guarantee this is the true maximum likelihood. This can be plotted for each <code>K</code> using a similar plot function.</p>

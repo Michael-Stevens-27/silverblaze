@@ -41,7 +41,7 @@ Here we've chosen a lattice configuration but the user may define any list of lo
 mysim <- sim_data(sentinal_grid$longitude,
                  sentinal_grid$latitude,
                  sentinel_radius = 0.25,
-                 K = 5,
+                 K = 3,
                  sigma_model = "single",
                  sigma_mean = 1,
                  sigma_var = 0.5,
@@ -85,9 +85,9 @@ We then add in our simulated data using `bind_data()`.
 p <- bind_data(p, mysim$data)
 ```
 
-## Simple spatial priors
+## Simple spatial prior
 
-We wish to impose a spatial prior on our model. Here we implement some very simple priors, for example instructing the model to restrict the area of interest to to that which contains our sentinel sites. We can produce a uniform spatial prior with `raster_grid()`.
+We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our sentinel sites plus some "guardRail." We can produce a uniform spatial prior with `raster_grid()`.
 
 ```{r}
 uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
@@ -104,25 +104,9 @@ plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red",
 plot_spatial
 ```
 
-It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.
-
-```{r}
-s <- rgeoprofile_shapefile("London_north")
-spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
-```
-```{r, echo = FALSE}
-spatialProject <- new_set(project = spatialProject,
-                          spatial_prior = spatial_prior)
-plot_spatial <- plot_map()
-plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
-plot_spatial
-```
-
-This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
-
 ## Parameter sets
 
-Next we define the various priors on the vairables we wish to estimate when running the model. We define these parameters via `new_set()`. Notice the project `p` is one of the functions arguments. This is such that the parameter set we define is added into our project.
+Next we define the various priors on the variables we wish to estimate when running the model. We define these parameters via `new_set()`. Notice the project `p` is one of the function's arguments. This is such that the parameter set we define is added into our project.
 
 ```{r}
 p <- new_set(project = p,
@@ -145,7 +129,7 @@ We are now ready to run the MCMC algorithm on our data. The arguments in `run_mc
 
 ```{r}
 p <- run_mcmc(project = p,
-              K = 1:10,
+              K = 1:5,
               burnin = 1e4,
               samples = 5e4,
               converge_test = 1e2,
@@ -160,13 +144,13 @@ An immediate indication that the MCMC is acting sensibly is that the model `conv
 Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.
 
 ```{r}
-plot_loglike_dignostic(p, K = 2)
+plot_loglike_dignostic(p, K = 3)
 ```
 
 Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
 
 ```{r}
-get_ESS(p, K = 2)
+get_ESS(p, K = 3)
 ```
 
 ## Results
@@ -199,7 +183,7 @@ plot2
 Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 5)
+plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 3)
 plot2
 ```
 
@@ -208,13 +192,13 @@ plot2
 We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
 
 ```{r}
-plot_sigma(p, K = 2)
+plot_sigma(p)
 ```
 
 Similarly the same can be done for the expected population size.
 
 ```{r}
-plot_expected_popsize(p, K = 2)
+plot_expected_popsize(p)
 ```
 
 With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.
@@ -232,7 +216,7 @@ plot(mysim$record$true_qmatrix)
 It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.
 
 ```{r}
-piePlot <- overlay_piecharts(plot2, project = p, K = 2, min_size = 10, max_size = 30)
+piePlot <- overlay_piecharts(plot2, project = p, K = 3, min_size = 10, max_size = 30)
 piePlot
 ```
 
@@ -260,7 +244,7 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
-saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
+saveRDS(mysim, file = "tutorial1_mysim.rds")
+saveRDS(p, file = "tutorial1_project.rds")
+saveRDS(hs, file = "tutorial1_hitscore.rds")
 ```
