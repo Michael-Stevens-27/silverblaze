@@ -124,7 +124,7 @@
     </div>
 
     <pre class="usage"><span class='fu'>raster_grid</span>(<span class='kw'>range_lon</span> <span class='kw'>=</span> <span class='fu'>c</span>(-<span class='fl'>0.2</span>, <span class='fl'>0</span>), <span class='kw'>range_lat</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>51.45</span>, <span class='fl'>51.55</span>),
-  <span class='kw'>cells_lon</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>cells_lat</span> <span class='kw'>=</span> <span class='fl'>100</span>)</pre>
+  <span class='kw'>cells_lon</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>cells_lat</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>guard_rail</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -144,6 +144,10 @@
     <tr>
       <th>cells_lat</th>
       <td><p>number of cells in latitude direction</p></td>
+    </tr>
+    <tr>
+      <th>guard_rail</th>
+      <td><p>Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.</p></td>
     </tr>
     </table>
     

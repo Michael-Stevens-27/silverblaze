@@ -104,17 +104,19 @@ bind_data <- function(project,
 #'
 #' @description Make raster grid
 #'
-#' @param range_lon min and max longitude
-#' @param range_lat min and max latitude
-#' @param cells_lon number of cells in longitude direction
-#' @param cells_lat number of cells in latitude direction
+#' @param range_lon  min and max longitude
+#' @param range_lat  min and max latitude
+#' @param cells_lon  number of cells in longitude direction
+#' @param cells_lat  number of cells in latitude direction
+#' @param guard_rail Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.
 #'
 #' @export
 
 raster_grid <- function (range_lon = c(-0.2, 0),
                          range_lat = c(51.45, 51.55),
                          cells_lon = 1e2,
-                         cells_lat = 1e2) {
+                         cells_lat = 1e2,
+                         guard_rail = 0.05) {
 
   # check inputs
   assert_numeric(range_lon)
@@ -125,12 +127,20 @@ raster_grid <- function (range_lon = c(-0.2, 0),
   assert_length(range_lat, 2)
   assert_single_pos_int(cells_lon)
   assert_single_pos_int(cells_lat)
+  assert_numeric(guard_rail)
+  assert_single_pos(guard_rail)
 
   # make raster grid
-  r <- raster(xmn = range_lon[1],
-              xmx = range_lon[2],
-              ymn = range_lat[1],
-              ymx = range_lat[2],
+  dlon <- guard_rail*diff(range(range_lon))
+  dlat <- guard_rail*diff(range(range_lat))
+  lomn <- range_lon[1] - dlon/2
+  lomx <- range_lon[2] + dlon/2
+  lamn <- range_lat[1] - dlat/2
+  lamx <- range_lat[2] + dlat/2
+  r <- raster(xmn = lomn,
+              xmx = lomx,
+              ymn = lamn,
+              ymx = lamx,
               ncol = cells_lon,
               nrow = cells_lat)
   r <- setValues(r, 1/(cells_lon*cells_lat))

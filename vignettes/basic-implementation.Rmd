@@ -12,6 +12,8 @@ vignette: >
 ```{r, echo = FALSE}
 set.seed(58)
 library(silverblaze)
+plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
+            "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
 ```
 
 ## Introduction
@@ -183,7 +185,7 @@ plot2
 Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 3)
+plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 3, col = plasma)
 plot2
 ```
 
@@ -244,7 +246,7 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 
 ```{r, echo=FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-saveRDS(mysim, file = "tutorial1_mysim.rds")
-saveRDS(p, file = "tutorial1_project.rds")
-saveRDS(hs, file = "tutorial1_hitscore.rds")
+# saveRDS(mysim, file = "tutorial1_mysim.rds")
+# saveRDS(p, file = "tutorial1_project.rds")
+# saveRDS(hs, file = "tutorial1_hitscore.rds")
 ```

@@ -140,6 +140,18 @@ assert_single_int <- function(x, name = deparse(substitute(x))) {
 }
 
 #------------------------------------------------
+# x is double
+#' @noRd
+assert_double <- function(x, message = "%s must be real valued", name = deparse(substitute(x))) {
+  assert_numeric(x, name = name)
+  if (!isTRUE(all.equal(x, as.double(x), check.attributes = FALSE))) {
+    stop(sprintf(message, name), call. = FALSE)
+  }
+  return(TRUE)
+}
+
+
+#------------------------------------------------
 # x is positive (with or without zero allowed)
 #' @noRd
 assert_pos <- function(x, zero_allowed = TRUE, message1 = "%s must be greater than or equal to zero", message2 = "%s must be greater than zero", name = deparse(substitute(x))) {
