@@ -6,7 +6,7 @@
 \usage{
 overlay_geoprofile(myplot, project, K = NULL, source = NULL,
   threshold = 0.1, col = col_hotcold(), opacity = 0.8,
-  smoothing = 1)
+  smoothing = 1, legend = FALSE)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
@@ -28,6 +28,9 @@ below threshold)}
 \item{smoothing}{what level of smoothing to apply to geoprofile. Smoothing is
 applied using the \code{raster} function \code{disaggregate}, with
 \code{method = "bilinear"}}
+
+\item{legend}{Set to TRUE or FALSE, this will add a hitscore legend to the
+plot}
 }
 \description{
 Add geoprofile to dynamic map

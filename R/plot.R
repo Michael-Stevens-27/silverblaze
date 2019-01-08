@@ -617,7 +617,6 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
 #' # Standard OSM format is given by map_type = 1, though this value can take anywhere between 1 and 137.
 #' plot_map(map_type = 1)
 
-
 plot_map <- function(map_type = 97) {
 
   # check inputs
@@ -1005,6 +1004,8 @@ overlay_spatial_prior <- function(myplot,
 #' @param smoothing what level of smoothing to apply to geoprofile. Smoothing is
 #'   applied using the \code{raster} function \code{disaggregate}, with
 #'   \code{method = "bilinear"}
+#' @param legend Set to TRUE or FALSE, this will add a hitscore legend to the
+#'   plot  
 #'
 #' @export
 #' @examples
@@ -1020,7 +1021,8 @@ overlay_geoprofile <- function(myplot,
                                threshold = 0.1,
                                col = col_hotcold(),
                                opacity = 0.8,
-                               smoothing = 1) {
+                               smoothing = 1,
+                               legend  = FALSE) {
 
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -1035,6 +1037,7 @@ overlay_geoprofile <- function(myplot,
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
+  assert_single_logical(legend)
 
   # extract geoprofile
   if (is.null(source)) {
@@ -1063,6 +1066,13 @@ overlay_geoprofile <- function(myplot,
                           xmax(geoprofile), ymax(geoprofile),
                           fill = FALSE, weight = 2, color = grey(0.2))
 
+  # add hitscore legend
+  if(legend == TRUE)
+  {
+  hitscoreSequence <- seq(0, threshold, threshold/(length(col) - 1))
+  pal <- colorNumeric(palette = col, domain = hitscoreSequence)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscoreSequence, title = "Hitscore", opacity = 1)
+  }
   # return plot object
   return(myplot)
 }

@@ -185,7 +185,7 @@ plot2
 Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 3, col = plasma)
+plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, K = 3, col = plasma, legend = TRUE)
 plot2
 ```
 
@@ -209,7 +209,7 @@ With `plot_structure()` we are able to visualise the model's allocation of posit
 plot_structure(p, divide_ind_on = TRUE)
 ```
 
-When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear XX-XX split between sources. The case of `K = 3` is curious. We know for sure that there are two true sources, but the model is displaying its attempt to fit three by splitting a source in two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
+When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 30-70 split between sources. On to `K = 3` and the model has allocated a third of all positive sentinel sites to a source. The case of `K = 4` is curious. We know for sure that there are three true sources, but the model is displaying its attempt to fit four by splitting taking from sources one and two. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
 
 ```{r}
 plot(mysim$record$true_qmatrix)

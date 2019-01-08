@@ -3,7 +3,7 @@
 #' @title Simulate data
 #'
 #' @description Simulate data from the same presence-absence model used in the
-#'   inference step. 
+#'   inference step.
 #'
 #' @param sentinel_lon vector giving longitudes of sentinel sites
 #' @param sentinel_lat vector giving latitudes of sentinel sites
@@ -53,7 +53,8 @@ sim_data <- function(sentinel_lon,
                      sigma_model = "single",
                      sigma_mean = 1.0,
                      sigma_var = 0.1,
-                     expected_popsize = 100) {
+                     expected_popsize = 100)
+                     {
 
   # check inputs
   assert_numeric(sentinel_lon)
