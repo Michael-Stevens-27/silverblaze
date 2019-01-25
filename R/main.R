@@ -413,6 +413,7 @@ run_mcmc <- function(project,
 
   # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
+  fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
 
   # misc properties list
   args_properties <- list(min_lon = xmin(spatial_prior),
@@ -425,7 +426,8 @@ run_mcmc <- function(project,
                           n_lat = nrow(spatial_prior),
                           spatial_prior_values = spatial_prior_values,
                           source_init = source_init,
-                          sigma_model_numeric = sigma_model_numeric)
+                          sigma_model_numeric = sigma_model_numeric,
+                          fixed_sigma_model = fixed_sigma_model)
 
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
@@ -503,7 +505,6 @@ run_mcmc <- function(project,
     } else {
       colnames(full_sigma) <- group_names
     }
-
     # get expected_popsize in coda::mcmc format
     full_expected_popsize <- mcmc(output_raw[[i]]$expected_popsize)
 
@@ -529,7 +530,6 @@ run_mcmc <- function(project,
     raster_empty <- raster()
     extent(raster_empty) <- extent(spatial_prior)
     res(raster_empty) <- res(spatial_prior)
-
     # get breaks for kernel smoothing
     breaks_lon <- seq(xmin(raster_empty), xmax(raster_empty), xres(raster_empty))
     breaks_lat <- seq(ymin(raster_empty), ymax(raster_empty), yres(raster_empty))
@@ -555,11 +555,9 @@ run_mcmc <- function(project,
       # add to combined surface matrix
       prob_surface_mat <- prob_surface_mat + prob_surface_split_mat/K[i]
     }
-
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
     values(prob_surface)[is.na(values(spatial_prior))] <- NA
-
     # produce geoprofile rasters
     geoprofile_split <- raster()
     geoprofile_mat <- 0
@@ -585,15 +583,18 @@ run_mcmc <- function(project,
     if (all_converged && any(!converged)) {
       all_converged <- FALSE
     }
-
     # ---------- ESS ----------
 
-    # get ESS
+    # get ESS, unless using a fixed sigma model
+    print(fixed_sigma_model)
+    if(fixed_sigma_model == TRUE){
+      ESS <- NULL
+    } else if(fixed_sigma_model == FALSE) {
     ESS <- effectiveSize(loglike_sampling)
     ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
     ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
     names(ESS) <- rung_names
-
+    }
     # ---------- model comparison statistics ----------
 
     # ---------- DIC ----------
