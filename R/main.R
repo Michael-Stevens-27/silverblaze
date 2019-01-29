@@ -586,7 +586,6 @@ run_mcmc <- function(project,
     # ---------- ESS ----------
 
     # get ESS, unless using a fixed sigma model
-    print(fixed_sigma_model)
     if(fixed_sigma_model == TRUE){
       ESS <- NULL
     } else if(fixed_sigma_model == FALSE) {

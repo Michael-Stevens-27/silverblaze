@@ -45,10 +45,10 @@ double dlnorm1(double x, double meanlog, double sdlog, bool log_on) {
 //------------------------------------------------
 // draw from univariate normal distribution and reflect to interval (a,b)
 double rnorm1_interval(double mean, double sd, double a, double b) {
-  
+
   // draw raw value relative to a
   double ret = rnorm1(mean, sd) - a;
-  
+
   // reflect off boundries at 0 and (b-a)
   if (ret<0 || ret>(b-a)) {
     // use multiple reflections to bring into range [-(b-a), 2(b-a)]
@@ -58,7 +58,7 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
     while (ret > 2*(b-a)) {
       ret -= 2*(b-a);
     }
-    
+
     // use one more reflection to bring into range [0, (b-a)]
     if (ret < 0) {
       ret = -ret;
@@ -67,17 +67,17 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
       ret = 2*(b-a) - ret;
     }
   }
-  
+
   // no longer relative to a
   ret += a;
-  
+
   // don't let ret equal exactly a or b
   if (ret==a) {
     ret += UNDERFLO;
   } else if (ret==b) {
     ret -= UNDERFLO;
   }
-  
+
   return ret;
 }
 
@@ -96,8 +96,8 @@ int sample1(vector<double> &p, double pSum) {
 }
 
 //------------------------------------------------
-// sample single value x that lies between a and b (inclusive) with equal 
-// probability. Works on positive or negative values of a or b, and works 
+// sample single value x that lies between a and b (inclusive) with equal
+// probability. Works on positive or negative values of a or b, and works
 // irrespective of which of a or b is larger.
 int sample2(int a, int b) {
   if (a<b) {
@@ -119,7 +119,7 @@ int sample2(int a, int b) {
 // draw from gamma(shape,rate) distribution
 double rgamma1(double shape, double rate) {
   double x = R::rgamma(shape, 1/rate);
-  
+
   // check for zero or infinite values (catches bug present in Visual Studio 2010)
   if (x<UNDERFLO) {
     x = UNDERFLO;
@@ -169,7 +169,7 @@ vector<double> rdirichlet1(vector<double> &shapeVec) {
 // x, passed by reference for speed. Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
 void rdirichlet2(std::vector<double> &x, std::vector<int> &alpha, double beta) {
-  
+
   int n = x.size();
   double xSum = 0;
   for (int i=0; i<n; i++) {
@@ -209,4 +209,3 @@ int rnbinom1(double lambda, double gamma) {
 double dnbinom1(int n, double lambda, double gamma, bool returnLog) {
   return R::dnbinom(n, lambda/(gamma-1), 1/gamma, returnLog);
 }
-

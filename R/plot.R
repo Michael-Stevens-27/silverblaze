@@ -790,6 +790,7 @@ plot_lorenz <- function(hs, col = NULL, counts = NULL) {
 #' @param border_colour colour of circle borders
 #' @param border_weight thickness of circle borders
 #' @param border_opacity opacity of circle borders
+#' @param legend whether to add a legend for site count
 #'
 #' @export
 #' @examples
@@ -809,7 +810,8 @@ overlay_sentinels <- function(myplot,
                               border = FALSE,
                               border_colour = "black",
                               border_weight = 1,
-                              border_opacity = 1.0) {
+                              border_opacity = 1.0,
+                              legend = FALSE) {
 
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -825,7 +827,7 @@ overlay_sentinels <- function(myplot,
   }
   assert_string(fill_colour)
   assert_vector(fill_colour)
-  assert_in(length(fill_colour), c(1,2))
+  # assert_in(length(fill_colour), c(1,2))
   if (length(fill_colour) == 1) {
     fill_colour <- rep(fill_colour, 2)
   }
@@ -839,13 +841,13 @@ overlay_sentinels <- function(myplot,
   }
   assert_string(border_colour)
   assert_vector(border_colour)
-  assert_in(length(border_colour), c(1,2))
+  # assert_in(length(border_colour), c(1,2))
   if (length(border_colour) == 1) {
     border_colour <- rep(border_colour, 2)
   }
   assert_single_pos(border_opacity)
   assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
-
+  assert_logical(legend)
   # check for data
   df <- project$data
   if (is.null(df)) {
@@ -870,13 +872,23 @@ overlay_sentinels <- function(myplot,
   # make circle attributes depend on counts
   n <- nrow(df)
   fill_vec <- rep(fill[1], n)
+
   fill_vec[df$counts > 0] <- fill[2]
   fill_colour_vec <- rep(fill_colour[1], n)
-  fill_colour_vec[df$counts > 0] <- fill_colour[2]
+  fill_colour_vec[df$counts > 0] <- fill_colour[df$counts[df$counts > 0] + 1]
   border_vec <- rep(border[1], n)
+
   border_vec[df$counts > 0] <- border[2]
   border_colour_vec <- rep(border_colour[1], n)
-  border_colour_vec[df$counts > 0] <- border_colour[2]
+  border_colour_vec[df$counts > 0] <- border_colour[df$counts[df$counts > 0] + 1]
+
+  # add legend for sentinel site counts
+  if(legend == TRUE)
+  {
+  site_dense__seq <- seq(0, max(df$counts[df$counts > 0]), 1)
+  pal <- colorNumeric(palette = border_colour, domain = site_dense__seq)
+  myplot <- addLegend(myplot, "topright", pal, values = site_dense__seq, title = "Site Count", opacity = 1)
+  }
 
   # overlay circles
   myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
@@ -1005,7 +1017,7 @@ overlay_spatial_prior <- function(myplot,
 #'   applied using the \code{raster} function \code{disaggregate}, with
 #'   \code{method = "bilinear"}
 #' @param legend Set to TRUE or FALSE, this will add a hitscore legend to the
-#'   plot  
+#'   plot
 #'
 #' @export
 #' @examples

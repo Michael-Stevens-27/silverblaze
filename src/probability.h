@@ -17,7 +17,7 @@ bool rbernoulli1(double p);
 
 //------------------------------------------------
 // draw from univariate normal distribution
-double rnorm1(double mean=0, double sd=1);
+double rnorm1(double mean = 0, double sd = 1);
 
 //------------------------------------------------
 // density of univariate normal distribution
@@ -36,8 +36,8 @@ double rnorm1_interval(double mean, double sd, double a, double b);
 int sample1(std::vector<double> &p, double pSum=1.0);
 
 //------------------------------------------------
-// sample single value x that lies between a and b (inclusive) with equal 
-// probability. Works on positive or negative values of a or b, and works 
+// sample single value x that lies between a and b (inclusive) with equal
+// probability. Works on positive or negative values of a or b, and works
 // irrespective of which of a or b is larger.
 int sample2(int a, int b);
 
@@ -96,4 +96,3 @@ int rnbinom1(double lambda, double gamma);
 // probability mass of negative binomial distribution with mean lambda and
 // variance gamma*lambda (gamma must be >1)
 double dnbinom1(int n, double lambda, double gamma, bool returnLog=true);
-
