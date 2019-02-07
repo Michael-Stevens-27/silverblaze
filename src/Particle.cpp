@@ -19,7 +19,7 @@ Particle::Particle(double beta_raised) {
   source_lat = vector<double>(K);
 
   // standard deviation of sources (km)
-  sigma = vector<double>(K, 1.0);
+  sigma = vector<double>(K, 1);
 
   // scaling factor on hazard surface, equivalent to the expected total
   // population size (both observed and unobserved) in unit time
@@ -80,18 +80,25 @@ Particle::Particle(double beta_raised) {
 void Particle::reset() {
 
   // initialise source locations
-  for (int k=0; k<K; ++k) {
+  for (int k = 0; k < K; ++k) {
     source_lon[k] = source_init[0];
     source_lat[k] = source_init[1];
   }
 
   // draw sigma from prior
-  for (int k=0; k<K; ++k) {
-    sigma[k] = 1.0; // TODO - draw from prior
+  if(sigma_prior_sdlog != 0)
+  {
+  for (int k = 0; k < K; ++k) {
+    sigma[k] = rnorm1(exp(sigma_prior_meanlog), exp(sigma_prior_sdlog)); // draw from prior
+  }
+  } else {
+  for (int k = 0; k < K; ++k) {
+    sigma[k] = exp(sigma_prior_meanlog); // Keep sigma fixed
+  }
   }
 
   // draw expected popsize from prior
-  expected_popsize = 100.0;  // TODO - draw from prior
+  expected_popsize = 100;  //  TODO draw from prior
   log_expected_popsize = log(expected_popsize);
 
   // initialise proposal standard deviations
