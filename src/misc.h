@@ -138,7 +138,7 @@ void print(TYPE1 x1, TYPE2 x2, TYPE3 x3, TYPE4 x4, TYPE5 x5, TYPE6 x6) {
 //------------------------------------------------
 // helper function for printing contents of a vector (templated for different data types)
 template<class TYPE>
-void print_vector(std::vector<TYPE> &x) {
+void print_vector(const std::vector<TYPE> &x) {
     for (int i=0; i<x.size(); i++) {
         Rcpp::Rcout << x[i] << " ";
     }
@@ -149,7 +149,7 @@ void print_vector(std::vector<TYPE> &x) {
 //------------------------------------------------
 // helper function for printing contents of a matrix (templated for different data types)
 template<class TYPE>
-void print_matrix(std::vector< std::vector<TYPE> > &x) {
+void print_matrix(const std::vector< std::vector<TYPE> > &x) {
     for (int i=0; i<x.size(); i++) {
         for (int j=0; j<x[i].size(); j++) {
             Rcpp::Rcout << x[i][j] << " ";
@@ -163,7 +163,7 @@ void print_matrix(std::vector< std::vector<TYPE> > &x) {
 //------------------------------------------------
 // helper function for printing contents of a 3D array (templated for different data types)
 template<class TYPE>
-void print_array(std::vector< std::vector< std::vector<TYPE> > > &x) {
+void print_array(const std::vector< std::vector< std::vector<TYPE> > > &x) {
     for (int i=0; i<x.size(); i++) {
         Rcpp::Rcout << "--- slice " << i+1 << " ---\n";
         for (int j=0; j<x[i].size(); j++) {

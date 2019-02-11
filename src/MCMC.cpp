@@ -71,7 +71,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
 
   // define points at which convergence checked
   vector<int> convergence_checkpoint(1,converge_test);
-  while(convergence_checkpoint.back()<burnin) {
+  while (convergence_checkpoint.back()<burnin) {
     convergence_checkpoint.push_back(convergence_checkpoint.back()+converge_test);
   }
   int checkpoint_i = 0;
@@ -87,10 +87,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   vector<bool> convergence_reached(rungs, false);
   bool all_convergence_reached = false;
   for (int rep=0; rep<burnin; rep++) {
-
+    
     // update particles
     for (int r=0; r<rungs; r++) {
-
+      
       // skip over converged rungs
       if (convergence_reached[r]) {
         continue;
@@ -101,15 +101,15 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       particle_vec[rung].update_sources(true, rep+1);
 
       // update sigma
-      if(sigma_prior_sdlog != 0){
-      particle_vec[rung].update_sigma(true, rep+1);
+      if (sigma_prior_sdlog != 0) {
+        particle_vec[rung].update_sigma(true, rep+1);
       }
 
       // update expected population size
       particle_vec[rung].update_expected_popsize();
 
     } // end loop over rungs
-
+    
     // focus on cold rung
     cold_rung = rung_order[rungs-1];
 
@@ -209,7 +209,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
 
   // loop through sampling iterations
   for (int rep=0; rep<samples; rep++) {
-
+    
     // update particles
     for (int r=0; r<rungs; r++) {
       int rung = rung_order[r];

@@ -32,18 +32,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   
   // define spatial prior
   Spatial_prior spatial_prior(args_model);
-  /*
-  vector<vector<double>> z(parameters.n_lat, vector<double>(parameters.n_lon));
-  int i2 = 0;
-  for (int i=0; i<parameters.n_lat; ++i) {
-    for (int j=0; j<parameters.n_lon; ++j) {
-      //z[i][j] = spatial_prior.spatial_prior_mask[i2++];
-    }
-  }
   
-  Rcpp::List ret2 = Rcpp::List::create(Rcpp::Named("z") = z);
-  return(ret2);
-  */
   // define lookup table from data and parameters. The lookup table 
   // precalculates the distance in km of every data point from every possible 
   // source location in a lon/lat grid. The grid is defined from the lon/lat min

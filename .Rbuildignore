@@ -10,4 +10,4 @@ R_ignore/
 ^docs$
 ^README\.Rmd$
 ^README-.*\.png$
-
+^_config.yml$

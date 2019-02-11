@@ -676,8 +676,10 @@ run_mcmc <- function(project,
   project <- align_qmatrix(project)
 
   # run ring-search prior to MCMC
-  ringsearch <- ring_search(project, spatial_prior)
-  project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
+  if (sum(project$data$counts) > 0) {
+    ringsearch <- ring_search(project, spatial_prior)
+    project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
+  }
 
   # get DIC over all K
   DIC_gelman <- mapply(function(x) {
@@ -834,6 +836,11 @@ align_qmatrix <- function(project) {
 #' @noRd
 ring_search <- function(project, r) {
 
+  # check that there is at least one positive observation
+  if (sum(project$data$counts) == 0) {
+    stop("ring search not possible: no positive counts")
+  }
+  
   # extract sentinel locations with at least one observation
   data <- subset(project$data, counts > 0)
   sentinel_lon <- data$longitude

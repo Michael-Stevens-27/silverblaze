@@ -23,7 +23,7 @@ Particle::Particle(double beta_raised) {
 
   // scaling factor on hazard surface, equivalent to the expected total
   // population size (both observed and unobserved) in unit time
-  expected_popsize = 500.0;
+  expected_popsize = 100.0;
   log_expected_popsize = log(expected_popsize);
 
   // qmatrices
@@ -86,19 +86,20 @@ void Particle::reset() {
   }
 
   // draw sigma from prior
-  if(sigma_prior_sdlog != 0)
-  {
-  for (int k = 0; k < K; ++k) {
-    sigma[k] = rnorm1(exp(sigma_prior_meanlog), exp(sigma_prior_sdlog)); // draw from prior
-  }
+  if (sigma_prior_sdlog == 0) {
+    sigma = vector<double>(K, exp(sigma_prior_meanlog));
   } else {
-  for (int k = 0; k < K; ++k) {
-    sigma[k] = exp(sigma_prior_meanlog); // Keep sigma fixed
+    if (sigma_model == 1) {
+      sigma = vector<double>(K, exp(rnorm1(sigma_prior_meanlog, sigma_prior_sdlog)) );
+    } else if (sigma_model == 2) {
+      for (int k = 0; k < K; ++k) {
+        sigma[k] = exp(rnorm1(sigma_prior_meanlog, sigma_prior_sdlog));
+      }
+    }
   }
-  }
-
+  
   // draw expected popsize from prior
-  expected_popsize = 100;  //  TODO draw from prior
+  expected_popsize = 100;
   log_expected_popsize = log(expected_popsize);
 
   // initialise proposal standard deviations
@@ -345,11 +346,6 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
 // update independent sigma for each source
 void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
 
-  // return if prior is exact
-  if (sigma_prior_sdlog == 0) {
-    return;
-  }
-
   // loop through sources
   for (int k=0; k<K; ++k) {
 
@@ -487,7 +483,7 @@ void Particle::update_qmatrix() {
     }
 
   }  // end loop through sentinel sites
-
+  
 }
 
 //------------------------------------------------

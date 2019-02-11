@@ -22,9 +22,10 @@ Imports:
     leaflet,
     leaflet.minicharts,
     rgdal,
-    raster
+    raster,
+    pkgdown
 LinkingTo: Rcpp
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 SystemRequirements:
     C++11
 LazyData: true
