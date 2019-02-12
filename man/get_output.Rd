@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{get_output}
 \alias{get_output}
-\title{Get output}
+\title{Get specified output from project}
 \usage{
 get_output(project, name, K = NULL, type = "summary")
 }

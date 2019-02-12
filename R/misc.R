@@ -574,7 +574,7 @@ get_ESS <- function(project, K = NULL) {
 }
 
 #------------------------------------------------
-#' @title Get output
+#' @title Get specified output from project
 #'
 #' @description Get output from a project for a given value of K.
 #'

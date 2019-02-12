@@ -327,10 +327,25 @@ plot_sigma <- function(project, K = NULL) {
   if (!is.null(K)) {
     assert_single_pos_int(K, zero_allowed = FALSE)
   }
-
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # get sigma model
+  sigma_model <- project$parameter_sets[[s]]$sigma_model
+  
   # get output
   sigma_intervals <- get_output(project, "sigma_intervals", K)
-
+  x_lab <- "source"
+  if (sigma_model == "single") {
+    sigma_intervals <- sigma_intervals[1,]
+    rownames(sigma_intervals) <- ""
+    x_lab <- ""
+  }
+  
   # get properties
   x_vec <- rownames(sigma_intervals)
 
@@ -339,7 +354,7 @@ plot_sigma <- function(project, K = NULL) {
   plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
   plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
   plot1 <- plot1 + scale_y_continuous(limits = c(0, max(sigma_intervals$Q97.5)*1.1), expand = c(0,0))
-  plot1 <- plot1 + xlab("source") + ylab("sigma")
+  plot1 <- plot1 + xlab(x_lab) + ylab("sigma")
 
   # return plot object
   return(plot1)
@@ -412,10 +427,10 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
-
+  
   # get output
   loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
-
+  
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
   rung <- define_default(rung, rungs)
@@ -572,7 +587,7 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #' plot_loglike_dignostic(project = p, K = 2)
 
 plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black") {
-
+  
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(K)) {
@@ -581,25 +596,41 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
-
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no loglike_sampling output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
   # get output
   loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
-
+  
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-
+  
   # produce individual diagnostic plots and add features
   plot1 <- plot_trace(project, K = K, rung = rung, col = col)
   plot1 <- plot1 + ggtitle("MCMC trace")
-
+  
   plot2 <- plot_acf(project, K = K, rung = rung, col = col)
   plot2 <- plot2 + ggtitle("autocorrelation")
-
+  
   plot3 <- plot_density(project, K = K, rung = rung, col = col)
   plot3 <- plot3 + ggtitle("density")
-
+  
   # produce grid of plots
   ret <- grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
 }
