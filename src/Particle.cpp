@@ -9,45 +9,47 @@ using namespace std;
 //------------------------------------------------
 // constructor for Particle class
 Particle::Particle(double beta_raised) {
-
+  
   // beta_raised stores values of beta (the thermodynamic power), raised to the
   // power GTI_pow
   this->beta_raised = beta_raised;
-
+  
   // source locations
   source_lon = vector<double>(K);
   source_lat = vector<double>(K);
-
+  
   // standard deviation of sources (km)
   sigma = vector<double>(K, 1);
-
+  
   // scaling factor on hazard surface, equivalent to the expected total
   // population size (both observed and unobserved) in unit time
-  expected_popsize = 100.0;
+  if (expected_popsize_prior_sd <= 0) {
+    expected_popsize = expected_popsize_prior_mean;
+  } else {
+    expected_popsize = rgamma1(expected_popsize_prior_shape, expected_popsize_prior_rate);
+  }
   log_expected_popsize = log(expected_popsize);
-
+  
   // qmatrices
   log_qmatrix = vector<vector<double>>(n, vector<double>(K));
   qmatrix = vector<vector<double>>(n, vector<double>(K));
-
+  
   // proposal standard deviations
   source_propSD = vector<double>(K, 1.0);
   sigma_propSD = vector<double>(K, 1.0);
-
+  
   // Robbins-Monro stepsize
   source_rm_stepsize = 1.0;
   sigma_rm_stepsize = 1.0;
-
+  
   // misc constants
   // area around a sentinel site
   log_sentinel_area = LOG_PI + 2*log(sentinel_radius);
-  // area of source prior
-  log_search_area = log(max_lon-min_lon) + log(max_lat-min_lat);
   // sum of counts over all sentinel sites
   counts_total = sum(sentinel_counts);
   // log of K
   log_K = log(K);
-
+  
   // likelihood
   dist_source_data = vector<vector<double>>(n, vector<double>(K));
   dist_source_data_prop = vector<double>(n);
@@ -55,11 +57,11 @@ Particle::Particle(double beta_raised) {
   log_hazard_height_prop = vector<double>(n);
   log_hazard_height_prop2 = vector<vector<double>>(n, vector<double>(K));
   loglike = 0;
-
+  
   // initialise ordering of labels
   label_order = seq_int(0,K-1);
   label_order_new = vector<int>(K);
-
+  
   // objects for solving label switching problem
   cost_mat = vector<vector<double>>(K, vector<double>(K));
   best_perm = vector<int>(K);
@@ -68,11 +70,11 @@ Particle::Particle(double beta_raised) {
   edges_right = vector<int>(K);
   blocked_left = vector<int>(K);
   blocked_right = vector<int>(K);
-
+  
   // store acceptance rates
   source_accept = vector<int>(K);
   sigma_accept = vector<int>(K);
-
+  
 }
 
 //------------------------------------------------
@@ -99,7 +101,11 @@ void Particle::reset() {
   }
   
   // draw expected popsize from prior
-  expected_popsize = 100;
+  if (expected_popsize_prior_sd <= 0) {
+    expected_popsize = expected_popsize_prior_mean;
+  } else {
+    expected_popsize = rgamma1(expected_popsize_prior_shape, expected_popsize_prior_rate);
+  }
   log_expected_popsize = log(expected_popsize);
 
   // initialise proposal standard deviations
@@ -128,23 +134,23 @@ void Particle::reset() {
 //------------------------------------------------
 // calculate log-likelihood given new proposed source
 double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
-
+  
   // get prior probability
   double prior_prob = get_value(source_lon_prop, source_lat_prop);
   if (prior_prob == 0) {
     return -OVERFLO;
   }
-
+  
   // initialise new likelihood
   double loglike_prop = log(prior_prob);
-
+  
   // loop through sentinel sites
   for (int i=0; i<n; ++i) {
-
+    
     // get distance from proposed source to data point i
     double dist = get_data_dist(source_lon_prop, source_lat_prop, i);
     dist_source_data_prop[i] = dist;
-
+    
     // calculate bivariate normal height of data point i from proposed source.
     // This is equivalent to the univariate normal density of the distance
     // between data and source in lon, multiplied by the univariate normal
@@ -155,7 +161,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     // needed to make it a bivariate density). Finally, in log space densities
     // are summed not multiplied.
     log_hazard_height_prop[i] = dnorm1(dist, 0, sigma[k], true) + dnorm1(0, 0, sigma[k], true);
-
+    
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop[i];
     for (int j=0; j<K; ++j) {
@@ -168,18 +174,18 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
         log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
       }
     }
-
+    
     // divide by K
     log_hazard_sum -= log_K;
-
+    
     // define the rate lambda of the Poisson process at this sentinel site,
     // while remaining in log space
     double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
-
+    
     // calculate the Poisson log-probability of the counts at this sentinel site
     loglike_prop += sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(sentinel_counts[i]+1);
   }
-
+  
   return loglike_prop;
 }
 
@@ -249,7 +255,12 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
 //------------------------------------------------
 // update sigma
 void Particle::update_sigma(bool robbins_monro_on, int iteration) {
-
+  
+  // return if prior is exact
+  if (sigma_prior_sdlog == 0) {
+    return;
+  }
+  
   // update single sigma or separately for each source
   if (sigma_model == 1) {
     update_sigma_single(robbins_monro_on, iteration);
@@ -262,9 +273,10 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
 //------------------------------------------------
 // update single sigma for all sources
 void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
-
+  
   // propose new value
   double sigma_prop = rnorm1(sigma[0], sigma_propSD[0]);
+  sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
   sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
 
   // initialise new likelihood
@@ -345,12 +357,13 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
 //------------------------------------------------
 // update independent sigma for each source
 void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
-
+  
   // loop through sources
   for (int k=0; k<K; ++k) {
 
     // propose new value
     double sigma_prop = rnorm1(sigma[k], sigma_propSD[k]);
+    sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
     sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
 
     // initialise new likelihood
@@ -431,27 +444,28 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
 //------------------------------------------------
 // update separate sigma for each source
 void Particle::update_expected_popsize() {
-
+  
   // return if prior is exact
   if (expected_popsize_prior_sd == 0) {
     return;
   }
-
+  
   // sum of Poisson rate over sentinel sites
   double lambda_total = 0;
   for (int i=0; i<n; ++i) {
-
+    
     // take mean of hazard over sources
     for (int k=0; k<K; ++k) {
       lambda_total += exp(log_sentinel_area + log_hazard_height[i][k] - log_K);
     }
   }
-
+  
   // draw new expected population size
   double posterior_shape = expected_popsize_prior_shape + counts_total;
   double posterior_rate = expected_popsize_prior_rate + lambda_total;
   expected_popsize = rgamma1(posterior_shape, posterior_rate);
-
+  expected_popsize = expected_popsize_prior_mean;
+  
 }
 
 //------------------------------------------------

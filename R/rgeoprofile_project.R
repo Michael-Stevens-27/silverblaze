@@ -120,6 +120,7 @@ summary.rgeoprofile_project <- function(object, ...) {
     # get details of active set
     sentinel_radius <- object$parameter_sets[[s]]$sentinel_radius
     spatial_prior <- object$parameter_sets[[s]]$spatial_prior
+    study_area <- round(object$parameter_sets[[s]]$study_area, digits = 3)
     min_lon <- round(xmin(spatial_prior), digits = 3)
     max_lon <- round(xmax(spatial_prior), digits = 3)
     min_lat <- round(ymin(spatial_prior), digits = 3)
@@ -138,6 +139,7 @@ summary.rgeoprofile_project <- function(object, ...) {
     cat(sprintf("   spatial prior:\n"))
     cat(sprintf("      longitude range = [%s, %s]\n", min_lon, max_lon))
     cat(sprintf("      latitude range = [%s, %s]\n", min_lat, max_lat))
+    cat(sprintf("      area (km^2) = %s\n", study_area))
     cat(sprintf("      cells = %s, %s (lon, lat)\n", cells_lon, cells_lat))
     cat(sprintf("   sigma prior:\n"))
     cat(sprintf("      model = %s\n", sigma_model))

@@ -239,32 +239,36 @@ new_set <- function(project,
     range_lat <- mean(range_lat) + 1.05*c(-1,1)*diff(range_lat)/2
     spatial_prior <- raster_grid(range_lon, range_lat)
   }
-
+  
+  # get total study area in km^2
+  study_area <- sum(raster::area(spatial_prior)[])
+  
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
-
+  
   # make new set active
   project$active_set <- s
-
+  
   # create new parameter set
   project$parameter_sets[[s]] <- list(name = name,
                                       spatial_prior = spatial_prior,
+                                      study_area = study_area,
                                       sentinel_radius = sentinel_radius,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd)
-
+  
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
-
+  
   # create new output at all_K level
   project$output$single_set[[s]] <- list(single_K = list(), all_K = list())
-
+  
   # name new output
   names(project$output$single_set) <- paste0("set", 1:length(project$output$single_set))
-
+  
   # return
   return(project)
 }
@@ -525,20 +529,21 @@ run_mcmc <- function(project,
     qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
-
+    
     # create empty raster with correct properties
     raster_empty <- raster()
     extent(raster_empty) <- extent(spatial_prior)
     res(raster_empty) <- res(spatial_prior)
+    
     # get breaks for kernel smoothing
     breaks_lon <- seq(xmin(raster_empty), xmax(raster_empty), xres(raster_empty))
     breaks_lat <- seq(ymin(raster_empty), ymax(raster_empty), yres(raster_empty))
-
+    
     # produce posterior probability surface rasters
     prob_surface_split <- raster()
     prob_surface_mat <- 0
     for (k in 1:K[i]) {
-
+      
       # get prob_surface for this K by smoothing
       prob_surface_split_mat <- kernel_smooth(full_source_lon[,k],
                                               full_source_lat[,k],
@@ -546,18 +551,20 @@ run_mcmc <- function(project,
                                               breaks_lat)
       prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
       prob_surface_split_mat <- prob_surface_split_mat/sum(prob_surface_split_mat)
-
+      
       # add raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
       values(prob_surface_split_k)[is.na(values(spatial_prior))] <- NA
       prob_surface_split <- addLayer(prob_surface_split, prob_surface_split_k)
-
+      
       # add to combined surface matrix
       prob_surface_mat <- prob_surface_mat + prob_surface_split_mat/K[i]
     }
+    
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
     values(prob_surface)[is.na(values(spatial_prior))] <- NA
+    
     # produce geoprofile rasters
     geoprofile_split <- raster()
     geoprofile_mat <- 0

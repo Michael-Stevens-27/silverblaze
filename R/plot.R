@@ -812,7 +812,7 @@ overlay_sentinels <- function(myplot,
                               border_weight = 1,
                               border_opacity = 1.0,
                               legend = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
@@ -853,50 +853,49 @@ overlay_sentinels <- function(myplot,
   if (is.null(df)) {
     stop("no data loaded")
   }
-
+  
   # get sentinel radius from active parameter set by default
   if (is.null(sentinel_radius)) {
     message("getting sentinel radius from active parameter set:")
-
+    
     # get active set and check non-zero
     s <- project$active_set
     if (s == 0) {
       stop("  no active parameter set")
     }
-
+    
     # get sentinel radius
     sentinel_radius <- project$parameter_sets[[s]]$sentinel_radius
     message(sprintf("  sentinal radius = %skm", sentinel_radius))
   }
-
+  
   # make circle attributes depend on counts
   n <- nrow(df)
   fill_vec <- rep(fill[1], n)
-
+  
   fill_vec[df$counts > 0] <- fill[2]
   fill_colour_vec <- rep(fill_colour[1], n)
   fill_colour_vec[df$counts > 0] <- fill_colour[df$counts[df$counts > 0] + 1]
   border_vec <- rep(border[1], n)
-
+  
   border_vec[df$counts > 0] <- border[2]
   border_colour_vec <- rep(border_colour[1], n)
   border_colour_vec[df$counts > 0] <- border_colour[df$counts[df$counts > 0] + 1]
-
+  
   # add legend for sentinel site counts
-  if(legend == TRUE)
-  {
-  site_dense__seq <- seq(0, max(df$counts[df$counts > 0]), 1)
-  pal <- colorNumeric(palette = border_colour, domain = site_dense__seq)
-  myplot <- addLegend(myplot, "topright", pal, values = site_dense__seq, title = "Site Count", opacity = 1)
+  if (legend == TRUE) {
+    site_dense__seq <- seq(0, max(df$counts[df$counts > 0]), 1)
+    pal <- colorNumeric(palette = border_colour, domain = site_dense__seq)
+    myplot <- addLegend(myplot, "topright", pal, values = site_dense__seq, title = "Site Count", opacity = 1)
   }
-
+  
   # overlay circles
   myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
                       radius = sentinel_radius*1e3,
                       fill = fill_vec, fillColor = fill_colour_vec, fillOpacity = fill_opacity,
                       stroke = border_vec, color = border_colour_vec,
                       opacity = border_opacity, weight = border_weight)
-
+  
   # return plot object
   return(myplot)
 }

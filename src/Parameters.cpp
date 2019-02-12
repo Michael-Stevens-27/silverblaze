@@ -28,10 +28,12 @@ double Parameters::min_lat;
 double Parameters::max_lat;
 double Parameters::res_lat;
 int Parameters::n_lat;
+double Parameters::search_area;
 vector<double> Parameters::source_init;
 int Parameters::sigma_model;
 double Parameters::sigma_prior_meanlog;
 double Parameters::sigma_prior_sdlog;
+double Parameters::expected_popsize_prior_mean;
 double Parameters::expected_popsize_prior_sd;
 double Parameters::expected_popsize_prior_shape;
 double Parameters::expected_popsize_prior_rate;
@@ -61,6 +63,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   max_lat = rcpp_to_double(args["max_lat"]);
   res_lat = rcpp_to_double(args["res_lat"]);
   n_lat = rcpp_to_int(args["n_lat"]);
+  search_area = rcpp_to_double(args["study_area"]);
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
   
@@ -72,7 +75,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   sigma_prior_meanlog = log(sigma_prior_mean) - sigma_prior_varlog/2.0;
   
   // get expected_popsize shape and rate parameters from raw inputs
-  double expected_popsize_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
+  expected_popsize_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
   expected_popsize_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
   if (expected_popsize_prior_sd == -1) {  // improper prior
     expected_popsize_prior_shape = 0;

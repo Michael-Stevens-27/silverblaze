@@ -42,7 +42,6 @@ public:
   
   // misc constants
   double log_sentinel_area;
-  double log_search_area;
   int counts_total;
   double log_K;
   

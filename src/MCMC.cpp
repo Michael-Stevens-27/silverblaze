@@ -101,9 +101,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       particle_vec[rung].update_sources(true, rep+1);
 
       // update sigma
-      if (sigma_prior_sdlog != 0) {
-        particle_vec[rung].update_sigma(true, rep+1);
-      }
+      particle_vec[rung].update_sigma(true, rep+1);
 
       // update expected population size
       particle_vec[rung].update_expected_popsize();
@@ -218,9 +216,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       particle_vec[rung].update_sources(false, 0);
 
       // update sigma
-      if(sigma_prior_sdlog != 0){
       particle_vec[rung].update_sigma(false, 0);
-      }
 
       // update expected population size
       particle_vec[rung].update_expected_popsize();
