@@ -80,13 +80,13 @@ Particle::Particle(double beta_raised) {
 //------------------------------------------------
 // reset particle
 void Particle::reset() {
-
+  
   // initialise source locations
   for (int k = 0; k < K; ++k) {
     source_lon[k] = source_init[0];
     source_lat[k] = source_init[1];
   }
-
+  
   // draw sigma from prior
   if (sigma_prior_sdlog == 0) {
     sigma = vector<double>(K, exp(sigma_prior_meanlog));
@@ -107,11 +107,11 @@ void Particle::reset() {
     expected_popsize = rgamma1(expected_popsize_prior_shape, expected_popsize_prior_rate);
   }
   log_expected_popsize = log(expected_popsize);
-
+  
   // initialise proposal standard deviations
   source_propSD = vector<double>(K, 0.01);
   sigma_propSD = vector<double>(K, 1.0);
-
+  
   // calculate initial likelihood. Calling calculate_loglike_source() on each
   // source updates the dist_source_data_prop and log_hazard_height_prop
   // objects, which can then be stored back into the final matrices. This is
@@ -124,11 +124,11 @@ void Particle::reset() {
       log_hazard_height[i][k] = log_hazard_height_prop[i];
     }
   }
-
+  
   // reset acceptance rates
   source_accept = vector<int>(K);
   sigma_accept = vector<int>(K);
-
+  
 }
 
 //------------------------------------------------
@@ -278,80 +278,80 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   double sigma_prop = rnorm1(sigma[0], sigma_propSD[0]);
   sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
   sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
-
+  
   // initialise new likelihood
   double loglike_prop = 0;
-
+  
   // loop through sentinel sites
   for (int i=0; i<n; ++i) {
-
+    
     // loop through sources
     for (int k=0; k<K; ++k) {
-
+      
       // recalculate hazard given new sigma
       double dist = dist_source_data[i][k];
       log_hazard_height_prop2[i][k] = dnorm1(dist, 0, sigma_prop, true) + dnorm1(0, 0, sigma_prop, true);
     }
-
+    
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop2[i][0];
-    for (int j=1; j<K; ++j) {
-      if (log_hazard_sum < log_hazard_height_prop2[i][j]) {
-        log_hazard_sum = log_hazard_height_prop2[i][j] + log(1 + exp(log_hazard_sum - log_hazard_height_prop2[i][j]));
+    for (int k=1; k<K; ++k) {
+      if (log_hazard_sum < log_hazard_height_prop2[i][k]) {
+        log_hazard_sum = log_hazard_height_prop2[i][k] + log(1 + exp(log_hazard_sum - log_hazard_height_prop2[i][k]));
       } else {
-        log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height_prop2[i][j] - log_hazard_sum));
+        log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height_prop2[i][k] - log_hazard_sum));
       }
     }
-
+    
     // divide by K
     log_hazard_sum -= log_K;
-
+    
     // define the rate lambda of the Poisson process at this sentinel site,
     // while remaining in log space
     double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
-
+    
     // calculate the Poisson log-probability of the counts at this sentinel site
     loglike_prop += sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(sentinel_counts[i]+1);
-
+    
   }
-
+  
   // calculate priors
   double logprior = dlnorm1(sigma[0], sigma_prior_meanlog, sigma_prior_sdlog);
   double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
-
+  
   // Metropolis-Hastings ratio
   double MH_ratio = (loglike_prop + logprior_prop) - (loglike + logprior);
-
+  
   // Metropolis-Hastings step
   if (log(runif_0_1())<MH_ratio) {
-
+    
     // update sigma for all sources
     for (int k=0; k<K; ++k) {
       sigma[k] = sigma_prop;
     }
-
+    
     // update stored hazard values
     log_hazard_height = log_hazard_height_prop2;
-
+    
     // update likelihood
     loglike = loglike_prop;
-
+    
     // Robbins-Monro positive update (on the log scale)
     if (robbins_monro_on) {
       sigma_propSD[0] = exp(log(sigma_propSD[0]) + sigma_rm_stepsize*(1-0.23)/sqrt(iteration));
     } else {
       sigma_accept[0]++;
     }
-
+    
   } else {
-
+    
     // Robbins-Monro negative update (on the log scale)
     if (robbins_monro_on) {
       sigma_propSD[0] = exp(log(sigma_propSD[0]) - sigma_rm_stepsize*0.23/sqrt(iteration));
     }
-
+    
   }  // end Metropolis-Hastings step
-
+  
 }
 
 //------------------------------------------------

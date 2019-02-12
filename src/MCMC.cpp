@@ -171,7 +171,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // check for convergence
-    if (auto_converge && (rep+1) == convergence_checkpoint[checkpoint_i]) {
+    if ((auto_converge && (rep+1) == convergence_checkpoint[checkpoint_i]) || (!auto_converge && (rep+1) == burnin)) {
       
       // check for convergence of all unconverged chains
       for (int r=0; r<rungs; r++) {
