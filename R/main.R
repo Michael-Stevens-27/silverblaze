@@ -369,10 +369,10 @@ run_mcmc <- function(project,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
                      silent = !is.null(cluster)) {
-
+  
   # start timer
   t0 <- Sys.time()
-
+  
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_pos_int(K, zero_allowed = FALSE)
@@ -385,20 +385,20 @@ run_mcmc <- function(project,
   }
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
-
+  
   # get active set
   s <- project$active_set
   if (s == 0) {
     stop("no active parameter set")
   }
-
+  
   # ---------- create argument lists ----------
-
+  
   # data list
   args_data <- list(longitude = project$data$longitude,
                     latitude = project$data$latitude,
                     counts = project$data$counts)
-
+  
   # input arguments list
   args_inputs <- list(burnin = burnin,
                       samples = samples,
@@ -406,19 +406,19 @@ run_mcmc <- function(project,
                       converge_test = converge_test,
                       pb_markdown = pb_markdown,
                       silent = silent)
-
+  
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
   spatial_prior_values <- values(spatial_prior)
   spatial_prior_values[is.na(spatial_prior_values)] <- 0
-
+  
   # initialise sources in a non-NA cell
-  source_init <- xyFromCell(spatial_prior, which(!is.na(values(spatial_prior)))[1])
-
+  source_init <- raster::xyFromCell(spatial_prior, which(!is.na(values(spatial_prior)))[1])
+  
   # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
-
+  
   # misc properties list
   args_properties <- list(min_lon = xmin(spatial_prior),
                           max_lon = xmax(spatial_prior),
@@ -435,33 +435,33 @@ run_mcmc <- function(project,
 
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
-
+  
   # R functions to pass to Rcpp
   args_functions <- list(test_convergence = test_convergence,
                          update_progress = update_progress)
-
+  
   # define final argument list over all K
   parallel_args <- list()
   for (i in 1:length(K)) {
-
+    
     # create progress bars
     pb_burnin <- txtProgressBar(min = 0, max = burnin, initial = NA, style = 3)
     pb_samples <- txtProgressBar(min = 0, max = samples, initial = NA, style = 3)
     args_progress <- list(pb_burnin = pb_burnin,
                           pb_samples = pb_samples)
-
+    
     # incporporate arguments unique to this K
     args_model$K <- K[i]
-
+    
     # create argument list
     parallel_args[[i]] <- list(args_data = args_data,
                                args_model = args_model,
                                args_functions = args_functions,
                                args_progress = args_progress)
   }
-
+  
   # ---------- run MCMC ----------
-
+  
   # split into parallel and serial implementations
   if (!is.null(cluster)) { # run in parallel
     clusterEvalQ(cluster, library(silverblaze))
@@ -469,61 +469,71 @@ run_mcmc <- function(project,
   } else { # run in serial
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
-
+  
   #------------------------
-
+  
   # begin processing results
   if (!silent) {
     cat("Processing results\n")
   }
-
+  
   # loop through K
   ret <- list()
   all_converged <- TRUE
   for (i in 1:length(K)) {
-
+    
     # create name lists
     rungs <- 1
     group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
-
+    
     # ---------- raw mcmc results ----------
-
+    
+    # get iteration at which each rung converged
+    convergence_iteration <- output_raw[[i]]$convergence_iteration
+    
     # get loglikelihood in coda::mcmc format
-    loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
-    colnames(loglike_burnin) <- rung_names
+    loglike_burnin <- mapply(function(x, y) mcmc(x[1:y]),
+                             output_raw[[i]]$loglike_burnin, convergence_iteration, SIMPLIFY = FALSE)
+    names(loglike_burnin) <- rung_names
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     colnames(loglike_sampling) <- rung_names
-
+    
     # get source lon lat in coda::mcmc format
-    full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
-    colnames(full_source_lon) <- group_names
-    full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
-    colnames(full_source_lat) <- group_names
-
+    source_lon_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_burnin)[1:convergence_iteration[1],,drop = FALSE])
+    source_lat_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_burnin)[1:convergence_iteration[1],,drop = FALSE])
+    colnames(source_lon_burnin) <- colnames(source_lat_burnin) <- group_names
+    source_lon_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_sampling))
+    source_lat_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_sampling))
+    colnames(source_lon_sampling) <- colnames(source_lat_sampling) <- group_names
+    
     # get sigma in coda::mcmc format
-    full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
+    sigma_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma_burnin)[1:convergence_iteration[1],,drop = FALSE])
+    sigma_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma_sampling))
     if (args_model$sigma_model == "single") {
-      full_sigma <- full_sigma[, 1, drop = FALSE]
-      colnames(full_sigma) <- "all_groups"
+      sigma_burnin <- sigma_burnin[, 1, drop = FALSE]
+      sigma_sampling <- sigma_sampling[, 1, drop = FALSE]
+      colnames(sigma_burnin) <- colnames(sigma_sampling) <- "all_groups"
     } else {
-      colnames(full_sigma) <- group_names
+      colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
     }
+    
     # get expected_popsize in coda::mcmc format
-    full_expected_popsize <- mcmc(output_raw[[i]]$expected_popsize)
-
+    expected_popsize_burnin <- mcmc(output_raw[[i]]$expected_popsize_burnin[1:convergence_iteration[1]])
+    expected_popsize_sampling <- mcmc(output_raw[[i]]$expected_popsize_sampling)
+    
     # ---------- summary results ----------
-
+    
     # get 95% credible intervals over sampling loglikelihoods
     loglike_intervals <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
-
+    
     # get 95% credible intervals over sigma
-    sigma_intervals <- as.data.frame(t(apply(full_sigma, 2, quantile_95)))
-
+    sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
+    
     # get 95% credible intervals over expected_popsize
-    expected_popsize_intervals <- as.data.frame(t(quantile_95(full_expected_popsize)))
+    expected_popsize_intervals <- as.data.frame(t(quantile_95(expected_popsize_sampling)))
     rownames(expected_popsize_intervals) <- "expected_popsize"
-
+    
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
     qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
@@ -545,8 +555,8 @@ run_mcmc <- function(project,
     for (k in 1:K[i]) {
       
       # get prob_surface for this K by smoothing
-      prob_surface_split_mat <- kernel_smooth(full_source_lon[,k],
-                                              full_source_lat[,k],
+      prob_surface_split_mat <- kernel_smooth(source_lon_sampling[,k],
+                                              source_lat_sampling[,k],
                                               breaks_lon,
                                               breaks_lat)
       prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
@@ -602,14 +612,14 @@ run_mcmc <- function(project,
     names(ESS) <- rung_names
     }
     # ---------- model comparison statistics ----------
-
+    
     # ---------- DIC ----------
     mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
     sigma_sq <- var(loglike_sampling[,ncol(loglike_sampling)])
     DIC_gelman <- -2*mu + 4*sigma_sq
-
+    
     # # ---------- pseudo-AIC  ----------
-    # # calculate the AIC base on sigma_model
+    # calculate the AIC base on sigma_model
     maxLogLike <- max(loglike_sampling)
     switch(args_model$sigma_model,
            "single" = {
@@ -618,32 +628,32 @@ run_mcmc <- function(project,
            "independent" = {
              pseudoAIC <--2*maxLogLike + 3*K[i] + 1
            })
-
+    
     # ---------- acceptance rates ----------
-
+    
     # process acceptance rates
     source_accept <- output_raw[[i]]$source_accept/samples
     names(source_accept) <- group_names
-
+    
     sigma_accept <- output_raw[[i]]$sigma_accept/samples
     names(sigma_accept) <- group_names
-
+    
     #coupling_accept <- output_raw[[i]]$coupling_accept/samples
-
+    
     # ---------- save arguments ----------
-
+    
     output_args <- list(burnin = burnin,
                         samples = samples,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         pb_markdown = pb_markdown,
                         silent = silent)
-
+    
     # ---------- save results ----------
-
+    
     # add to project
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
-
+    
     project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals = loglike_intervals,
                                                                     prob_surface_split = prob_surface_split,
                                                                     prob_surface = prob_surface,
@@ -658,36 +668,40 @@ run_mcmc <- function(project,
                                                                     converged = converged,
                                                                     source_accept = source_accept,
                                                                     sigma_accept = sigma_accept)
-
+    
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
+                                                                  source_lon_burnin = source_lon_burnin,
+                                                                  source_lat_burnin = source_lat_burnin,
+                                                                  sigma_burnin = sigma_burnin,
+                                                                  expected_popsize_burnin = expected_popsize_burnin,
                                                                   loglike_sampling = loglike_sampling,
-                                                                  source_lon = full_source_lon,
-                                                                  source_lat = full_source_lat,
-                                                                  sigma = full_sigma,
-                                                                  expected_popsize = full_expected_popsize)
+                                                                  source_lon_sampling = source_lon_sampling,
+                                                                  source_lat_sampling = source_lat_sampling,
+                                                                  sigma_sampling = sigma_sampling,
+                                                                  expected_popsize_sampling = expected_popsize_sampling)
     }
-
+    
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
                                                                           call = match.call())
-
+    
   } # end loop over K
-
+  
   # name output over K
   K_all <- length(project$output$single_set[[s]]$single_K)
   names(project$output$single_set[[s]]$single_K) <- paste0("K", 1:K_all)
-
+  
   # ---------- tidy up and end ----------
-
+  
   # reorder qmatrices
   project <- align_qmatrix(project)
-
+  
   # run ring-search prior to MCMC
   if (sum(project$data$counts) > 0) {
     ringsearch <- ring_search(project, spatial_prior)
     project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
   }
-
+  
   # get DIC over all K
   DIC_gelman <- mapply(function(x) {
     ret <- x$summary$DIC_gelman
@@ -699,7 +713,7 @@ run_mcmc <- function(project,
   }, project$output$single_set[[s]]$single_K)
   DIC_gelman <- as.vector(unlist(DIC_gelman))
   project$output$single_set[[s]]$all_K$DIC_gelman <- data.frame(K = 1:length(DIC_gelman), DIC_gelman = DIC_gelman)
-
+  
   # get pseudoAIC over all K
   pseudoAIC <- mapply(function(x) {
     ret <- x$summary$pseudoAIC
@@ -711,7 +725,7 @@ run_mcmc <- function(project,
   }, project$output$single_set[[s]]$single_K)
   pseudoAIC  <- as.vector(unlist(pseudoAIC))
   project$output$single_set[[s]]$all_K$pseudoAIC <- data.frame(K = 1:length(pseudoAIC), pseudoAIC = pseudoAIC)
-
+  
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
   if (tdiff < 60) {
@@ -719,12 +733,12 @@ run_mcmc <- function(project,
   } else {
     message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
   }
-
+  
   # warning if any rungs in any MCMCs did not converge
   if (!all_converged && !silent) {
     message("\n**WARNING** at least one MCMC run did not converge\n")
   }
-
+  
   # return invisibly
   invisible(project)
 }
@@ -733,31 +747,31 @@ run_mcmc <- function(project,
 # align qmatrices over all K
 #' @noRd
 align_qmatrix <- function(project) {
-
+  
   # get active set
   s <- project$active_set
-
+  
   # extract objects of interest
   x <- project$output$single_set[[s]]$single_K
-
+  
   # find values with output
   null_output <- mapply(function(y) {is.null(y$summary$qmatrix)}, x)
   w <- which(!null_output)
-
+  
   # set template to first qmatrix
   template_qmatrix <- x[[w[1]]]$summary$qmatrix
   n <- nrow(template_qmatrix)
   c <- ncol(template_qmatrix)
   positive_sentinels <- which(!is.na(template_qmatrix[,1]))
-
+  
   # loop through output
   best_perm <- NULL
   for (i in w) {
-
+    
     # expand template
     qmatrix <- unclass(x[[i]]$summary$qmatrix)
     template_qmatrix <- cbind(template_qmatrix, matrix(0, n, i-c))
-
+    
     # calculate cost matrix
     cost_mat <- matrix(0,i,i)
     for (k1 in 1:i) {
@@ -765,75 +779,82 @@ align_qmatrix <- function(project) {
         cost_mat[k1,k2] <- sum(qmatrix[positive_sentinels,k1] * (log(qmatrix[positive_sentinels,k1]+1e-100) - log(template_qmatrix[positive_sentinels,k2]+1e-100)))
       }
     }
-
+    
     # get lowest cost permutation
     best_perm <- call_hungarian(cost_mat)$best_matching + 1
     best_perm_order <- order(best_perm)
-
+    
     # reorder qmatrix
     group_names <- paste0("group", 1:ncol(qmatrix))
     qmatrix <- qmatrix[, best_perm_order, drop = FALSE]
     colnames(qmatrix) <- group_names
-
+    
     # reorder raw output
     if (!is.null(x[[i]]$raw)) {
-
-      # reorder source_lon
-      source_lon <- x[[i]]$raw$source_lon[, best_perm_order, drop = FALSE]
-      names(source_lon) <- group_names
-      project$output$single_set[[s]]$single_K[[i]]$raw$source_lon <- source_lon
-
-      # reorder source_lat
-      source_lat <- x[[i]]$raw$source_lat[, best_perm_order, drop = FALSE]
-      names(source_lat) <- group_names
-      project$output$single_set[[s]]$single_K[[i]]$raw$source_lat <- source_lat
-
+      
+      # reorder source_lon_burnin and source_lat_burnin
+      source_lon_burnin <- x[[i]]$raw$source_lon_burnin[, best_perm_order, drop = FALSE]
+      source_lat_burnin <- x[[i]]$raw$source_lat_burnin[, best_perm_order, drop = FALSE]
+      names(source_lon_burnin) <- names(source_lat_burnin) <- group_names
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lon_burnin <- source_lon_burnin
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lat_burnin <- source_lat_burnin
+      
+      # reorder source_lon_sampling and source_lat_sampling
+      source_lon_sampling <- x[[i]]$raw$source_lon_sampling[, best_perm_order, drop = FALSE]
+      source_lat_sampling <- x[[i]]$raw$source_lat_sampling[, best_perm_order, drop = FALSE]
+      names(source_lon_sampling) <- names(source_lat_sampling) <- group_names
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lon_sampling <- source_lon_sampling
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lat_sampling <- source_lat_sampling
+      
       # reorder sigma
-      sigma <- x[[i]]$raw$sigma
-      if (ncol(sigma) > 1) {
-        sigma <- sigma[, best_perm_order, drop = FALSE]
-        names(sigma) <- group_names
-        project$output$single_set[[s]]$single_K[[i]]$raw$sigma <- sigma
+      sigma_burnin <- x[[i]]$raw$sigma_burnin
+      sigma_sampling <- x[[i]]$raw$sigma_sampling
+      if (ncol(sigma_sampling) > 1) {
+        sigma_burnin <- sigma_burnin[, best_perm_order, drop = FALSE]
+        sigma_sampling <- sigma_sampling[, best_perm_order, drop = FALSE]
+        names(sigma_burnin) <- names(sigma_sampling) <- group_names
+        project$output$single_set[[s]]$single_K[[i]]$raw$sigma_burnin <- sigma_burnin
+        project$output$single_set[[s]]$single_K[[i]]$raw$sigma_sampling <- sigma_sampling
       }
     }
-
+    
     # reorder prob_surface_split
     prob_surface_split <- x[[i]]$summary$prob_surface_split
     layer_names <- names(prob_surface_split)
     prob_surface_split <- prob_surface_split[[best_perm_order]]
     names(prob_surface_split) <- layer_names
     project$output$single_set[[s]]$single_K[[i]]$summary$prob_surface_split <- prob_surface_split
-
+    
     # reorder geoprofile_split
     geoprofile_split <- x[[i]]$summary$geoprofile_split
     layer_names <- names(geoprofile_split)
     geoprofile_split <- geoprofile_split[[best_perm_order]]
     names(geoprofile_split) <- layer_names
     project$output$single_set[[s]]$single_K[[i]]$summary$geoprofile_split <- geoprofile_split
-
+    
     # reorder sigma_intervals
     sigma_intervals <- x[[i]]$summary$sigma_intervals[best_perm_order,,drop = FALSE]
     rownames(sigma_intervals) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
-
+    
     # reorder source_accept
     source_accept <- x[[i]]$summary$source_accept[best_perm_order]
     names(source_accept) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept <- source_accept
-
+    
     # reorder sigma_accept
     sigma_accept <- x[[i]]$summary$sigma_accept[best_perm_order]
     names(sigma_accept) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept <- sigma_accept
-
+    
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
-
+    
     # store result
     class(qmatrix) <- "rgeoprofile_qmatrix"
     project$output$single_set[[s]]$single_K[[i]]$summary$qmatrix <- qmatrix
   }
-
+  
   # return modified project
   return(project)
 }

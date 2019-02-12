@@ -29,11 +29,16 @@ public:
   
   // objects for storing results
   std::vector<std::vector<double>> loglike_burnin;
+  std::vector<std::vector<double>> source_lon_burnin;
+  std::vector<std::vector<double>> source_lat_burnin;
+  std::vector<std::vector<double>> sigma_burnin;
+  std::vector<double> expected_popsize_burnin;
+  
   std::vector<std::vector<double>> loglike_sampling;
-  std::vector<std::vector<double>> source_lon;
-  std::vector<std::vector<double>> source_lat;
-  std::vector<std::vector<double>> sigma;
-  std::vector<double> expected_popsize;
+  std::vector<std::vector<double>> source_lon_sampling;
+  std::vector<std::vector<double>> source_lat_sampling;
+  std::vector<std::vector<double>> sigma_sampling;
+  std::vector<double> expected_popsize_sampling;
   
   // objects for storing acceptance rates
   std::vector<int> source_accept;
@@ -42,6 +47,7 @@ public:
   
   // store convergence
   std::vector<bool> rung_converged;
+  std::vector<int> convergence_iteration;
   
   
   // PUBLIC FUNCTIONS
