@@ -1230,7 +1230,7 @@ overlay_surface <- function(myplot,
 overlay_sources <- function(myplot,
                             lon,
                             lat,
-                            icon_url = "http://simpleicon.com/wp-content/uploads/cross.png",
+                            icon_url = NULL,
                             icon_width = 20,
                             icon_height = 20,
                             icon_anchor_x = 10,
@@ -1243,6 +1243,9 @@ overlay_sources <- function(myplot,
   assert_numeric(lat)
   assert_vector(lat)
   assert_same_length(lon, lat)
+  if (is.null(icon_url)) {
+    icon_url <- "https://github.com/Michael-Stevens-27/silverblaze/raw/master/R_ignore/icons/black_cross.png"
+  }
   assert_single_string(icon_url)
   assert_single_pos_int(icon_width)
   assert_single_pos_int(icon_height)
