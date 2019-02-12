@@ -875,12 +875,12 @@ overlay_sentinels <- function(myplot,
   
   fill_vec[df$counts > 0] <- fill[2]
   fill_colour_vec <- rep(fill_colour[1], n)
-  fill_colour_vec[df$counts > 0] <- fill_colour[df$counts[df$counts > 0] + 1]
+  fill_colour_vec[df$counts > 0] <- fill_colour[2]
   border_vec <- rep(border[1], n)
   
   border_vec[df$counts > 0] <- border[2]
   border_colour_vec <- rep(border_colour[1], n)
-  border_colour_vec[df$counts > 0] <- border_colour[df$counts[df$counts > 0] + 1]
+  border_colour_vec[df$counts > 0] <- border_colour[2]
   
   # add legend for sentinel site counts
   if (legend == TRUE) {
