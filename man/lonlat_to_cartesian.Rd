@@ -29,5 +29,8 @@ centre_lat <- 51.523775
 # Data point at Queen Elizabeth Park
 data_lon <- -0.016546
 data_lat <- 51.542473
-lonlat_to_cartesian(centre_lon = centre_lon, centre_lat = centre_lat, data_lon = data_lon, data_lat = data_lat)
+lonlat_to_cartesian(centre_lon = centre_lon,
+                    centre_lat = centre_lat,
+                    data_lon = data_lon,
+                    data_lat = data_lat)
 }

@@ -4,7 +4,7 @@
 \alias{summary.rgeoprofile_project}
 \title{Print summary for class rgeoprofile_project}
 \usage{
-summary.rgeoprofile_project(object, ...)
+\method{summary}{rgeoprofile_project}(object, ...)
 }
 \arguments{
 \item{object}{object of class \code{rgeoprofile_project}}

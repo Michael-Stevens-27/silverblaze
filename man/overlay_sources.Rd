@@ -4,10 +4,8 @@
 \alias{overlay_sources}
 \title{Add sources to dynamic map}
 \usage{
-overlay_sources(myplot, lon, lat,
-  icon_url = "http://simpleicon.com/wp-content/uploads/cross.png",
-  icon_width = 20, icon_height = 20, icon_anchor_x = 10,
-  icon_anchor_y = 10)
+overlay_sources(myplot, lon, lat, icon_url = NULL, icon_width = 20,
+  icon_height = 20, icon_anchor_x = 10, icon_anchor_y = 10)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
@@ -39,6 +37,8 @@ Add sources to dynamic map
 \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
 source_locations <- mysim$record$true_source
 plot1 <- plot_map()
-plot1 <- overlay_sources(myplot = plot1, lon = source_locations$longitude, lat = source_locations$latitude)
+plot1 <- overlay_sources(myplot = plot1,
+                         lon = source_locations$longitude,
+                         lat = source_locations$latitude)
 plot1
 }

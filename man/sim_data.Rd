@@ -6,37 +6,46 @@
 \usage{
 sim_data(sentinel_lon, sentinel_lat, sentinel_radius = 0.1, K = 3,
   source_lon_min = -0.2, source_lon_max = 0, source_lat_min = 51.45,
-  source_lat_max = 51.55, sigma_model = "single", sigma_mean = 1,
-  sigma_var = 0.1, expected_popsize = 100)
+  source_lat_max = 51.55, source_lon = NULL, source_lat = NULL,
+  sigma_model = "single", sigma_mean = 1, sigma_var = 0.1,
+  expected_popsize = 100)
 }
 \arguments{
-\item{sentinel_lon}{vector giving longitudes of sentinel sites}
+\item{sentinel_lon}{vector giving longitudes of sentinel sites.}
 
-\item{sentinel_lat}{vector giving latitudes of sentinel sites}
+\item{sentinel_lat}{vector giving latitudes of sentinel sites.}
 
-\item{sentinel_radius}{observation radius of the sentinel site (km)}
+\item{sentinel_radius}{observation radius of the sentinel site (km).}
 
-\item{K}{the number of sources}
+\item{K}{the number of sources.}
 
-\item{source_lon_min}{minimum limit on source longitudes}
+\item{source_lon_min}{minimum limit on source longitudes.}
 
-\item{source_lon_max}{maximum limit on source longitudes}
+\item{source_lon_max}{maximum limit on source longitudes.}
 
-\item{source_lat_min}{minimum limit on source latitudes}
+\item{source_lat_min}{minimum limit on source latitudes.}
 
-\item{source_lat_max}{maximum limit on source latitudes}
+\item{source_lat_max}{maximum limit on source latitudes.}
+
+\item{source_lon}{manually define source longitude positions. If \code{NULL}
+then drawn uniformly from limits specified in \code{source_lon_min} and
+\code{source_lon_max}.}
+
+\item{source_lat}{manually define source latitude positions. If \code{NULL}
+then drawn uniformly from limits specified in \code{source_lat_min} and
+\code{source_lat_max}.}
 
 \item{sigma_model}{set as "single" to use the same dispersal distance for all
 sources, or "separate" to use an independently drawn dispersal distance for
-each source}
+each source.}
 
-\item{sigma_mean}{the prior mean of the parameter sigma (km)}
+\item{sigma_mean}{the prior mean of the parameter sigma (km).}
 
 \item{sigma_var}{the prior variance of the parameter sigma (km). Set to zero
-to use a fixed distance}
+to use a fixed distance.}
 
 \item{expected_popsize}{the expected total number of observations (observed
-and unobserved) in the study area}
+and unobserved) in the study area.}
 }
 \description{
 Simulate data from the same presence-absence model used in the

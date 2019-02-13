@@ -1,9 +1,9 @@
 
 #------------------------------------------------
 #' @title Create a new RgeoProfile project
-#'
+#' 
 #' @description Create a new RgeoProfile project.
-#'
+#' 
 #' @export
 
 rgeoprofile_project <- function() {
@@ -22,15 +22,15 @@ rgeoprofile_project <- function() {
 
 #------------------------------------------------
 #' @title Custom print function for class rgeoprofile_project
-#'   
+#' 
 #' @description Custom print function for class rgeoprofile_project, printing a summary 
 #'   of the key elements (also equivalent to \code{summary(x)}). To do an 
 #'   ordinary \code{print()} of all elements of the project, use the 
 #'   \code{print_full()} function.
-#'   
+#' 
 #' @param x object of class \code{rgeoprofile_project}
 #' @param ... other arguments (ignored)
-#'   
+#' 
 #' @export
 
 print.rgeoprofile_project <- function(x, ...) {
@@ -44,15 +44,15 @@ print.rgeoprofile_project <- function(x, ...) {
 
 #------------------------------------------------
 #' @title Ordinary print function for class rgeoprofile_project
-#'
+#' 
 #' @description Calling \code{print()} on an object of class rgeoprofile_project results
 #'   in custom output. This function therefore stands in for the base
 #'   \code{print()} function, and is equivalent to running
 #'   \code{print(unclass(x))}.
-#'
+#' 
 #' @param x object of class \code{rgeoprofile_project}
 #' @param ... other arguments passed to \code{print()}
-#'
+#' 
 #' @export
 
 print_full <- function(x, ...) {
@@ -69,12 +69,13 @@ print_full <- function(x, ...) {
 
 #------------------------------------------------
 #' @title Print summary for class rgeoprofile_project
-#'   
+#' 
 #' @description Overload summary function for class rgeoprofile_project
-#'   
+#' 
 #' @param object object of class \code{rgeoprofile_project}
 #' @param ... other arguments (ignored)
-#'   
+#' 
+#' @method summary rgeoprofile_project
 #' @export
 
 summary.rgeoprofile_project <- function(object, ...) {

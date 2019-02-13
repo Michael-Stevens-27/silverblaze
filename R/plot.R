@@ -645,7 +645,8 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
 #'
 #' @export
 #' @examples
-#' # Standard OSM format is given by map_type = 1, though this value can take anywhere between 1 and 137.
+#' # Standard OSM format is given by map_type = 1, though
+#' # this value can take anywhere between 1 and 137.
 #' plot_map(map_type = 1)
 
 plot_map <- function(map_type = 97) {
@@ -962,6 +963,8 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
   assert_same_length(lon, lat)
   assert_single_string(col)
   assert_single_pos(size, zero_allowed = FALSE)
+  assert_single_pos(opacity, zero_allowed = TRUE)
+  assert_bounded(opacity)
 
   # add circle markers
   myplot <- addCircleMarkers(myplot, lng = lon, lat = lat, radius = size,
@@ -1224,7 +1227,9 @@ overlay_surface <- function(myplot,
 #' \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
 #' source_locations <- mysim$record$true_source
 #' plot1 <- plot_map()
-#' plot1 <- overlay_sources(myplot = plot1, lon = source_locations$longitude, lat = source_locations$latitude)
+#' plot1 <- overlay_sources(myplot = plot1,
+#'                          lon = source_locations$longitude,
+#'                          lat = source_locations$latitude)
 #' plot1
 
 overlay_sources <- function(myplot,
@@ -1235,7 +1240,7 @@ overlay_sources <- function(myplot,
                             icon_height = 20,
                             icon_anchor_x = 10,
                             icon_anchor_y = 10) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_numeric(lon)
@@ -1251,14 +1256,14 @@ overlay_sources <- function(myplot,
   assert_single_pos_int(icon_height)
   assert_single_pos_int(icon_anchor_x)
   assert_single_pos_int(icon_anchor_y)
-
+  
   # create custom icon
   source_icon <- makeIcon(iconUrl = icon_url, iconWidth = icon_width, iconHeight = icon_height,
                           iconAnchorX = icon_anchor_x, iconAnchorY = icon_anchor_y)
-
+  
   # add custom markers
   myplot <- addMarkers(myplot, lng = lon, lat = lat, icon = source_icon)
-
+  
   # return plot object
   return(myplot)
 }

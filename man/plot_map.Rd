@@ -14,6 +14,7 @@ map types are taken from \code{leaflet::providers}. Defaults to "CartoDB"}
 Create dynamic map
 }
 \examples{
-# Standard OSM format is given by map_type = 1, though this value can take anywhere between 1 and 137.
+# Standard OSM format is given by map_type = 1, though
+# this value can take anywhere between 1 and 137.
 plot_map(map_type = 1)
 }
