@@ -4,7 +4,7 @@
 \alias{get_hitscores}
 \title{Get hitscores}
 \usage{
-get_hitscores(project, source_lon, source_lat)
+get_hitscores(project, source_lon, source_lat, ring_search = TRUE)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function

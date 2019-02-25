@@ -635,7 +635,7 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #'
 #' @export
 
-get_hitscores <- function(project, source_lon, source_lat) {
+get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -644,7 +644,8 @@ get_hitscores <- function(project, source_lon, source_lat) {
   assert_numeric(source_lat)
   assert_vector(source_lat)
   assert_same_length(source_lon, source_lat)
-
+  assert_single_logical(ring_search)
+  
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
@@ -662,9 +663,12 @@ get_hitscores <- function(project, source_lon, source_lat) {
   df <- data.frame(longitude = source_lon, latitude = source_lat)
 
   # add ring-search hitscores
+  if(ring_search)
+  {
   ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
   df$hs_ringsearch <- round(extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
-
+  }
+  
   # add geoprofile hitscores for all K
   for (k in K) {
     geoprofile <- get_output(project, "geoprofile", k)
