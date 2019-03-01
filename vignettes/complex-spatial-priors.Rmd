@@ -35,7 +35,7 @@ plot_spatial
 
 This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.    
 
-## The next step from a unifrom prior
+## A non-uniform spatial prior
 
 Lets generate a very simple example, two sentinel site locations each yielding the same number of events. We then build two priors: one uniform and the other biased towards the northern part of the search area.
 
@@ -96,12 +96,13 @@ Plot the spatial priors
 plot1 <- plot_map()
 plot1 <- overlay_sentinels(plot1, p_uniform, sentinel_radius = 0.2)
 plot1 <- overlay_spatial_prior(plot1, p_uniform, col = "lightgreen")
+plot1
 
 # biased
 plot2 <- plot_map()
 plot2 <- overlay_sentinels(plot2, p_bias, sentinel_radius = 0.2)
 plot2 <- overlay_spatial_prior(plot2, p_bias, col = c("yellow", "cyan"))
-sync(plot1, plot2)
+plot2
 ```
 
 Run the MCMC for each case: 
@@ -127,10 +128,11 @@ Plot the prior and the geoprofiles associated with the uniform and biased spatia
 plot3 <- plot_map()
 plot3 <- overlay_sentinels(plot3, p_uniform, sentinel_radius = 0.2)
 plot3 <- overlay_geoprofile(plot3, p_uniform, K = 1, smoothing = 2, threshold = 0.1)
+plot3
 
 # biased
 plot4 <- plot_map()
 plot4 <- overlay_sentinels(plot4, p_bias, sentinel_radius = 0.2)
 plot4 <- overlay_geoprofile(plot4, p_bias, K = 1, smoothing = 2, threshold = 0.1)
-sync(plot3, plot4, plot1, plot2, ncol = 2)
+plot4
 ```
