@@ -632,6 +632,7 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #'   \code{rgeoprofile_project()}
 #' @param source_lon longitudes of known sources
 #' @param source_lat latitudes of known sources
+#' @param ring_search Option to compute ring search hitscores
 #'
 #' @export
 

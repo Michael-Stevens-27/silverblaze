@@ -133,7 +133,7 @@ We are now ready to run the MCMC algorithm on our data. The arguments in `run_mc
 p <- run_mcmc(project = p,
               K = 1:5,
               burnin = 1e4,
-              samples = 5e4,
+              samples = 1e4,
               converge_test = 1e2,
               auto_converge = TRUE,
               pb_markdown = TRUE)

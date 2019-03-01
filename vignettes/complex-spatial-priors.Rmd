@@ -11,6 +11,9 @@ vignette: >
 
 ```{r, echo = FALSE}
 library(silverblaze)
+library(raster)
+library(mapview)
+set.seed(1)
 ```
 
 ## Using shapefiles
@@ -30,4 +33,104 @@ plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red",
 plot_spatial
 ```
 
-This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.    
+
+## The next step from a unifrom prior
+
+Lets generate a very simple example, two sentinel site locations each yielding the same number of events. We then build two priors: one uniform and the other biased towards the northern part of the search area.
+
+```{r}
+# create example dataset
+df_all <- data.frame(longitude = c(0.15, 0.15), 
+                     latitude =  c(50.975, 51.075),
+                     counts = c(15,15))
+```
+
+Create a geographic profiling project:
+
+```{r}
+p <- rgeoprofile_project()
+p <- bind_data(p, df_all)
+```
+
+Construct a uniform and biased spatial prior:
+
+```{r}
+# biased
+bias_spatial_prior <- raster_grid(range_lon = c(0, 0.3), range_lat = c(50.95,51.1), guard_rail = 0.01)
+normalised_values <- c(rep(0.9999, 25*100), rep(0.00001, 75*100))/(sum(c(rep(0.9999, 25*100), rep(0.00001, 75*100))))
+summary(normalised_values)
+bias_spatial_prior <- setValues(bias_spatial_prior, normalised_values)
+
+# uniform
+uniform_spatial_prior <- raster_grid(range_lon = c(0, 0.3), range_lat = c(50.95,51.1), guard_rail = 0.01)
+```
+
+Create parameter sets:
+
+```{r}
+# add parameter set to project
+p_uniform <- new_set(project = p,
+             spatial_prior = uniform_spatial_prior,
+             sentinel_radius = 0.2,
+             sigma_model = "single",
+             sigma_prior_mean = 1,
+             sigma_prior_sd = 0,
+             expected_popsize_prior_mean = 15,
+             expected_popsize_prior_sd = 2)
+
+p_bias <- new_set(project = p,
+            spatial_prior = bias_spatial_prior,
+            sentinel_radius = 0.2,
+            sigma_model = "single",
+            sigma_prior_mean = 1,
+            sigma_prior_sd = 0,
+            expected_popsize_prior_mean = 15,
+            expected_popsize_prior_sd = 2)
+```
+
+Plot the spatial priors
+
+```{r}
+# uniform
+plot1 <- plot_map()
+plot1 <- overlay_sentinels(plot1, p_uniform, sentinel_radius = 0.2)
+plot1 <- overlay_spatial_prior(plot1, p_uniform, col = "lightgreen")
+
+# biased
+plot2 <- plot_map()
+plot2 <- overlay_sentinels(plot2, p_bias, sentinel_radius = 0.2)
+plot2 <- overlay_spatial_prior(plot2, p_bias, col = c("yellow", "cyan"))
+sync(plot1, plot2)
+```
+
+Run the MCMC for each case: 
+
+```{r}
+p_uniform <- run_mcmc(project = p_uniform,
+              K = 1,
+              burnin = 1e4,
+              samples = 1e6,
+              silent = TRUE)
+
+p_bias <- run_mcmc(project = p_bias,
+              K = 1,
+              burnin = 1e4,
+              samples = 1e6,
+              silent = TRUE)
+```
+
+Plot the prior and the geoprofiles associated with the uniform and biased spatial prior:
+
+```{r}
+# uniform
+plot3 <- plot_map()
+plot3 <- overlay_sentinels(plot3, p_uniform, sentinel_radius = 0.2)
+plot3 <- overlay_geoprofile(plot3, p_uniform, K = 1, smoothing = 2, threshold = 0.1)
+
+# biased
+plot4 <- plot_map()
+plot4 <- overlay_sentinels(plot4, p_bias, sentinel_radius = 0.2)
+plot4 <- overlay_geoprofile(plot4, p_bias, K = 1, smoothing = 2, threshold = 0.1)
+sync(plot3, plot4, plot1, plot2, ncol = 2)
+```

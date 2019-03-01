@@ -13,6 +13,8 @@ get_hitscores(project, source_lon, source_lat, ring_search = TRUE)
 \item{source_lon}{longitudes of known sources}
 
 \item{source_lat}{latitudes of known sources}
+
+\item{ring_search}{Option to compute ring search hitscores}
 }
 \description{
 Get hitscores
