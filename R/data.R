@@ -86,10 +86,19 @@ sim_data <- function(sentinel_lon,
   assert_same_length(source_lon, source_lat)
   assert_length(source_lon, K)
   assert_same_length(sentinel_lon, sentinel_lat)
-  assert_single_pos(sigma_mean, zero_allowed = FALSE)
-  assert_single_pos(sigma_var, zero_allowed = TRUE)
   assert_single_string(sigma_model)
   assert_in(sigma_model, c("single", "independent"))
+  switch(sigma_model,
+         "single" = {
+          assert_single_pos(sigma_var, zero_allowed = TRUE)
+          assert_single_pos(sigma_mean, zero_allowed = FALSE)
+         },
+         "independent" = {
+           assert_length(sigma_mean, K)
+           assert_length(sigma_var, K)
+           assert_pos(sigma_mean, zero_allowed = FALSE)
+           assert_pos(sigma_var, zero_allowed = TRUE)
+         })
   assert_single_pos(expected_popsize, zero_allowed = FALSE)
   
   # draw total number of points

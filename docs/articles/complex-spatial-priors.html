@@ -86,7 +86,7 @@
       <h1>Tutorial 2: Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-03-01</h4>
+            <h4 class="date">2019-03-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -107,11 +107,11 @@
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spatial_prior &lt;-<span class="st"> </span><span class="kw"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(s, <span class="dt">cells_lon =</span> <span class="dv">100</span>, <span class="dt">cells_lat =</span> <span class="dv">100</span>)</code></pre></div>
 <div id="htmlwidget-435f92e833e5f1a9a10f" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-435f92e833e5f1a9a10f">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAAB+CAYAAAD86pU7AAAC80lEQVR4nO3d3XKrMAxGUdE57//K9CrTHA8G/0iWZPa67KQB/EUiYAIiAAAAAAAAAAAACOYUOU+R03s9REQO7xWI7BPSIXLUAjucx3DLAMvB7hnkkcryDHG7AEcrZaYlEmDhbjDvBusphNr/zu7PCPBLz2B+D1zr/10NNgEqWPWtziLA2vuu8OOx0FKUr+QzvLbBPcDVG14uL/uHx7WFeg/e3fHdzHtqvl/D8nx4h2dpZYjuLRRzCNDAyu7i0kJ3bp9XLFvq8gDfFl5JO8ylAb49vA/NENkHJresAqm+/2lVoVmABPZMI0STFkp467APdKQ0C2KDKmw300rNKtD7Yp+3oIUmZxogVWiPCkzOPECq0BYVmNySAKlCO1RgADPHzMsCpAptUIEBhDwTc4Uq1EcFJsdFTc5muxIVmBwBJkeAyZnuA79vElD+DX9m9oP/Wl50Neg9P3U+RU4OIWw8ttBaxdTulXL3+v7Vw5PHquj9zTpBjRntUGa33kC/kRCHb9kBG70hchiRHAEmR4DJEWByBJhcNUDOnORABSZHgMH0Hn8TYEA9IRJgUK0hEmBgLSESYHANt5GeewOsUTusowKTqBUSASbXdE3MDqxudu6t6XTZJhu6bFvLZWmN39U2vCLA0fO6mo/hsXo2xSu+hWqcmG8ZB83H+7Su8+2XmB3C03KIHKtmaHqWUw2Q8K7dtLL3Prklm7IaPedOX3MYYSHCpDcz8snRQpMjwORuA6SNxvdYgYQY2/YtdPcP4PYBRmJxQp0AkyPAoLgqTWLu/1rXqfV1TafSPr9933VWO7Ml82QeIlbft7txU5lOyix6eCJ601IqGxqpCjOEV7q6o1WrlAHWLhrKGN6sNAG+MZwWoSd0Ce1ZyAAJrl24b6GE1ydUgITXL1SA6KcSIJXjJ1QFRjohkIVagFShj1AVyIegX6gA0U81QCpovTAVSPhj1AMkiLWWPLmlYSUIfZB7CyW8OeaDp3XtBwAAAAAAAAAASOoXY/KkyvIGqyIAAAAASUVORK5CYII=",[[51.5934340910359,-0.269761048903247],[51.4485340910359,0.0259189510967518]],0.2,null,null,null]}],"limits":{"lat":[51.4485340910359,51.5934340910359],"lng":[-0.269761048903247,0.0259189510967518]}},"evals":[],"jsHooks":[]}</script><p>This shapefile is built into the package, any other shapefile should be loaded using the <code>readOGR</code> function from <a href="https://cran.r-project.org/web/packages/rgdal/index.html">rgdal</a>. In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.</p>
+<script type="application/json" data-for="htmlwidget-435f92e833e5f1a9a10f">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAAB+CAYAAAD86pU7AAAC80lEQVR4nO3d3XKrMAxGUdE57//K9CrTHA8G/0iWZPa67KQB/EUiYAIiAAAAAAAAAAAACOYUOU+R03s9REQO7xWI7BPSIXLUAjucx3DLAMvB7hnkkcryDHG7AEcrZaYlEmDhbjDvBusphNr/zu7PCPBLz2B+D1zr/10NNgEqWPWtziLA2vuu8OOx0FKUr+QzvLbBPcDVG14uL/uHx7WFeg/e3fHdzHtqvl/D8nx4h2dpZYjuLRRzCNDAyu7i0kJ3bp9XLFvq8gDfFl5JO8ylAb49vA/NENkHJresAqm+/2lVoVmABPZMI0STFkp467APdKQ0C2KDKmw300rNKtD7Yp+3oIUmZxogVWiPCkzOPECq0BYVmNySAKlCO1RgADPHzMsCpAptUIEBhDwTc4Uq1EcFJsdFTc5muxIVmBwBJkeAyZnuA79vElD+DX9m9oP/Wl50Neg9P3U+RU4OIWw8ttBaxdTulXL3+v7Vw5PHquj9zTpBjRntUGa33kC/kRCHb9kBG70hchiRHAEmR4DJEWByBJhcNUDOnORABSZHgMH0Hn8TYEA9IRJgUK0hEmBgLSESYHANt5GeewOsUTusowKTqBUSASbXdE3MDqxudu6t6XTZJhu6bFvLZWmN39U2vCLA0fO6mo/hsXo2xSu+hWqcmG8ZB83H+7Su8+2XmB3C03KIHKtmaHqWUw2Q8K7dtLL3Prklm7IaPedOX3MYYSHCpDcz8snRQpMjwORuA6SNxvdYgYQY2/YtdPcP4PYBRmJxQp0AkyPAoLgqTWLu/1rXqfV1TafSPr9933VWO7Ml82QeIlbft7txU5lOyix6eCJ601IqGxqpCjOEV7q6o1WrlAHWLhrKGN6sNAG+MZwWoSd0Ce1ZyAAJrl24b6GE1ydUgITXL1SA6KcSIJXjJ1QFRjohkIVagFShj1AVyIegX6gA0U81QCpovTAVSPhj1AMkiLWWPLmlYSUIfZB7CyW8OeaDp3XtBwAAAAAAAAAASOoXY/KkyvIGqyIAAAAASUVORK5CYII=",[[51.5934340910359,-0.269761048903247],[51.4485340910359,0.0259189510967518]],0.2,null,null,null]}],"limits":{"lat":[51.4485340910359,51.5934340910359],"lng":[-0.269761048903247,0.0259189510967518]}},"evals":[],"jsHooks":[]}</script><p>This shapefile is built into the package, any other shapefile should be loaded using the <code>readOGR()</code> function from <a href="https://cran.r-project.org/web/packages/rgdal/index.html">rgdal</a>. In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.</p>
 </div>
-<div id="the-next-step-from-a-unifrom-prior" class="section level2">
+<div id="a-non-uniform-spatial-prior" class="section level2">
 <h2 class="hasAnchor">
-<a href="#the-next-step-from-a-unifrom-prior" class="anchor"></a>The next step from a unifrom prior</h2>
+<a href="#a-non-uniform-spatial-prior" class="anchor"></a>A non-uniform spatial prior</h2>
 <p>Lets generate a very simple example, two sentinel site locations each yielding the same number of events. We then build two priors: one uniform and the other biased towards the northern part of the search area.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create example dataset</span>
 df_all &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/data.frame">data.frame</a></span>(<span class="dt">longitude =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="fl">0.15</span>, <span class="fl">0.15</span>), 
@@ -169,13 +169,13 @@ plot2</code></pre></div>
               <span class="dt">burnin =</span> <span class="fl">1e4</span>,
               <span class="dt">samples =</span> <span class="fl">1e6</span>,
               <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Total run-time: 4.11 seconds</code></pre>
+<pre><code>## Total run-time: 4.61 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_bias &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(<span class="dt">project =</span> p_bias,
               <span class="dt">K =</span> <span class="dv">1</span>,
               <span class="dt">burnin =</span> <span class="fl">1e4</span>,
               <span class="dt">samples =</span> <span class="fl">1e6</span>,
               <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Total run-time: 2.7 seconds</code></pre>
+<pre><code>## Total run-time: 2.93 seconds</code></pre>
 <p>Plot the prior and the geoprofiles associated with the uniform and biased spatial prior:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># uniform</span>
 plot3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_map.html">plot_map</a></span>()
@@ -199,7 +199,7 @@ plot4</code></pre></div>
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
 <li><a href="#using-shapefiles">Using shapefiles</a></li>
-      <li><a href="#the-next-step-from-a-unifrom-prior">The next step from a unifrom prior</a></li>
+      <li><a href="#a-non-uniform-spatial-prior">A non-uniform spatial prior</a></li>
       </ul>
 </div>
       </div>
