@@ -55,6 +55,9 @@
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -88,7 +91,7 @@
       <h1>Tutorial 1: Basic Implementation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-03-08</h4>
+            <h4 class="date">2019-03-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/basic-implementation.Rmd"><code>vignettes/basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>basic-implementation.Rmd</code></div>
@@ -227,7 +230,7 @@ p</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 2.10262 seconds
+##    completed in 2.06218 seconds
 ## 
 ## Running MCMC for K = 2
 ## Burn-in phase
@@ -239,7 +242,7 @@ p</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 5.08595 seconds
+##    completed in 4.85097 seconds
 ## 
 ## Running MCMC for K = 3
 ## Burn-in phase
@@ -251,7 +254,7 @@ p</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 8.26516 seconds
+##    completed in 7.95435 seconds
 ## 
 ## Running MCMC for K = 4
 ## Burn-in phase
@@ -263,7 +266,7 @@ p</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 11.4117 seconds
+##    completed in 10.966 seconds
 ## 
 ## Running MCMC for K = 5
 ## Burn-in phase
@@ -275,10 +278,10 @@ p</code></pre></div>
 ## 
   |                                                                       
   |=================================================================| 100%
-##    completed in 15.5297 seconds
+##    completed in 15.0922 seconds
 ## 
 ## Processing results</code></pre>
-<pre><code>## Total run-time: 51.2 seconds</code></pre>
+<pre><code>## Total run-time: 49.41 seconds</code></pre>
 <p>An immediate indication that the MCMC is acting sensibly is that the model <code>converged within X iterations</code> for every <code>K</code> value, so the choice of burn-in sufficed. Before plotting any geoprofiles let’s makes sure the MCMC is indeed mixing well.</p>
 </div>
 <div id="diagnosing-the-model" class="section level2">

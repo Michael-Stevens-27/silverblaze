@@ -55,6 +55,9 @@
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -86,7 +89,7 @@
       <h1>Tutorial 2: Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-03-08</h4>
+            <h4 class="date">2019-03-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -169,13 +172,13 @@ plot2</code></pre></div>
               <span class="dt">burnin =</span> <span class="fl">1e4</span>,
               <span class="dt">samples =</span> <span class="fl">1e6</span>,
               <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Total run-time: 4.61 seconds</code></pre>
+<pre><code>## Total run-time: 4.45 seconds</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_bias &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(<span class="dt">project =</span> p_bias,
               <span class="dt">K =</span> <span class="dv">1</span>,
               <span class="dt">burnin =</span> <span class="fl">1e4</span>,
               <span class="dt">samples =</span> <span class="fl">1e6</span>,
               <span class="dt">silent =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Total run-time: 2.93 seconds</code></pre>
+<pre><code>## Total run-time: 2.78 seconds</code></pre>
 <p>Plot the prior and the geoprofiles associated with the uniform and biased spatial prior:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># uniform</span>
 plot3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_map.html">plot_map</a></span>()

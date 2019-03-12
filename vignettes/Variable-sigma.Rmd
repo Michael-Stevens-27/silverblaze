@@ -1,0 +1,230 @@
+---
+title: "Tutorial 4: Variable Sigma"
+author: "Michael Stevens"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: Variable-sigma.bib
+vignette: >
+  %\VignetteIndexEntry{"Tutorial 4: Variable Sigma"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Motivation
+
+A variable sigma model is available within the Silverblaze package but is yet to be investigated. The presence-absence manuscript focusses on the development of the model and assumes what all literature around GP has thus far assumed: the dispersal associated with an offender, an invasive species, or infectious disease is the same across source locations. @Ratcliffe2006 makes it clear that this is not always the case. An offender that commits crime around a work place will be restricted by time contstraints to return to work within a certain time. This compares to more relaxed time contraints when commiting crimes around a home. So we might expect a tight dispersal around a workplace but a wider dispersal around a home. Here we generate a couple of toy examples to investigate the following questions:
+
+* Can the model successfully return different dispersal (sigma) values for different source locations?
+* How well does the model perform when there is overlap in the dispersal ranges of sources with different sources?        
+
+The first question will illustrate how one sets up the variable (independent) sigma model in the case where we have one large sigma and one small sigma across two sources. The second question looks to investigate any mixing issues when the dispersal ranges across sources overlap.
+
+Load Silverblaze package:
+
+```{r, message=FALSE}
+# load packages
+library(silverblaze)
+# set seed
+set.seed(1)
+```
+
+# Simple two source example
+
+## Setting Up and running the indpendent sigma model
+
+Set up an array of sentinel sites and a uniform prior. We'll also specify the sentinel site radius. 
+
+```{r}
+
+sentinal_lon <- seq(-0.2, 0.0, l = 12)
+sentinal_lat <- seq(51.45, 51.55, l = 12)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+names(sentinal_grid) <- c("longitude", "latitude")
+
+uniform_prior <- raster_grid(cells_lon = 100, cells_lat = 100,
+                               range_lat = range(sentinal_lat),
+                               range_lon = range(sentinal_lon), guard_rail = 0.5)
+                               
+sentinel_site_radius <- 0.2                               
+```
+
+Now we generate some data. We use the `sim_data()` function to generate two sources, speicifying the kind of sigma model we want to draw from by setting `sigma_model = "indpendent"`. For each source we choose a sigma value using `sigma_mean` and `sigma_var`. This specifies the mean and variance of each normal distribution a sigma is being drawn from.   
+
+```{r}
+sim1 <- sim_data(sentinal_grid$longitude,
+                 sentinal_grid$latitude,
+                 sigma_model = "independent", # set the sigma model to indpendent
+                 sigma_mean = c(0.5, 2),      
+                 sigma_var = c(0, 0),         
+                 sentinel_radius = sentinel_site_radius,
+                 K = 2,
+                 expected_popsize = 1000)
+
+data_all1 <- sim1$record$data_all
+true_source1 <- sim1$record$true_source
+K_model <- 2
+
+# pull the different sigma values
+true_sigma1 <- sim1$record$true_sigma
+```
+
+Notice `sigma_var` is equal to zero for both sources, this allows us to force the value of each sigma. Now we build our geoprofiling project, add in our data and setup parameters to run the MCMC. 
+
+```{r}
+
+# create a project and bind data
+p1 <- rgeoprofile_project()
+p1 <- bind_data(p1, sim1$data)
+
+# add parameter set to project
+p1 <- new_set(project = p1,
+             spatial_prior = uniform_prior,
+             sentinel_radius = sentinel_site_radius,
+             sigma_model = "independent",
+             sigma_prior_mean = 1,
+             sigma_prior_sd = 100,
+             expected_popsize_prior_mean = 1000,
+             expected_popsize_prior_sd = 500)
+
+plot1 <- plot_map()
+plot1 <- overlay_points(plot1, data_all1$lon, data_all1$lat)
+plot1 <- overlay_sources(plot1, true_source1$lon, true_source1$lat)
+plot1
+```
+
+We can see a source with a wider sigma and if we zoom into the bottom left we can see a source with auch tighter sigma. Let's create our geoprofiling project, load in this data and run the MCMC under a variable sigma model:
+
+```{r}
+# run MCMC under K=2 model
+p1 <- run_mcmc(project = p1,
+              K = K_model,
+              burnin = 1e4,
+              samples = 1e5,
+              silent = TRUE)
+
+
+```
+
+## Results
+
+Below we can see the geoprofile of the two sources. Just by eye it looks like each cluster has a different sigma value.  
+
+```{r, message = FALSE}
+# produce and store map
+plot1 <- plot_map()
+plot1 <- overlay_sentinels(plot1, p1, sentinel_radius = sentinel_site_radius)
+plot1 <- overlay_geoprofile(plot1, p1, K = 2, smoothing = 2)
+plot1 <- overlay_sources(plot1, true_source1$lon, true_source1$lat)
+plot1
+```
+
+How can we be sure these sigma values are different? We can access the raw output associated to sigma using the `get_output()` function. We can also look into where our true values fall within the 95% confidence intervals of the fitted values.
+
+```{r}
+# get the raw sigma draws
+sigma_output <- get_output(p1, "sigma_sampling", K = 2, type = "raw")
+plot(sigma_output)
+
+# calculate the mean of these draws
+estimatedSigma <- apply(sigma_output, 2, mean)
+estimatedSigma
+
+# get the confidence intervals for sigma
+sigma_intervals <-get_output(p1, "sigma_intervals", K = 2)
+sigma_intervals
+
+# print true values 
+true_sigma1
+```
+
+# Overlapping sources and variable dispersal 
+
+Now we generate another data set, both sources will be closer than the previous data to investigate the models ability to pick up two sources of varying dispersal on top of one another. 
+
+```{r}
+sim2 <- sim_data(sentinal_grid$longitude,
+                 sentinal_grid$latitude,
+                 source_lon_min = -0.1, 
+                 source_lon_max = -0.1,
+                 source_lat_min = 51.49,
+                 source_lat_max = 51.51,                 
+                 sigma_model = "independent", # set the sigma model to indpendent
+                 sigma_mean = c(1, 5),
+                 sigma_var = c(0.1, 0.1),
+                 sentinel_radius = sentinel_site_radius,
+                 K = 2,
+                 expected_popsize = 1000)
+
+data_all2 <- sim2$record$data_all
+true_source2 <- sim2$record$true_source
+
+# pull the different sigma values
+true_sigma2 <- sim2$record$true_sigma
+
+# create a project and bind data
+p2 <- rgeoprofile_project()
+p2 <- bind_data(p2, sim2$data)
+
+# add parameter set to project
+p2 <- new_set(project = p2,
+            spatial_prior = uniform_prior,
+            sentinel_radius = sentinel_site_radius,
+            sigma_model = "independent",
+            sigma_prior_mean = 1,
+            sigma_prior_sd = 100,
+            expected_popsize_prior_mean = 1000,
+            expected_popsize_prior_sd = 500)       
+```
+
+Plot the the new data:
+
+```{r}
+plot2 <- plot_map()
+plot2 <- overlay_points(plot2, data_all2$lon, data_all2$lat)
+plot2 <- overlay_sources(plot2, true_source2$lon, true_source2$lat)
+plot2
+```
+
+Run the MCMC and plot the new geoprofile
+
+```{r}
+# run MCMC under K=2 model
+p2 <- run_mcmc(project = p2,
+              K = K_model,
+              burnin = 1e4,
+              samples = 1e5,
+              silent = TRUE)
+
+# produce and store map
+plot2 <- plot_map()
+plot2 <- overlay_sentinels(plot2, p2, sentinel_radius = sentinel_site_radius)
+plot2 <- overlay_geoprofile(plot2, p2, K = 2, smoothing = 2)
+plot2 <- overlay_sources(plot2, true_source2$lon, true_source2$lat)
+plot2
+```
+
+## Results
+
+Again let's check the raw output of the MCMC chain for each sigma. 
+
+```{r}
+# get the raw sigma draws
+sigma_output2 <- get_output(p2, "sigma_sampling", K = 2, type = "raw")
+plot(sigma_output2)
+
+# calculate the mean of these draws
+estimatedSigma2 <- apply(sigma_output2, 2, mean)
+estimatedSigma2
+
+# get the confidence intervals for sigma
+sigma_intervals2 <-get_output(p2, "sigma_intervals", K = 2)
+sigma_intervals2
+
+# print true values 
+true_sigma2
+```
+### References
