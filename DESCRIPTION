@@ -21,7 +21,6 @@ Imports:
     gridExtra,
     leaflet,
     leaflet.minicharts,
-    rgdal,
     raster,
     pkgdown
 LinkingTo: Rcpp
