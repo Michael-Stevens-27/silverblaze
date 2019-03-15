@@ -35,12 +35,12 @@ Particle::Particle(double beta_raised) {
   qmatrix = vector<vector<double>>(n, vector<double>(K));
   
   // proposal standard deviations
-  source_propSD = vector<double>(K, 1.0);
+  source_propSD = vector<double>(K, 0.01);
   sigma_propSD = vector<double>(K, 1.0);
   
-  // Robbins-Monro stepsize
-  source_rm_stepsize = 1.0;
-  sigma_rm_stepsize = 1.0;
+  // Robbins-Monro stepsize constants
+  source_rm_stepsize = 5.58;
+  sigma_rm_stepsize = 4.06;
   
   // misc constants
   // area around a sentinel site
@@ -234,7 +234,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
 
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
-        source_propSD[k] = exp(log(source_propSD[k]) + sigma_rm_stepsize*(1-0.23)/sqrt(iteration));
+        source_propSD[k] = exp(log(source_propSD[k]) + source_rm_stepsize*(1 - 0.234)/sqrt(iteration));
       } else {
         source_accept[k]++;
       }
@@ -243,7 +243,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
 
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
-        source_propSD[k] = exp(log(source_propSD[k]) - sigma_rm_stepsize*0.23/sqrt(iteration));
+        source_propSD[k] = exp(log(source_propSD[k]) - source_rm_stepsize*0.234/sqrt(iteration));
       }
 
     }  // end Metropolis-Hastings step
@@ -338,7 +338,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     
     // Robbins-Monro positive update (on the log scale)
     if (robbins_monro_on) {
-      sigma_propSD[0] = exp(log(sigma_propSD[0]) + sigma_rm_stepsize*(1-0.23)/sqrt(iteration));
+      sigma_propSD[0] = exp(log(sigma_propSD[0]) + sigma_rm_stepsize*(1 - 0.44)/sqrt(iteration));
     } else {
       sigma_accept[0]++;
     }
@@ -347,7 +347,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     
     // Robbins-Monro negative update (on the log scale)
     if (robbins_monro_on) {
-      sigma_propSD[0] = exp(log(sigma_propSD[0]) - sigma_rm_stepsize*0.23/sqrt(iteration));
+      sigma_propSD[0] = exp(log(sigma_propSD[0]) - sigma_rm_stepsize*0.44/sqrt(iteration));
     }
     
   }  // end Metropolis-Hastings step
@@ -423,7 +423,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
-        sigma_propSD[k] = exp(log(sigma_propSD[k]) + sigma_rm_stepsize*(1-0.234)/sqrt(iteration));
+        sigma_propSD[k] = exp(log(sigma_propSD[k]) + sigma_rm_stepsize*(1 - 0.44)/sqrt(iteration));
       } else {
         sigma_accept[k]++;
       }
@@ -432,7 +432,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
-        sigma_propSD[k] = exp(log(sigma_propSD[k]) - sigma_rm_stepsize*0.234/sqrt(iteration));
+        sigma_propSD[k] = exp(log(sigma_propSD[k]) - sigma_rm_stepsize*0.44/sqrt(iteration));
       }
       
     }  // end Metropolis-Hastings step
