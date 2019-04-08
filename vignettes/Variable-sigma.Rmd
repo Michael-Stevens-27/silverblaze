@@ -103,8 +103,8 @@ We can see a source with a wider sigma and if we zoom into the bottom left we ca
 p1 <- run_mcmc(project = p1,
               K = K_model,
               burnin = 1e5,
-              samples = 1e6)#,
-              #silent = TRUE)
+              samples = 1e6,
+              silent = TRUE)
 ```
 
 ## Results
@@ -128,7 +128,6 @@ sigma_output <- get_output(p1, "sigma_sampling", K = 2, type = "raw")
 sigma1 <- density(sigma_output[,1])
 sigma2 <- density(sigma_output[,2])
 
-par(mfrow = c(2,1))
 plot(sigma1, main = "Density of Sigma 1")
 plot(sigma2, main = "Density of Sigma 2")
 
@@ -199,7 +198,7 @@ Run the MCMC and plot the new geoprofile
 p2 <- run_mcmc(project = p2,
               K = K_model,
               burnin = 1e5,
-              samples = 1e6,
+              samples = 3e6,
               silent = TRUE)
 
 # produce and store map
@@ -220,7 +219,6 @@ sigma_output2 <- get_output(p2, "sigma_sampling", K = 2, type = "raw")
 sigma1 <- density(sigma_output[,1])
 sigma2 <- density(sigma_output[,2])
 
-par(mfrow = c(2,1))
 plot(sigma1, main = "Density of Sigma 1")
 plot(sigma2, main = "Density of Sigma 2")
 
