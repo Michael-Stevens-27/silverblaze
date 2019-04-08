@@ -58,7 +58,7 @@ Now we generate some data. We use the `sim_data()` function to generate two sour
 sim1 <- sim_data(sentinal_grid$longitude,
                  sentinal_grid$latitude,
                  sigma_model = "independent", # set the sigma model to indpendent
-                 sigma_mean = c(0.5, 2),      
+                 sigma_mean = c(1, 1.5),      
                  sigma_var = c(0, 0),         
                  sentinel_radius = sentinel_site_radius,
                  K = 2,
@@ -102,11 +102,9 @@ We can see a source with a wider sigma and if we zoom into the bottom left we ca
 # run MCMC under K=2 model
 p1 <- run_mcmc(project = p1,
               K = K_model,
-              burnin = 1e4,
-              samples = 1e5,
-              silent = TRUE)
-
-
+              burnin = 1e5,
+              samples = 1e6)#,
+              #silent = TRUE)
 ```
 
 ## Results
@@ -127,7 +125,12 @@ How can we be sure these sigma values are different? We can access the raw outpu
 ```{r}
 # get the raw sigma draws
 sigma_output <- get_output(p1, "sigma_sampling", K = 2, type = "raw")
-plot(sigma_output)
+sigma1 <- density(sigma_output[,1])
+sigma2 <- density(sigma_output[,2])
+
+par(mfrow = c(2,1))
+plot(sigma1, main = "Density of Sigma 1")
+plot(sigma2, main = "Density of Sigma 2")
 
 # calculate the mean of these draws
 estimatedSigma <- apply(sigma_output, 2, mean)
@@ -195,8 +198,8 @@ Run the MCMC and plot the new geoprofile
 # run MCMC under K=2 model
 p2 <- run_mcmc(project = p2,
               K = K_model,
-              burnin = 1e4,
-              samples = 1e5,
+              burnin = 1e5,
+              samples = 1e6,
               silent = TRUE)
 
 # produce and store map
@@ -214,7 +217,12 @@ Again let's check the raw output of the MCMC chain for each sigma.
 ```{r}
 # get the raw sigma draws
 sigma_output2 <- get_output(p2, "sigma_sampling", K = 2, type = "raw")
-plot(sigma_output2)
+sigma1 <- density(sigma_output[,1])
+sigma2 <- density(sigma_output[,2])
+
+par(mfrow = c(2,1))
+plot(sigma1, main = "Density of Sigma 1")
+plot(sigma2, main = "Density of Sigma 2")
 
 # calculate the mean of these draws
 estimatedSigma2 <- apply(sigma_output2, 2, mean)
