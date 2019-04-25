@@ -139,7 +139,7 @@ using namespace std;
 //
 //
 // ## Implementation details
-// The main part of the algorithm, in hungarian(), can be easily understaood 
+// The main part of the algorithm, in hungarian(), can be easily understood 
 // from the description above. The only notable difference is that the simple 
 // identity matching (i.e. a cost matrix with diagonal zeros) is searched for 
 // manually first, as in some applications this matching will be extremely 

@@ -198,7 +198,7 @@ Run the MCMC and plot the new geoprofile
 p2 <- run_mcmc(project = p2,
               K = K_model,
               burnin = 1e5,
-              samples = 3e6,
+              samples = 1e6,
               silent = TRUE)
 
 # produce and store map
