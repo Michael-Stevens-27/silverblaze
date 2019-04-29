@@ -34,7 +34,7 @@ set.seed(1)
 
 # Simple two source example
 
-## Setting Up and running the indpendent sigma model
+## Setting up and running the indpendent sigma model
 
 Set up an array of sentinel sites and a uniform prior. We'll also specify the sentinel site radius. 
 
@@ -98,7 +98,7 @@ plot1
 
 We can see a source with a wider sigma and if we zoom into the bottom left we can see a source with auch tighter sigma. Let's create our geoprofiling project, load in this data and run the MCMC under a variable sigma model:
 
-```{r}
+```{r, eval = FALSE}
 # run MCMC under K=2 model
 p1 <- run_mcmc(project = p1,
               K = K_model,
@@ -106,12 +106,14 @@ p1 <- run_mcmc(project = p1,
               samples = 1e6,
               silent = TRUE)
 ```
-
+```{r, echo = FALSE}
+p1 <- rgeoprofile_file("VarSigproject_no_overlap.rds")
+```
 ## Results
 
 Below we can see the geoprofile of the two sources. Just by eye it looks like each cluster has a different sigma value.  
 
-```{r, message = FALSE}
+```{r}
 # produce and store map
 plot1 <- plot_map()
 plot1 <- overlay_sentinels(plot1, p1, sentinel_radius = sentinel_site_radius)
@@ -193,14 +195,21 @@ plot2
 
 Run the MCMC and plot the new geoprofile
 
-```{r}
-# run MCMC under K=2 model
+```{r, eval = FALSE}
+# run MCMC under K = 2 model
 p2 <- run_mcmc(project = p2,
               K = K_model,
               burnin = 1e5,
               samples = 1e6,
               silent = TRUE)
+```
+```{r, echo = FALSE}
+p2 <- rgeoprofile_file("VarSigproject_overlap.rds")
+```
 
+Below we can see the geoprofile of the two sources.
+  
+```{r, echo = FALSE}
 # produce and store map
 plot2 <- plot_map()
 plot2 <- overlay_sentinels(plot2, p2, sentinel_radius = sentinel_site_radius)
@@ -234,3 +243,8 @@ sigma_intervals2
 true_sigma2
 ```
 ### References
+
+```{r, echo = FALSE, eval = FALSE}
+# secretly save/load data from file so output is consistent between tutorials
+# saveRDS(p2, file = "VarSigproject_overlap.rds")
+```

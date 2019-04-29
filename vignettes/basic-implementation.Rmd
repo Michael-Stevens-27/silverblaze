@@ -129,7 +129,7 @@ The project `p` is now taking shape as we have defined the data and parameters f
 
 We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:4` as our data was generated with two sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.
 
-```{r}
+```{r, eval = FALSE}
 p <- run_mcmc(project = p,
               K = 1:5,
               burnin = 1e4,
@@ -139,9 +139,13 @@ p <- run_mcmc(project = p,
               pb_markdown = TRUE)
 ```
 
+```{r, echo = FALSE}
+p <- rgeoprofile_file("tutorial1_project.rds")
+```
+
 An immediate indication that the MCMC is acting sensibly is that the model `converged within X iterations` for every `K` value, so the choice of burn-in sufficed. Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
 
-## Diagnosing the Model
+## Diagnosing the model
 
 Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.
 
@@ -244,7 +248,7 @@ gini(hs)
 
 Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
 # saveRDS(mysim, file = "tutorial1_mysim.rds")
 # saveRDS(p, file = "tutorial1_project.rds")

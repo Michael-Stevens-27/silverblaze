@@ -91,7 +91,7 @@
       <h1>Tutorial 1: Basic Implementation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-04-08</h4>
+            <h4 class="date">2019-04-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/basic-implementation.Rmd"><code>vignettes/basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>basic-implementation.Rmd</code></div>
@@ -220,76 +220,14 @@ p</code></pre></div>
               <span class="dt">converge_test =</span> <span class="fl">1e2</span>,
               <span class="dt">auto_converge =</span> <span class="ot">TRUE</span>,
               <span class="dt">pb_markdown =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<pre><code>## Running MCMC for K = 1
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 2.04182 seconds
-## 
-## Running MCMC for K = 2
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 4.68976 seconds
-## 
-## Running MCMC for K = 3
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 8.26777 seconds
-## 
-## Running MCMC for K = 4
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 10.9629 seconds
-## 
-## Running MCMC for K = 5
-## Burn-in phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    converged within 100 iterations
-## Sampling phase
-## 
-  |                                                                       
-  |=================================================================| 100%
-##    completed in 15.578 seconds
-## 
-## Processing results</code></pre>
-<pre><code>## Total run-time: 50.53 seconds</code></pre>
 <p>An immediate indication that the MCMC is acting sensibly is that the model <code>converged within X iterations</code> for every <code>K</code> value, so the choice of burn-in sufficed. Before plotting any geoprofiles let’s makes sure the MCMC is indeed mixing well.</p>
 </div>
 <div id="diagnosing-the-model" class="section level2">
 <h2 class="hasAnchor">
-<a href="#diagnosing-the-model" class="anchor"></a>Diagnosing the Model</h2>
+<a href="#diagnosing-the-model" class="anchor"></a>Diagnosing the model</h2>
 <p>Firstly we question the MCMC’s ability by producing diagnostic plots of the log-likelihood. This can be done for each value of <code>K</code> to ensure the algorithm is behaving properly.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <pre><code>##    rung1 
@@ -330,17 +268,17 @@ plot2</code></pre></div>
 <p>We can also plot the posterior 95% credible intervals of each sigma. The <code>"single"</code> model will produce intervals for each source, this requires updating (TODO).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_sigma.html">plot_sigma</a></span>(p)</code></pre></div>
 <pre><code>## using K = 1 by default</code></pre>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>Similarly the same can be done for the expected population size.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_expected_popsize.html">plot_expected_popsize</a></span>(p)</code></pre></div>
 <pre><code>## using K = 1 by default</code></pre>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>With <code><a href="../reference/plot_structure.html">plot_structure()</a></code> we are able to visualise the model’s allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_structure.html">plot_structure</a></span>(p, <span class="dt">divide_ind_on =</span> <span class="ot">TRUE</span>)</code></pre></div>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
 <p>When <code>K = 1</code> the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to <code>K = 2</code> and we see a clear 30-70 split between sources. On to <code>K = 3</code> and the model has allocated a third of all positive sentinel sites to a source. The case of <code>K = 4</code> is curious. We know for sure that there are three true sources, but the model is displaying its attempt to fit four by splitting taking from sources one and two. Let’s take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(mysim<span class="op">$</span>record<span class="op">$</span>true_qmatrix)</code></pre></div>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>It is also possible to map these structural plots using the <code><a href="../reference/overlay_piecharts.html">overlay_piecharts()</a></code> function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">piePlot &lt;-<span class="st"> </span><span class="kw"><a href="../reference/overlay_piecharts.html">overlay_piecharts</a></span>(plot2, <span class="dt">project =</span> p, <span class="dt">K =</span> <span class="dv">3</span>, <span class="dt">min_size =</span> <span class="dv">10</span>, <span class="dt">max_size =</span> <span class="dv">30</span>)
 piePlot</code></pre></div>
@@ -359,7 +297,7 @@ hs</code></pre></div>
 <p>Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">plot3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/plot_lorenz.html">plot_lorenz</a></span>(hs)
 plot3</code></pre></div>
-<p><img src="basic-implementation_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<p><img src="basic-implementation_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
 <p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/gini.html">gini</a></span>(hs)</code></pre></div>
 <pre><code>##    hs_ringsearch hs_geoprofile_K1 hs_geoprofile_K2 hs_geoprofile_K3 
@@ -382,7 +320,7 @@ plot3</code></pre></div>
       <li><a href="#simple-spatial-prior">Simple spatial prior</a></li>
       <li><a href="#parameter-sets">Parameter sets</a></li>
       <li><a href="#running-the-model">Running the model</a></li>
-      <li><a href="#diagnosing-the-model">Diagnosing the Model</a></li>
+      <li><a href="#diagnosing-the-model">Diagnosing the model</a></li>
       <li><a href="#results">Results</a></li>
       </ul>
 </div>

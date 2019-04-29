@@ -106,7 +106,7 @@ plot2
 
 Run the MCMC for each case: 
 
-```{r}
+```{r, eval = FALSE}
 p_uniform <- run_mcmc(project = p_uniform,
               K = 1,
               burnin = 1e4,
@@ -119,7 +119,11 @@ p_bias <- run_mcmc(project = p_bias,
               samples = 1e6,
               silent = TRUE)
 ```
+```{r, echo = FALSE}
+p_uniform <- rgeoprofile_file("complex_spatial_project_uniform.rds")
+   p_bias <- rgeoprofile_file("complex_spatial_project_bias.rds")
 
+```
 Plot the prior and the geoprofiles associated with the uniform and biased spatial prior:
 
 ```{r}
@@ -134,4 +138,9 @@ plot4 <- plot_map()
 plot4 <- overlay_sentinels(plot4, p_bias, sentinel_radius = 0.2)
 plot4 <- overlay_geoprofile(plot4, p_bias, K = 1, smoothing = 2, threshold = 0.1)
 plot4
+```
+
+```{r, echo = FALSE, eval = FALSE}
+# secretly save/load data from file so output is consistent between tutorials
+# saveRDS(p_bias, file = "complex_spatial_project_bias.rds")
 ```
