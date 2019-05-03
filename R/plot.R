@@ -584,9 +584,9 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @export
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' plot_loglike_dignostic(project = p, K = 2)
+#' plot_loglike_diagnostic(project = p, K = 2)
 
-plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black") {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")

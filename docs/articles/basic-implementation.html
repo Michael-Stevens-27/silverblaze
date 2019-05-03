@@ -91,7 +91,7 @@
       <h1>Tutorial 1: Basic Implementation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-04-29</h4>
+            <h4 class="date">2019-05-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/basic-implementation.Rmd"><code>vignettes/basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>basic-implementation.Rmd</code></div>
@@ -226,7 +226,7 @@ p</code></pre></div>
 <h2 class="hasAnchor">
 <a href="#diagnosing-the-model" class="anchor"></a>Diagnosing the model</h2>
 <p>Firstly we question the MCMC’s ability by producing diagnostic plots of the log-likelihood. This can be done for each value of <code>K</code> to ensure the algorithm is behaving properly.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_dignostic.html">plot_loglike_dignostic</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="basic-implementation_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/get_ESS.html">get_ESS</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
