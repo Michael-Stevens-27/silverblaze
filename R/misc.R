@@ -129,22 +129,36 @@ geweke_pvalue <- function(x) {
   ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail=FALSE)
   return(ret)
 }
-
 #------------------------------------------------
-# check that geweke p-value non-significant on values x[1:n]
+# check that geweke p-value non-significant at alpha significance level on
+# values x[1:n]
+#' @importFrom coda mcmc
 #' @noRd
-test_convergence <- function(x, n) {
-  if (n==1) {
+test_convergence <- function(x, n, alpha = 0.01) {
+  # fail if n = 1
+  if (n == 1) {
     return(FALSE)
   }
-  g <- geweke_pvalue(mcmc(x[1:n]))
-  ret <- (g>0.01)
-  if (is.na(ret)) {
-    ret <- TRUE;
+  
+  # fail if ESS too small
+  ESS <- try(coda::effectiveSize(x[1:n]), silent = TRUE)
+  if (class(ESS) == "try-error") {
+    return(FALSE)
   }
+  if (ESS < 10) {
+    return(FALSE)
+  }
+  
+  # fail if geweke p-value < threshold
+  g <- geweke_pvalue(mcmc(x[1:n]))
+  ret <- (g > alpha)
+  if (is.na(ret)) {
+    ret <- FALSE;
+  }
+  
+  # return
   return(ret)
 }
-
 #------------------------------------------------
 # update progress bar
 # (not exported)
