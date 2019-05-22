@@ -698,41 +698,6 @@ plot_DIC_gelman <- function(project) {
 }
 
 #------------------------------------------------
-#' @title Plot the pseudoAIC over all K
-#'
-#' @description Plot pseudoAIC over all K for the current active parameter set.
-#'
-#' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#'
-#' @export
-#' @examples
-#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' plot_pseudoAIC(p)
-
-plot_pseudoAIC <- function(project) {
-
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("  no active parameter set")
-  }
-
-  # get DIC values
-  df <- project$output$single_set[[s]]$all_K$pseudoAIC
-
-  # produce plot
-  plot1 <- ggplot(data = df) + theme_bw()
-  plot1 <- plot1 + geom_point(aes_(x = ~as.factor(K), y = ~pseudoAIC))
-  plot1 <- plot1 + xlab("K") + ylab("AIC")
-
-  return(plot1)
-}
-
-#------------------------------------------------
 #' @title Produce Lorenz plot of hitscores
 #'
 #' @description Produce Lorenz plot of hitscores
