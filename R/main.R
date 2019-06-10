@@ -614,17 +614,6 @@ run_mcmc <- function(project,
     sigma_sq <- var(loglike_sampling[,ncol(loglike_sampling)])
     DIC_gelman <- -2*mu + 4*sigma_sq
     
-    # # ---------- pseudo-AIC  ----------
-    # calculate the AIC base on sigma_model
-    maxLogLike <- max(loglike_sampling)
-    switch(args_model$sigma_model,
-           "single" = {
-             pseudoAIC <- -2*maxLogLike + 2*K[i] + 2
-           },
-           "independent" = {
-             pseudoAIC <--2*maxLogLike + 3*K[i] + 1
-           })
-    
     # ---------- acceptance rates ----------
     
     # process acceptance rates
@@ -660,7 +649,6 @@ run_mcmc <- function(project,
                                                                     expected_popsize_intervals = expected_popsize_intervals,
                                                                     ESS = ESS,
                                                                     DIC_gelman = DIC_gelman,
-                                                                    pseudoAIC = pseudoAIC,
                                                                     converged = converged,
                                                                     source_accept = source_accept,
                                                                     sigma_accept = sigma_accept)
@@ -709,18 +697,6 @@ run_mcmc <- function(project,
   }, project$output$single_set[[s]]$single_K)
   DIC_gelman <- as.vector(unlist(DIC_gelman))
   project$output$single_set[[s]]$all_K$DIC_gelman <- data.frame(K = 1:length(DIC_gelman), DIC_gelman = DIC_gelman)
-  
-  # get pseudoAIC over all K
-  pseudoAIC <- mapply(function(x) {
-    ret <- x$summary$pseudoAIC
-    if (is.null(ret)) {
-      return(NA)
-    } else {
-      return(ret)
-    }
-  }, project$output$single_set[[s]]$single_K)
-  pseudoAIC  <- as.vector(unlist(pseudoAIC))
-  project$output$single_set[[s]]$all_K$pseudoAIC <- data.frame(K = 1:length(pseudoAIC), pseudoAIC = pseudoAIC)
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))

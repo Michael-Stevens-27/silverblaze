@@ -186,7 +186,8 @@ update_progress <- function(pb_list, name, i, max_i) {
 #'
 #' @export
 #' @examples
-#' rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)
+#' points <-rnorm_sphere(n = 500, centre_lat = 0, centre_lon = 0, sigma = 1)
+#' plot(points$longitude, points$latitude) 
 
 rnorm_sphere <- function(n, centre_lon, centre_lat, sigma = 1) {
 
@@ -698,32 +699,32 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
 ##########################################################################################################
 # MISC CLASSES
 
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_simdata.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
+# #------------------------------------------------
+# #' @title TODO
+# #'
+# #' @description custom print function for rgeoprofile_simdata.
+# #'
+# #' @param x TODO
+# #' @param ... TODO
+# #'
+# #' @export
+# 
+# print.rgeoprofile_simdata <- function(x, ...) {
+#   print(unclass(x))
+#   invisible(x)
+# }
 
-print.rgeoprofile_simdata <- function(x, ...) {
-  print(unclass(x))
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_qmatrix.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_qmatrix <- function(x, ...) {
-  print(unclass(x))
-  invisible(x)
-}
+# #------------------------------------------------
+# #' @title TODO
+# #'
+# #' @description custom print function for rgeoprofile_qmatrix.
+# #'
+# #' @param x TODO
+# #' @param ... TODO
+# #'
+# #' @export
+# 
+# print.rgeoprofile_qmatrix <- function(x, ...) {
+#   print(unclass(x))
+#   invisible(x)
+# }

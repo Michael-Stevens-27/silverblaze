@@ -23,5 +23,6 @@ Draw from normal distribution converted to spherical coordinate
   {centre_lat, centre_lon} to produce a final set of lat/lon points.
 }
 \examples{
-rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)
+points <-rnorm_sphere(n = 500, centre_lat = 0, centre_lon = 0, sigma = 1)
+plot(points$longitude, points$latitude) 
 }

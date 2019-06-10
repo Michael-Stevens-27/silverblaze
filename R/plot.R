@@ -175,43 +175,43 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
   return(plot1)
 }
 
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description default plot for class rgeoprofile_qmatrix.
-#'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
-#'
-#' @export
-
-plot.rgeoprofile_qmatrix <- function(x, y, ...) {
-
-  # get data into ggplot format
-  m <- unclass(x)
-  m <- m[!is.na(m[,1]), , drop = FALSE]
-  n <- nrow(m)
-  K <- ncol(m)
-  df <- data.frame(sentinel_site = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), prob = as.vector(t(m)))
-
-  # produce basic plot
-  plot1 <- ggplot(df) + theme_empty()
-  plot1 <- plot1 + geom_bar(aes_(x = ~sentinel_site, y = ~prob, fill = ~k), width = 1, stat = "identity")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  plot1 <- plot1 + xlab("positive sentinel site") + ylab("probability")
-
-  # add legends
-  plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
-  plot1 <- plot1 + scale_colour_manual(values = "white")
-  plot1 <- plot1 + guides(colour = FALSE)
-
-  # add border
-  plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
-
-  # return plot object
-  return(plot1)
-}
+# #------------------------------------------------
+# #' @title TODO
+# #'
+# #' @description default plot for class rgeoprofile_qmatrix.
+# #'
+# #' @param x TODO
+# #' @param y TODO
+# #' @param ... TODO
+# #'
+# #' @export
+# 
+# plot.rgeoprofile_qmatrix <- function(x, y, ...) {
+# 
+#   # get data into ggplot format
+#   m <- unclass(x)
+#   m <- m[!is.na(m[,1]), , drop = FALSE]
+#   n <- nrow(m)
+#   K <- ncol(m)
+#   df <- data.frame(sentinel_site = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), prob = as.vector(t(m)))
+# 
+#   # produce basic plot
+#   plot1 <- ggplot(df) + theme_empty()
+#   plot1 <- plot1 + geom_bar(aes_(x = ~sentinel_site, y = ~prob, fill = ~k), width = 1, stat = "identity")
+#   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+#   plot1 <- plot1 + xlab("positive sentinel site") + ylab("probability")
+# 
+#   # add legends
+#   plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
+#   plot1 <- plot1 + scale_colour_manual(values = "white")
+#   plot1 <- plot1 + guides(colour = FALSE)
+# 
+#   # add border
+#   plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
+# 
+#   # return plot object
+#   return(plot1)
+# }
 
 #------------------------------------------------
 #' @title Posterior allocation plot
@@ -788,6 +788,8 @@ plot_lorenz <- function(hs, col = NULL, counts = NULL) {
 #' @param border_weight thickness of circle borders
 #' @param border_opacity opacity of circle borders
 #' @param legend whether to add a legend for site count
+#' @param label whether to label sentinel sites with densities
+#' @param label_size size of the label 
 #'
 #' @export
 #' @examples
@@ -808,7 +810,9 @@ overlay_sentinels <- function(myplot,
                               border_colour = "black",
                               border_weight = 1,
                               border_opacity = 1.0,
-                              legend = FALSE) {
+                              legend = FALSE,
+                              label = FALSE,
+                              label_size = 15) {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -845,6 +849,9 @@ overlay_sentinels <- function(myplot,
   assert_single_pos(border_opacity)
   assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_logical(legend)
+  assert_logical(label)
+  assert_single_pos(label_size)
+  
   # check for data
   df <- project$data
   if (is.null(df)) {
@@ -892,7 +899,16 @@ overlay_sentinels <- function(myplot,
                       fill = fill_vec, fillColor = fill_colour_vec, fillOpacity = fill_opacity,
                       stroke = border_vec, color = border_colour_vec,
                       opacity = border_opacity, weight = border_weight)
-  
+                      
+  # label sentinel site counts
+  if (label == TRUE) {
+    lab_size <- paste(label_size, "px", sep = "")
+    myplot <- addLabelOnlyMarkers(myplot, lng = df$longitude, lat = df$latitude, 
+                                  label = as.character(df$counts), 
+                                  labelOptions = labelOptions(noHide = T, textOnly = TRUE,
+                                  direction = "center", textsize = lab_size))                
+  }
+
   # return plot object
   return(myplot)
 }
@@ -1069,7 +1085,7 @@ overlay_geoprofile <- function(myplot,
   geoprofile <- setValues(geoprofile, geoprofile_mat)
 
   # overlay raster
-  myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity)
+  myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity, project = FALSE)
 
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(geoprofile), ymin(geoprofile),

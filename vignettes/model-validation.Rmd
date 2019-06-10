@@ -21,10 +21,6 @@ There are many functions silverblaze has to offer for checking the ability of th
 plot_DIC_gelman(p)
 ```
 
-As we can see the model with the lowest absolute DIC is the one fitting XXXX sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. Instead we can attempt to produce a kind of pseudo AIC. In its calculation, the AIC requires the maximum likelihood however we do not have this to hand. Instead we have a number of draws from the posterior distribution. Although the maximum likelihood has been extracted from the MCMC, there is no guarantee this is the true maximum likelihood. This can be plotted for each `K` using a similar plot function.
-
-```{r}
-plot_pseudoAIC(p)
-```
+As we can see the model with the lowest absolute DIC is the one fitting XXXX sources. This of course should not be the case indicating the DIC is an unreliable metric for this analysis. 
 
 ### References

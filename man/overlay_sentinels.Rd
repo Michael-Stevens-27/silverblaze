@@ -7,7 +7,8 @@
 overlay_sentinels(myplot, project, sentinel_radius = NULL, fill = TRUE,
   fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5,
   border = FALSE, border_colour = "black", border_weight = 1,
-  border_opacity = 1, legend = FALSE)
+  border_opacity = 1, legend = FALSE, label = FALSE,
+  label_size = 15)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
@@ -33,6 +34,10 @@ parameter set if unspecified}
 \item{border_opacity}{opacity of circle borders}
 
 \item{legend}{whether to add a legend for site count}
+
+\item{label}{whether to label sentinel sites with densities}
+
+\item{label_size}{size of the label}
 }
 \description{
 Add sentinel sites to dynamic map

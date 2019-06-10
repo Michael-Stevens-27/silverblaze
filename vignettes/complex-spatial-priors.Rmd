@@ -3,6 +3,7 @@ title: "Tutorial 2: Complex Spatial Priors"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+bibliography: complex-spatial-priors.bib
 vignette: >
   %\VignetteIndexEntry{"Tutorial 2: Complex Spatial Priors"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -32,7 +33,9 @@ plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red",
 plot_spatial
 ```
 
-This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.    
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (the DPM model in @Verity2014) that implements the shapefile post-hoc.    
+
+What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.    
 
 ## A non-uniform spatial prior
 
@@ -144,3 +147,4 @@ plot4
 # secretly save/load data from file so output is consistent between tutorials
 # saveRDS(p_bias, file = "complex_spatial_project_bias.rds")
 ```
+### References
