@@ -4,9 +4,10 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(project, K = 3, burnin = 100, samples = 1000,
-  auto_converge = TRUE, converge_test = 100, cluster = NULL,
-  pb_markdown = FALSE, store_raw = TRUE, silent = !is.null(cluster))
+run_mcmc(project, K = 3, burnin = 100, samples = 1000, rungs = 1,
+  auto_converge = TRUE, converge_test = 100, coupling_on = TRUE,
+  cluster = NULL, pb_markdown = FALSE, store_raw = TRUE,
+  silent = !is.null(cluster))
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -18,6 +19,8 @@ run_mcmc(project, K = 3, burnin = 100, samples = 1000,
 
 \item{samples}{the number of sampling iterations}
 
+\item{rungs}{the number of temperature rungs used}
+
 \item{auto_converge}{whether convergence should be assessed automatically
 every \code{converge_test} iterations, leading to termination of the
 burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
@@ -25,6 +28,8 @@ used}
 
 \item{converge_test}{test for convergence every \code{convergence_test}
 iterations if \code{auto_converge} is being used}
+
+\item{coupling_on}{whether to implement Metropolis coupling}
 
 \item{cluster}{option to pass in a cluster environment (see package
 "parallel")}
