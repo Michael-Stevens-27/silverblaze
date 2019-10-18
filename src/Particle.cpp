@@ -56,6 +56,7 @@ Particle::Particle(double beta_raised) {
   log_hazard_height = vector<vector<double>>(n, vector<double>(K));
   log_hazard_height_prop = vector<double>(n);
   log_hazard_height_prop2 = vector<vector<double>>(n, vector<double>(K));
+  logprior = 0;
   loglike = 0;
   
   // initialise ordering of labels
@@ -118,6 +119,7 @@ void Particle::reset() {
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
   for (int k=0; k<K; ++k) {
+    logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
     for (int i=0; i<n; ++i) {
       dist_source_data[i][k] = dist_source_data_prop[i];
@@ -132,20 +134,29 @@ void Particle::reset() {
 }
 
 //------------------------------------------------
+// calculate log-prior given new proposed source
+double Particle::calculate_logprior_source(double source_lon_prop, double source_lat_prop) {
+  
+  // get logprior probability
+  double logprior_prob = get_value(source_lon_prop, source_lat_prop);
+  
+  // catch values with zero prior probability
+  if (logprior_prob == 0) {
+    logprior_prob = -OVERFLO;
+  }
+  
+  return logprior_prob;
+}
+
+//------------------------------------------------
 // calculate log-likelihood given new proposed source
 double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
   
-  // get prior probability
-  double prior_prob = get_value(source_lon_prop, source_lat_prop);
-  if (prior_prob == 0) {
-    return -OVERFLO;
-  }
-  
   // initialise new likelihood
-  double loglike_prop = log(prior_prob);
+  double loglike_prop = 0;
   
   // loop through sentinel sites
-  for (int i=0; i<n; ++i) {
+  for (int i = 0; i < n; ++i) {
     
     // get distance from proposed source to data point i
     double dist = get_data_dist(source_lon_prop, source_lat_prop, i);
@@ -164,7 +175,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop[i];
-    for (int j=0; j<K; ++j) {
+    for (int j = 0; j < K; ++j) {
       if (j == k) {
         continue;
       }
@@ -194,42 +205,44 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
 void Particle::update_sources(bool robbins_monro_on, int iteration) {
 
   // loop through all sources
-  for (int k=0; k<K; ++k) {
-
+  for (int k = 0; k < K; ++k) {
+    
     // propose new source location
     double source_lon_prop = rnorm1(source_lon[k], source_propSD[k]);
     double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
-
+    
     // check proposed source within defined range
     if (source_lon_prop <= min_lon || source_lon_prop >= max_lon || source_lat_prop <= min_lat || source_lat_prop >= max_lat) {
-
+      
       // auto-reject proposed move
       if (robbins_monro_on) {
         source_propSD[k] = exp(log(source_propSD[k]) - source_rm_stepsize*0.234/sqrt(iteration));
       }
       continue;
     }
-
-    // calculate new loglikelihood
+    
+    // calculate new logprior and loglikelihood
+    double logprior_prop = calculate_logprior_source(source_lon_prop, source_lat_prop);
     double loglike_prop = calculate_loglike_source(source_lon_prop, source_lat_prop, k);
-
+    
     // Metropolis-Hastings ratio
-    double MH_ratio = loglike_prop - loglike;
-
+    double MH_ratio = (logprior_prop - logprior) + beta_raised*(loglike_prop - loglike);
+    
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
-
+      
       // update source
       source_lon[k] = source_lon_prop;
       source_lat[k] = source_lat_prop;
-
+      
       // update stored distances and hazard values
       for (int i=0; i<n; ++i) {
         dist_source_data[i][k] = dist_source_data_prop[i];
         log_hazard_height[i][k] = log_hazard_height_prop[i];
       }
-
-      // update likelihood
+      
+      // update likelihood and prior
+      logprior = logprior_prop;
       loglike = loglike_prop;
 
       // Robbins-Monro positive update (on the log scale)
@@ -323,7 +336,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   double MH_ratio = (loglike_prop + logprior_prop) - (loglike + logprior);
   
   // Metropolis-Hastings step
-  if (log(runif_0_1())<MH_ratio) {
+  if (log(runif_0_1()) < MH_ratio) {
     
     // update sigma for all sources
     for (int k=0; k<K; ++k) {

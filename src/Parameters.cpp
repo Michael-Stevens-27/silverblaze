@@ -45,12 +45,12 @@ Parameters::Parameters(const Rcpp::List &args) {
   // MCMC parameters
   burnin = rcpp_to_int(args["burnin"]);
   samples = rcpp_to_int(args["samples"]);
-  rungs = 1;  // TODO - variable number of rungs
+  rungs = rcpp_to_int(args["rungs"]);
   auto_converge = rcpp_to_bool(args["auto_converge"]);
   converge_test = rcpp_to_int(args["converge_test"]);
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   silent = rcpp_to_bool(args["silent"]);
-  coupling_on = false;  // TODO - metropolis-coupling over temperature rungs
+  coupling_on = rcpp_to_bool(args["coupling_on"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);

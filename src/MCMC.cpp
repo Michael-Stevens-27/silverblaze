@@ -83,19 +83,19 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   int checkpoint_i = 0;
   
   // reset particles
-  for (int r=0; r<rungs; r++) {
+  for (int r = 0; r < rungs; r++) {
     particle_vec[r].reset();
     particle_vec[r].beta_raised = beta_raised_vec[r];
   }
-  rung_order = seq_int(0,rungs-1);
+  rung_order = seq_int(0, rungs-1);
   
   // loop through burnin iterations
   vector<bool> convergence_reached(rungs, false);
   bool all_convergence_reached = false;
-  for (int rep=0; rep<burnin; rep++) {
+  for (int rep = 0; rep < burnin; rep++) {
     
     // update particles
-    for (int r=0; r<rungs; r++) {
+    for (int r = 0; r < rungs; r++) {
       
       // skip over converged rungs
       if (convergence_reached[r]) {
@@ -320,10 +320,10 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
 //------------------------------------------------
 // Metropolis-coupling to propose swaps between temperature rungs
 void MCMC::metropolis_coupling() {
-
+  
   // loop over rungs, starting with the hottest chain and moving to the cold
   // chain. Each time propose a swap with the next rung up
-  for (int i=0; i<(rungs-1); i++) {
+  for (int i = 0; i < (rungs-1); i++) {
 
     // define rungs of interest
     int rung1 = rung_order[i];
@@ -341,14 +341,22 @@ void MCMC::metropolis_coupling() {
 
     // accept or reject move
     double rand1 = runif1();
-    if (log(rand1)<acceptance) {
+    if (log(rand1) < acceptance) {
 
       // swap beta values
       particle_vec[rung1].beta_raised = beta_raised2;
       particle_vec[rung2].beta_raised = beta_raised1;
-
-      // TODO - swap proposal SDs
-
+      
+      // swap source proposal SD
+      vector<double> store_source_propSD1 = particle_vec[rung1].source_propSD;
+      particle_vec[rung1].source_propSD = particle_vec[rung2].source_propSD;
+      particle_vec[rung2].source_propSD = store_source_propSD1;
+      
+      // swap sigma proposal SD
+      vector<double> store_sigma_propSD1 = particle_vec[rung1].sigma_propSD;
+      particle_vec[rung1].sigma_propSD = particle_vec[rung2].sigma_propSD;
+      particle_vec[rung2].sigma_propSD = store_sigma_propSD1;
+      
       // swap rung order
       rung_order[i] = rung2;
       rung_order[i+1] = rung1;

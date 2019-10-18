@@ -51,6 +51,7 @@ public:
   std::vector<std::vector<double>> log_hazard_height;
   std::vector<double> log_hazard_height_prop;
   std::vector<std::vector<double>> log_hazard_height_prop2;
+  double logprior;
   double loglike;
   
   // initialise ordering of labels
@@ -79,6 +80,7 @@ public:
   
   // other functions
   void reset();
+  double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
   void update_sources(bool robbins_monro_on, int iteration);
   void update_sigma(bool robbins_monro_on, int iteration);

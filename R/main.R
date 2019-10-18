@@ -343,12 +343,14 @@ delete_set <- function(project,
 #' @param K the number of sources
 #' @param burnin the number of burn-in iterations
 #' @param samples the number of sampling iterations
+#' @param rungs the number of temperature rungs used
 #' @param auto_converge whether convergence should be assessed automatically
 #'   every \code{converge_test} iterations, leading to termination of the
 #'   burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
 #'   used
 #' @param converge_test test for convergence every \code{convergence_test}
 #'   iterations if \code{auto_converge} is being used
+#' @param coupling_on whether to implement Metropolis coupling
 #' @param cluster option to pass in a cluster environment (see package
 #'   "parallel")
 #' @param pb_markdown whether to run progress bars in markdown mode, in which
@@ -363,8 +365,10 @@ run_mcmc <- function(project,
                      K = 3,
                      burnin = 1e2,
                      samples = 1e3,
+                     rungs = 1,
                      auto_converge = TRUE,
                      converge_test = 1e2,
+                     coupling_on = TRUE,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
@@ -378,8 +382,10 @@ run_mcmc <- function(project,
   assert_pos_int(K, zero_allowed = FALSE)
   assert_single_pos_int(burnin, zero_allowed = FALSE)
   assert_single_pos_int(samples, zero_allowed = FALSE)
+  assert_single_pos_int(rungs, zero_allowed = FALSE)
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
+  assert_single_logical(coupling_on)
   if (!is.null(cluster)) {
     assert_custom_class(cluster, "cluster")
   }
@@ -402,8 +408,10 @@ run_mcmc <- function(project,
   # input arguments list
   args_inputs <- list(burnin = burnin,
                       samples = samples,
+                      rungs = rungs,
                       auto_converge = auto_converge,
                       converge_test = converge_test,
+                      coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
                       silent = silent)
   
@@ -483,7 +491,6 @@ run_mcmc <- function(project,
   for (i in 1:length(K)) {
     
     # create name lists
-    rungs <- 1
     group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
     
@@ -600,6 +607,7 @@ run_mcmc <- function(project,
     if (all_converged && any(!converged)) {
       all_converged <- FALSE
     }
+    
     # ---------- ESS ----------
 
     # get ESS, unless using a fixed sigma model
@@ -607,7 +615,8 @@ run_mcmc <- function(project,
     ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
     ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
     names(ESS) <- rung_names
-      # ---------- model comparison statistics ----------
+    
+    # ---------- model comparison statistics ----------
     
     # ---------- DIC ----------
     mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
@@ -623,7 +632,7 @@ run_mcmc <- function(project,
     sigma_accept <- output_raw[[i]]$sigma_accept/samples
     names(sigma_accept) <- group_names
     
-    #coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    coupling_accept <- output_raw[[i]]$coupling_accept/samples
     
     # ---------- save arguments ----------
     
@@ -651,7 +660,8 @@ run_mcmc <- function(project,
                                                                     DIC_gelman = DIC_gelman,
                                                                     converged = converged,
                                                                     source_accept = source_accept,
-                                                                    sigma_accept = sigma_accept)
+                                                                    sigma_accept = sigma_accept,
+                                                                    coupling_accept = coupling_accept)
     
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
@@ -835,7 +845,7 @@ align_qmatrix <- function(project) {
 # ring-search
 #' @noRd
 ring_search <- function(project, r) {
-
+  
   # check that there is at least one positive observation
   if (sum(project$data$counts) == 0) {
     stop("ring search not possible: no positive counts")
