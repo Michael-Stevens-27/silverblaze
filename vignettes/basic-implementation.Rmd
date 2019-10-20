@@ -127,14 +127,14 @@ The project `p` is now taking shape as we have defined the data and parameters f
 
 ## Running the model
 
-We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:4` as our data was generated with two sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.
+We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:5` as our data was generated with three sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.
 
 ```{r, eval = FALSE}
 p <- run_mcmc(project = p,
               K = 1:5,
               burnin = 1e4,
               samples = 5e4,
-              converge_test = 1e2,
+              converge_test = 5e3,
               auto_converge = TRUE,
               pb_markdown = TRUE)
 ```
@@ -143,7 +143,7 @@ p <- run_mcmc(project = p,
 p <- rgeoprofile_file("tutorial1_project.rds")
 ```
 
-An immediate indication that the MCMC is acting sensibly is that the model `converged within X iterations` for every `K` value, so the choice of burn-in sufficed. Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
+Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
 
 ## Diagnosing the model
 
@@ -205,7 +205,7 @@ plot_sigma(p)
 Similarly the same can be done for the expected population size.
 
 ```{r}
-plot_expected_popsize(p)
+plot_expected_popsize(p, K = 3)
 ```
 
 With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.
@@ -214,16 +214,20 @@ With `plot_structure()` we are able to visualise the model's allocation of posit
 plot_structure(p, divide_ind_on = TRUE)
 ```
 
-When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 30-70 split between sources. On to `K = 3` and the model has allocated a third of all positive sentinel sites to a source. The case of `K = 4` is curious. We know for sure that there are three true sources, but the model is displaying its attempt to fit four by taking from sources one and two and allocating to source 4. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
+When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. On to `K = 3` and the model starts to get a little confused as to if it should allocate points to group 1 or group 3. If you scroll back up to the map you can see that two clusters are spatially overlapping, this is the most likely reason for the uncertainty. If a sentinel site is right in the centre of two overlapping clusters there will be some uncertainty in which source individuals at that sentinel site came from. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
 
 ```{r}
+# TODO fix plot structure for "rgeoprofile_qmatrix" class
 plot(mysim$record$true_qmatrix)
 ```
 
 It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.
 
 ```{r}
-piePlot <- overlay_piecharts(plot2, project = p, K = 3, min_size = 10, max_size = 30)
+piePlot <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
+piePlot <- overlay_geoprofile(piePlot, p, threshold = 0.1, opacity = 0.8, 
+                            K = 3, col = plasma, legend = TRUE)
+piePlot <- overlay_piecharts(piePlot, project = p, K = 3, min_size = 10, max_size = 30)
 piePlot
 ```
 
