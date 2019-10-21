@@ -474,8 +474,8 @@ void Particle::update_expected_popsize() {
   }
   
   // draw new expected population size
-  double posterior_shape = expected_popsize_prior_shape + counts_total;
-  double posterior_rate = expected_popsize_prior_rate + lambda_total;
+  double posterior_shape = expected_popsize_prior_shape + beta_raised*counts_total;
+  double posterior_rate = expected_popsize_prior_rate + beta_raised*lambda_total;
   expected_popsize = rgamma1(posterior_shape, posterior_rate);
   log_expected_popsize = log(expected_popsize);
 }
