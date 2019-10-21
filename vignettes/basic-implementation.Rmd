@@ -199,7 +199,7 @@ plot2
 We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
 
 ```{r}
-plot_sigma(p)
+plot_sigma(p, K = 3)
 ```
 
 Similarly the same can be done for the expected population size.

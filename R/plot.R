@@ -341,9 +341,9 @@ plot_sigma <- function(project, K = NULL) {
   sigma_intervals <- get_output(project, "sigma_intervals", K)
   x_lab <- "source"
   if (sigma_model == "single") {
-    sigma_intervals <- sigma_intervals[1,]
+    sigma_intervals <- sigma_intervals[which(rowSums(sigma_intervals) != 0),]
     rownames(sigma_intervals) <- ""
-    x_lab <- ""
+    x_lab <- paste("K = ", K, sep = "")
   }
   
   # get properties

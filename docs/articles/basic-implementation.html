@@ -93,7 +93,7 @@
       <h1>Tutorial 1: Basic Implementation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-10-20</h4>
+            <h4 class="date">2019-10-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/basic-implementation.Rmd"><code>vignettes/basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>basic-implementation.Rmd</code></div>
@@ -269,8 +269,7 @@ plot2</code></pre></div>
 <h3 class="hasAnchor">
 <a href="#other-parameter-estimation" class="anchor"></a>Other Parameter Estimation</h3>
 <p>We can also plot the posterior 95% credible intervals of each sigma. The <code>"single"</code> model will produce intervals for each source, this requires updating (TODO).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_sigma.html">plot_sigma</a></span>(p)</code></pre></div>
-<pre><code>## using K = 1 by default</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_sigma.html">plot_sigma</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>
 <p><img src="basic-implementation_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>Similarly the same can be done for the expected population size.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/plot_expected_popsize.html">plot_expected_popsize</a></span>(p, <span class="dt">K =</span> <span class="dv">3</span>)</code></pre></div>

@@ -12,7 +12,7 @@ Particle::Particle(double beta_raised) {
   
   // beta_raised stores values of beta (the thermodynamic power), raised to the
   // power GTI_pow
-  this->beta_raised = beta_raised;
+  this -> beta_raised = beta_raised;
   
   // source locations
   source_lon = vector<double>(K);
@@ -60,7 +60,7 @@ Particle::Particle(double beta_raised) {
   loglike = 0;
   
   // initialise ordering of labels
-  label_order = seq_int(0,K-1);
+  label_order = seq_int(0, K - 1);
   label_order_new = vector<int>(K);
   
   // objects for solving label switching problem
@@ -226,7 +226,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     double loglike_prop = calculate_loglike_source(source_lon_prop, source_lat_prop, k);
     
     // Metropolis-Hastings ratio
-    double MH_ratio = (logprior_prop - logprior) + beta_raised*(loglike_prop - loglike);
+    double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
@@ -333,7 +333,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
   
   // Metropolis-Hastings ratio
-  double MH_ratio = (loglike_prop + logprior_prop) - (loglike + logprior);
+  double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
   
   // Metropolis-Hastings step
   if (log(runif_0_1()) < MH_ratio) {
@@ -418,7 +418,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
     double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
     
     // Metropolis-Hastings ratio
-    double MH_ratio = (loglike_prop + logprior_prop) - (loglike + logprior);
+    double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {

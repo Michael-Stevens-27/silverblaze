@@ -115,7 +115,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     } // end loop over rungs
     
     // focus on cold rung
-    cold_rung = rung_order[rungs-1];
+    cold_rung = rung_order[rungs - 1];
     
     // methods that only apply when K>1
     if (K > 1) {

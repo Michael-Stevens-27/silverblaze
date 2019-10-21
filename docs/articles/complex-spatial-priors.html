@@ -91,7 +91,7 @@
       <h1>Tutorial 2: Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2019-10-20</h4>
+            <h4 class="date">2019-10-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -107,7 +107,7 @@
 <p>It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_north"</span>)</code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpR9ulFb/temp_libpathaf82d5ef8d4/silverblaze/extdata/London_north", layer: "boroughs"
+## Source: "/tmp/RtmpAexkSf/temp_libpath15d636f7196f/silverblaze/extdata/London_north", layer: "boroughs"
 ## with 8 features
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spatial_prior &lt;-<span class="st"> </span><span class="kw"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(s, <span class="dt">cells_lon =</span> <span class="dv">100</span>, <span class="dt">cells_lat =</span> <span class="dv">100</span>)</code></pre></div>
