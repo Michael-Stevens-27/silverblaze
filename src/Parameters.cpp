@@ -16,6 +16,7 @@ int Parameters::converge_test;
 bool Parameters::pb_markdown;
 bool Parameters::silent;
 bool Parameters::coupling_on;
+double Parameters::GTI_pow;
 
 // model parameters
 int Parameters::K;
@@ -51,6 +52,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   silent = rcpp_to_bool(args["silent"]);
   coupling_on = rcpp_to_bool(args["coupling_on"]);
+  GTI_pow = rcpp_to_double(args["GTI_pow"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);

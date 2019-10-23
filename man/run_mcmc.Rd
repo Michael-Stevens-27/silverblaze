@@ -6,8 +6,8 @@
 \usage{
 run_mcmc(project, K = 3, burnin = 100, samples = 1000, rungs = 1,
   auto_converge = TRUE, converge_test = 100, coupling_on = TRUE,
-  cluster = NULL, pb_markdown = FALSE, store_raw = TRUE,
-  silent = !is.null(cluster))
+  GTI_pow = 1, cluster = NULL, pb_markdown = FALSE,
+  store_raw = TRUE, silent = !is.null(cluster))
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -30,6 +30,8 @@ used}
 iterations if \code{auto_converge} is being used}
 
 \item{coupling_on}{whether to implement Metropolis coupling}
+
+\item{GTI_pow}{tempering level}
 
 \item{cluster}{option to pass in a cluster environment (see package
 "parallel")}

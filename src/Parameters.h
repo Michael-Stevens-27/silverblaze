@@ -18,6 +18,7 @@ public:
   static bool pb_markdown;
   static bool silent;
   static bool coupling_on;
+  static double GTI_pow;
   
   // model parameters
   static int K;

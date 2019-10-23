@@ -9,20 +9,18 @@ using namespace std;
 // constructor for MCMC class
 MCMC::MCMC() {
   
-  double GTI_pow = 1.0; // TODO - set GTI power
-  
   // thermodynamic parameters. The object beta_raised_vec stores values of beta
   // (the thermodynamic power), raised to the power GTI_pow
   beta_raised_vec = vector<double>(rungs);
-  for (int rung=0; rung<rungs; rung++) {
-    beta_raised_vec[rung] = (rungs==1) ? 1 : pow((rung+1)/double(rungs), GTI_pow);
+  for (int rung = 0; rung < rungs; rung++) {
+    beta_raised_vec[rung] = (rungs == 1) ? 1 : pow((rung + 1)/double(rungs), GTI_pow);
   }
-  rung_order = seq_int(0,rungs-1);
-  cold_rung = rung_order[rungs-1];
+  rung_order = seq_int(0,rungs - 1);
+  cold_rung = rung_order[rungs - 1];
   
   // vector of particles
   particle_vec = vector<Particle>(rungs);
-  for (int rung=0; rung<rungs; rung++) {
+  for (int rung = 0; rung < rungs; rung++) {
     particle_vec[rung] = Particle(beta_raised_vec[rung]);
   }
   
@@ -249,7 +247,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // focus on cold rung
-    cold_rung = rung_order[rungs-1];
+    cold_rung = rung_order[rungs - 1];
     
     // methods that only apply when K>1
     if (K > 1) {
@@ -323,11 +321,11 @@ void MCMC::metropolis_coupling() {
   
   // loop over rungs, starting with the hottest chain and moving to the cold
   // chain. Each time propose a swap with the next rung up
-  for (int i = 0; i < (rungs-1); i++) {
+  for (int i = 0; i < (rungs - 1); i++) {
 
     // define rungs of interest
     int rung1 = rung_order[i];
-    int rung2 = rung_order[i+1];
+    int rung2 = rung_order[i + 1];
 
     // get log-likelihoods and beta values of two chains in the comparison
     double loglike1 = particle_vec[rung1].loglike;
@@ -359,7 +357,7 @@ void MCMC::metropolis_coupling() {
       
       // swap rung order
       rung_order[i] = rung2;
-      rung_order[i+1] = rung1;
+      rung_order[i + 1] = rung1;
 
       // update acceptance rates
       coupling_accept[i]++;

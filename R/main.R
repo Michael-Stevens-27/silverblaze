@@ -351,6 +351,7 @@ delete_set <- function(project,
 #' @param converge_test test for convergence every \code{convergence_test}
 #'   iterations if \code{auto_converge} is being used
 #' @param coupling_on whether to implement Metropolis coupling
+#' @param GTI_pow tempering level
 #' @param cluster option to pass in a cluster environment (see package
 #'   "parallel")
 #' @param pb_markdown whether to run progress bars in markdown mode, in which
@@ -369,6 +370,7 @@ run_mcmc <- function(project,
                      auto_converge = TRUE,
                      converge_test = 1e2,
                      coupling_on = TRUE,
+                     GTI_pow = 1,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
@@ -386,6 +388,7 @@ run_mcmc <- function(project,
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
   assert_single_logical(coupling_on)
+  assert_single_pos(GTI_pow)
   if (!is.null(cluster)) {
     assert_custom_class(cluster, "cluster")
   }
@@ -409,6 +412,7 @@ run_mcmc <- function(project,
   args_inputs <- list(burnin = burnin,
                       samples = samples,
                       rungs = rungs,
+                      GTI_pow = GTI_pow,
                       auto_converge = auto_converge,
                       converge_test = converge_test,
                       coupling_on = coupling_on,
