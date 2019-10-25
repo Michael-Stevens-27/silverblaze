@@ -25,7 +25,7 @@ MCMC::MCMC() {
   }
   
   // initialise ordering of labels
-  label_order = seq_int(0,K-1);
+  label_order = seq_int(0, K - 1);
   
   // qmatrices
   log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
@@ -102,10 +102,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       int rung = rung_order[r];
       
       // update sources
-      particle_vec[rung].update_sources(true, rep+1);
+      particle_vec[rung].update_sources(true, rep + 1);
       
       // update sigma
-      particle_vec[rung].update_sigma(true, rep+1);
+      particle_vec[rung].update_sigma(true, rep + 1);
       
       // update expected population size
       particle_vec[rung].update_expected_popsize();

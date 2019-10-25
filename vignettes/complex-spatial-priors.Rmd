@@ -10,141 +10,155 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 library(silverblaze)
 library(raster)
-set.seed(1)
+library(rgdal)
+set.seed(5)
 ```
 
 ## Using shapefiles
-
 It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.
 
-```{r}
+```{r, message = FALSE, warning = FALSE, error = FALSE}
 s <- rgeoprofile_shapefile("London_north")
-spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
+spatial_prior <- raster_from_shapefile(s, cells_lon = 500, cells_lat = 500)
 ```
+
 ```{r, echo = FALSE}
 spatialProject <- rgeoprofile_project()
 spatialProject <- new_set(project = spatialProject,
                           spatial_prior = spatial_prior)
 plot_spatial <- plot_map()
-plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
+plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, opacity = 0.2, col = "red")
 plot_spatial
 ```
 
-This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (the DPM model in @Verity2014) that implements the shapefile post-hoc.    
-
-What if we have a better informed prior knowledge? For example, we might suspect our criminal to favour the northernly region of our search area, rather than the south.    
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (see @Verity2014 and @Faulkner2017) that implements the shapefile post-hoc.   
 
 ## A non-uniform spatial prior
 
-Lets generate a very simple example, two sentinel site locations each yielding the same number of events. We then build two priors: one uniform and the other biased towards the northern part of the search area.
+There are a lot more shapefiles out there that will provide more information that we might want to influence our model. For example the [London Datastore](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) provides shapefiles with various spatial information. 
+
+```{r}
+dataStore <- rgeoprofile_shapefile("London_boundary/ESRI")
+print(dataStore)
+```
+
+Here we see a summary of the data. Lets extract population density from this shapefile and convert it into a raster to use as our spatial prior.
+
+## Converting a shapefile to a raster
+
+```{r}
+# Firstly we create a raster that matches the extent of the shapefile.
+newRaster <- raster(ncol = 100, nrow = 100)
+extent(newRaster) <- extent(dataStore)
+
+# We then rasterize our shapefile using the raster we just created.
+PopDenRaster <- rasterize(dataStore, newRaster, field = "POPDEN")
+
+# Finally we project the raster to the correct co-ordinate reference system (CRS).
+crs(PopDenRaster) <- crs(dataStore)
+PopDenRaster <-  projectRaster(PopDenRaster, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+summary(values(PopDenRaster))
+
+# We've obtained our raster, now we need to normalise the population density values so that we're working with probabilities.
+values(PopDenRaster) <- values(PopDenRaster)/sum(values(PopDenRaster)[!is.na(values(PopDenRaster))])
+
+# Let's take a look at what the final results. 
+PopDenProject <- rgeoprofile_project()
+PopDenProject <- new_set(project = PopDenProject,
+                          spatial_prior = PopDenRaster)
+plot_PopDen <- plot_map()
+plot_PopDen <- overlay_spatial_prior(plot_PopDen, PopDenProject, opacity = 0.5)
+plot_PopDen
+```
+
+Now we've loaded the shapefile and converted it into a spatial prior, let generate some data, and run the model using the new prior.  
+
+## A non-uniform spatial prior in a GP project
 
 ```{r}
 # create example dataset
-df_all <- data.frame(longitude = c(0.15, 0.15), 
-                     latitude =  c(50.975, 51.075),
-                     counts = c(15,15))
+Extent <- extent(PopDenRaster)
+sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 5), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 5))
+data <- sim_data(sentinel_lon = sentGrid[,1],
+                 sentinel_lat = sentGrid[,2],
+                 sentinel_radius = 1, 
+                 K = 5,
+                 source_lon_min = Extent[1] + 0.1, 
+                 source_lon_max = Extent[2] - 0.1, 
+                 source_lat_min = Extent[3] + 0.05,
+                 source_lat_max = Extent[4] - 0.05, 
+                 sigma_model = "single", 
+                 sigma_mean = 3, 
+                 sigma_var = 0,
+                 expected_popsize = 1000)
+df_all <- data$data
+dataPoints <- data$record$data_all
+true_sources <- data$record$true_source
 ```
 
 Create a geographic profiling project:
 
 ```{r}
-p <- rgeoprofile_project()
-p <- bind_data(p, df_all)
-```
-
-Construct a uniform and biased spatial prior:
-
-```{r}
-# biased
-bias_spatial_prior <- raster_grid(range_lon = c(0, 0.3), range_lat = c(50.95,51.1), guard_rail = 0.01)
-normalised_values <- c(rep(0.9999, 25*100), rep(0.00001, 75*100))/(sum(c(rep(0.9999, 25*100), rep(0.00001, 75*100))))
-summary(normalised_values)
-bias_spatial_prior <- setValues(bias_spatial_prior, normalised_values)
-
-# uniform
-uniform_spatial_prior <- raster_grid(range_lon = c(0, 0.3), range_lat = c(50.95,51.1), guard_rail = 0.01)
+pPopDen <- rgeoprofile_project()
+pPopDen <- bind_data(pPopDen, df_all)
 ```
 
 Create parameter sets:
 
 ```{r}
 # add parameter set to project
-p_uniform <- new_set(project = p,
-             spatial_prior = uniform_spatial_prior,
-             sentinel_radius = 0.2,
+pPopDen <- new_set(project = pPopDen,
+             spatial_prior = PopDenRaster,
+             sentinel_radius = 1,
              sigma_model = "single",
-             sigma_prior_mean = 1,
-             sigma_prior_sd = 0,
-             expected_popsize_prior_mean = 15,
-             expected_popsize_prior_sd = 2)
-
-p_bias <- new_set(project = p,
-            spatial_prior = bias_spatial_prior,
-            sentinel_radius = 0.2,
-            sigma_model = "single",
-            sigma_prior_mean = 1,
-            sigma_prior_sd = 0,
-            expected_popsize_prior_mean = 15,
-            expected_popsize_prior_sd = 2)
+             sigma_prior_mean = 3,
+             sigma_prior_sd = 2,
+             expected_popsize_prior_sd = -1)
 ```
 
-Plot the spatial priors
+Plot the data with the prior:
 
 ```{r}
 # uniform
 plot1 <- plot_map()
-plot1 <- overlay_sentinels(plot1, p_uniform, sentinel_radius = 0.2)
-plot1 <- overlay_spatial_prior(plot1, p_uniform, col = "lightgreen")
+plot1 <- overlay_sentinels(plot1, pPopDen, sentinel_radius = 1)
+plot1 <- overlay_sources(plot1, lon = true_sources$longitude, lat = true_sources$latitude)
+plot1 <- overlay_points(plot1, lon = dataPoints$longitude, lat = dataPoints$latitude)
+plot1 <- overlay_spatial_prior(plot1, pPopDen, opacity = 0.5)
 plot1
-
-# biased
-plot2 <- plot_map()
-plot2 <- overlay_sentinels(plot2, p_bias, sentinel_radius = 0.2)
-plot2 <- overlay_spatial_prior(plot2, p_bias, col = c("yellow", "cyan"))
-plot2
 ```
 
-Run the MCMC for each case: 
+Run the MCMC: 
 
 ```{r, eval = FALSE}
-p_uniform <- run_mcmc(project = p_uniform,
-              K = 1,
+pPopDen <- run_mcmc(project = pPopDen,
+              K = 1:10,
               burnin = 1e4,
-              samples = 1e6,
-              silent = TRUE)
-
-p_bias <- run_mcmc(project = p_bias,
-              K = 1,
-              burnin = 1e4,
-              samples = 1e6,
-              silent = TRUE)
+              samples = 1e4,
+              pb_markdown = TRUE,
+              converge_test = 1e4)
 ```
+
 ```{r, echo = FALSE}
-p_uniform <- rgeoprofile_file("complex_spatial_project_uniform.rds")
-   p_bias <- rgeoprofile_file("complex_spatial_project_bias.rds")
-
+pPopDen <- rgeoprofile_file("complex_spatial_project.rds")
 ```
-Plot the prior and the geoprofiles associated with the uniform and biased spatial prior:
+
+Plot the prior and the geoprofile:
 
 ```{r}
 # uniform
 plot3 <- plot_map()
-plot3 <- overlay_sentinels(plot3, p_uniform, sentinel_radius = 0.2)
-plot3 <- overlay_geoprofile(plot3, p_uniform, K = 1, smoothing = 2, threshold = 0.1)
+plot3 <- overlay_geoprofile(plot3, pPopDen, K = 5, smoothing = 2, threshold = 1)
+plot3 <- overlay_sources(plot3, lon = true_sources$longitude, lat = true_sources$latitude)
+plot_loglike_diagnostic(pPopDen, K = 2)
 plot3
-
-# biased
-plot4 <- plot_map()
-plot4 <- overlay_sentinels(plot4, p_bias, sentinel_radius = 0.2)
-plot4 <- overlay_geoprofile(plot4, p_bias, K = 1, smoothing = 2, threshold = 0.1)
-plot4
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-# saveRDS(p_bias, file = "complex_spatial_project_bias.rds")
+# saveRDS(pPopDen, file = "complex_spatial_project.rds")
 ```
 ### References
