@@ -139,10 +139,25 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
   # produce plot with different axis options
   plot1 <- ggplot(loglike_intervals) + theme_bw()
   if (axis_type == 1) {
+    rungs = 2
     x_vec <- as.factor(1:rungs)
     plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
     plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
     plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
+    
+    # overlay coupling acceptance probabilities
+
+    # fix yaxis limits
+    y_min <- min(loglike_intervals[,"Q2.5"])
+    y_max <- max(loglike_intervals[,"Q97.5"])
+  
+    # overlay coupling acceptance rates on second y-axis
+    coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept
+    df <- data.frame(x = x_vec[-1]-0.5, y = coupling_accept*(y_max-y_min) + y_min)
+    
+    plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max-y_min), name = "coupling acceptance"))
+    plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "red", data = df)
+    plot1 <- plot1 + geom_point(aes(x = x, y = y), colour = "red", data = df)
 
   } else if (axis_type == 2) {
     x_vec <- (1:rungs)/rungs
@@ -153,7 +168,7 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
 
   } else {
     # TODO - make this option available if and when we implement temperature rungs
-    #GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
+    # GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
     #x_vec <- ((1:rungs)/rungs)^GTI_pow
     #plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
     #plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
@@ -1382,69 +1397,4 @@ overlay_ringsearch <- function(myplot,
 
   # return plot object
   return(myplot)
-}
-
-#------------------------------------------------
-#' @title Plot Metropolis-coupling acceptance rates
-#'
-#' @description Plot Metropolis-coupling acceptance rates
-#'
-#' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#'
-#' @export
-
-plot_coupling <- function(project, K = NULL) {
-  
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-  
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-
-  K = 2
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$loglike_intervals)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_intervals output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$loglike_intervals
-  if (is.null(loglike_intervals)) {
-    stop(sprintf("no loglike_intervals output for K = %s of active set", K))
-  }
-  
-  # produce plot with different axis options
-  rungs <- nrow(loglike_intervals)
-  x_vec <- 1:rungs
-  plot1 <- plot(loglike_intervals, as.factor(x_vec))
-  
-  # fix yaxis limits
-  y_min <- min(loglike_intervals[,"Q2.5"])
-  y_max <- max(loglike_intervals[,"Q97.5"])
-  plot1 <- plot1 + coord_cartesian(ylim = c(y_min, y_max)) 
-  
-  # overlay coupling acceptance rates on second y-axis
-  coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept
-  df <- data.frame(x = x_vec[-1]-0.5, y = coupling_accept*(y_max-y_min) + y_min)
-  
-  plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max-y_min), name = "coupling acceptance"))
-  plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "red", data = df)
-  plot1 <- plot1 + geom_point(aes(x = x, y = y), colour = "red", data = df)
-  #plot1 <- plot1 + scale_color_discrete("red" = "red")
-  
-  # return plot object
-  return(plot1)
 }

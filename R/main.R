@@ -645,6 +645,8 @@ run_mcmc <- function(project,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         pb_markdown = pb_markdown,
+                        GTI_pow,
+                        rungs = rungs,
                         silent = silent)
     
     # ---------- save results ----------
