@@ -112,6 +112,11 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
     } // end loop over rungs
     
+    // TODO TURN ON Metropolis-coupling during burnin
+    if (coupling_on) {
+      metropolis_coupling();
+    }
+        
     // focus on cold rung
     cold_rung = rung_order[rungs - 1];
     
