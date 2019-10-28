@@ -119,13 +119,11 @@ theme_empty <- function() {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_loglike(project = p, K = 2)
 
-plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
+plot_loglike <- function(project, K = 1, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
+  assert_single_pos_int(K, zero_allowed = FALSE)
   assert_in(axis_type, 1:2)
   assert_single_logical(connect_points)
   assert_single_logical(connect_whiskers)
@@ -135,14 +133,15 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
 
   # get properties
   rungs <- nrow(loglike_intervals)
+  s <- project$active_set
 
   # produce plot with different axis options
   plot1 <- ggplot(loglike_intervals) + theme_bw()
   if (axis_type == 1) {
-    rungs = 2
-    x_vec <- as.factor(1:rungs)
-    plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
-    plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+    x_vec <- 1:rungs
+    x_fac_vec <- as.factor(1:rungs)
+    plot1 <- plot1 + geom_segment(aes_(x = ~x_fac_vec, y = ~Q2.5, xend = ~x_fac_vec, yend = ~Q97.5))
+    plot1 <- plot1 + geom_point(aes_(x = ~x_fac_vec, y = ~Q50))
     plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
     
     # overlay coupling acceptance probabilities
@@ -153,7 +152,7 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
   
     # overlay coupling acceptance rates on second y-axis
     coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept
-    df <- data.frame(x = x_vec[-1]-0.5, y = coupling_accept*(y_max-y_min) + y_min)
+    df <- data.frame(x = x_vec[-1] - 0.5, y = coupling_accept*(y_max-y_min) + y_min)
     
     plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max-y_min), name = "coupling acceptance"))
     plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "red", data = df)
