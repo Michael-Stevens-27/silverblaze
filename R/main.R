@@ -636,7 +636,7 @@ run_mcmc <- function(project,
     sigma_accept <- output_raw[[i]]$sigma_accept/samples
     names(sigma_accept) <- group_names
     
-    coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    coupling_accept <- output_raw[[i]]$coupling_accept/(samples + burnin)
     
     # ---------- save arguments ----------
     
