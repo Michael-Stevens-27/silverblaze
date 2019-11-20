@@ -73,8 +73,11 @@ Particle::Particle(double beta_raised) {
   blocked_right = vector<int>(K);
   
   // store acceptance rates
-  source_accept = vector<int>(K);
-  sigma_accept = vector<int>(K);
+  source_accept_burnin = vector<int>(K);
+  source_accept_sampling = vector<int>(K);
+  sigma_accept_burnin = vector<int>(K);
+  sigma_accept_sampling = vector<int>(K);
+
   
 }
 
@@ -128,8 +131,10 @@ void Particle::reset() {
   }
   
   // reset acceptance rates
-  source_accept = vector<int>(K);
-  sigma_accept = vector<int>(K);
+  source_accept_burnin = vector<int>(K);
+  source_accept_sampling = vector<int>(K);
+  sigma_accept_burnin = vector<int>(K);
+  sigma_accept_sampling = vector<int>(K);
   
 }
 
@@ -248,8 +253,9 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
         source_propSD[k] = exp(log(source_propSD[k]) + source_rm_stepsize*(1 - 0.234)/sqrt(iteration));
+        source_accept_burnin[k]++;
       } else {
-        source_accept[k]++;
+        source_accept_sampling[k]++;
       }
 
     } else {
@@ -352,8 +358,9 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     // Robbins-Monro positive update (on the log scale)
     if (robbins_monro_on) {
       sigma_propSD[0] = exp(log(sigma_propSD[0]) + sigma_rm_stepsize*(1 - 0.44)/sqrt(iteration));
+      sigma_accept_burnin[0]++;
     } else {
-      sigma_accept[0]++;
+      sigma_accept_sampling[0]++;
     }
     
   } else {
@@ -437,8 +444,9 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
         sigma_propSD[k] = exp(log(sigma_propSD[k]) + sigma_rm_stepsize*(1 - 0.44)/sqrt(iteration));
+        sigma_accept_burnin[k]++;
       } else {
-        sigma_accept[k]++;
+        sigma_accept_sampling[k]++;
       }
       
     } else {

@@ -41,9 +41,12 @@ public:
   std::vector<double> expected_popsize_sampling;
   
   // objects for storing acceptance rates
-  std::vector<int> source_accept;
-  std::vector<int> sigma_accept;
-  std::vector<int> coupling_accept;
+  std::vector<int> source_accept_burnin;
+  std::vector<int> source_accept_sampling;
+  std::vector<int> sigma_accept_burnin;
+  std::vector<int> sigma_accept_sampling;
+  std::vector<int> coupling_accept_burnin;
+  std::vector<int> coupling_accept_sampling;
   
   // store convergence
   std::vector<bool> rung_converged;
@@ -58,6 +61,6 @@ public:
   // other functions
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
-  void metropolis_coupling();
+  void metropolis_coupling(bool burnin_phase);
   
 };

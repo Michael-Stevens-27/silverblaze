@@ -535,9 +535,15 @@ run_mcmc <- function(project,
     
     # ---------- summary results ----------
     
-    # get 95% credible intervals over sampling loglikelihoods
-    loglike_intervals <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
+    # get 95% credible intervals over sampling and burnin loglikelihoods
+    loglike_intervals_sampling <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
+    loglike_intervals_burnin <- unlist(lapply(1:rungs, FUN = function(y){quantile_95(loglike_burnin[[paste("rung", y, sep = "")]])}))
+    loglike_intervals_burnin <- as.data.frame(matrix(loglike_intervals_burnin, nrow = rungs, byrow = TRUE))
     
+    # remove those intervals for which convergence was not met during burnin 
+    loglike_intervals_burnin[which(convergence_iteration == 0),] <- rep(NA, 3)
+    dimnames(loglike_intervals_burnin) <- dimnames(loglike_intervals_sampling) 
+
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
@@ -630,14 +636,19 @@ run_mcmc <- function(project,
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    source_accept <- output_raw[[i]]$source_accept/samples
-    names(source_accept) <- group_names
+    source_accept_burnin <- output_raw[[i]]$source_accept_burnin/burnin
+    source_accept_samples <- output_raw[[i]]$source_accept_sampling/samples
+    names(source_accept_burnin) <- names(source_accept_samples) <- group_names
     
-    sigma_accept <- output_raw[[i]]$sigma_accept/samples
-    names(sigma_accept) <- group_names
+    sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/burnin
+    sigma_accept_samples <- output_raw[[i]]$sigma_accept_sampling/samples
+    names(sigma_accept_burnin) <- names(sigma_accept_samples) <- group_names
     
-    coupling_accept <- output_raw[[i]]$coupling_accept/(samples + burnin)
-    
+    coupling_accept_samples <- output_raw[[i]]$coupling_accept_sampling/(samples)
+
+    # ---------- beta raised values ----------
+    beta_raised <- ((1:rungs)/rungs)^GTI_pow
+      
     # ---------- save arguments ----------
     
     output_args <- list(burnin = burnin,
@@ -654,20 +665,25 @@ run_mcmc <- function(project,
     # add to project
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
-    project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals = loglike_intervals,
+    project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals_burnin = loglike_intervals_burnin,
+                                                                    loglike_intervals_sampling = loglike_intervals_sampling,
                                                                     prob_surface_split = prob_surface_split,
                                                                     prob_surface = prob_surface,
                                                                     geoprofile_split = geoprofile_split,
                                                                     geoprofile = geoprofile,
                                                                     qmatrix = qmatrix,
-                                                                    sigma_intervals = sigma_intervals,
+                                                                    sigma_intervals = sigma_intervals, 
                                                                     expected_popsize_intervals = expected_popsize_intervals,
                                                                     ESS = ESS,
                                                                     DIC_gelman = DIC_gelman,
                                                                     converged = converged,
-                                                                    source_accept = source_accept,
-                                                                    sigma_accept = sigma_accept,
-                                                                    coupling_accept = coupling_accept)
+                                                                    source_accept_burnin = source_accept_burnin,
+                                                                    source_accept_samples = source_accept_samples,
+                                                                    sigma_accept_burnin = sigma_accept_burnin,
+                                                                    sigma_accept_samples = sigma_accept_samples,
+                                                                    coupling_accept_samples = coupling_accept_samples,
+                                                                    beta_raised = beta_raised,
+                                                                    GTI_pow = GTI_pow)
     
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
@@ -826,14 +842,14 @@ align_qmatrix <- function(project) {
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
     
     # reorder source_accept
-    source_accept <- x[[i]]$summary$source_accept[best_perm_order]
-    names(source_accept) <- group_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$source_accept <- source_accept
+    source_accept_samples <- x[[i]]$summary$source_accept_samples[best_perm_order]
+    names(source_accept_samples) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_samples <- source_accept_samples
     
     # reorder sigma_accept
-    sigma_accept <- x[[i]]$summary$sigma_accept[best_perm_order]
-    names(sigma_accept) <- group_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept <- sigma_accept
+    sigma_accept_samples <- x[[i]]$summary$sigma_accept_samples[best_perm_order]
+    names(sigma_accept_samples) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_samples <- sigma_accept_samples
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix

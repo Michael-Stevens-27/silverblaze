@@ -107,8 +107,12 @@ theme_empty <- function() {
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}
 #' @param K which value of K to produce the plot for
-#' @param axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
+#' @param x_axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
 #'   beta, 3 = values of beta raised to the GTI power
+#' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
+#'   auto-chosen lower limit. 3 = double-log scale.
+#' @param acceptance overlay the acceptance probability between rungs (sampling only)
+#' @param phase which phase to plot. Must be either "burnin" or "sampling".
 #' @param connect_points whether to connect points in the middle of intervals
 #' @param connect_whiskers whether to connect points at the ends of the whiskers
 #'
@@ -119,72 +123,93 @@ theme_empty <- function() {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_loglike(project = p, K = 2)
 
-plot_loglike <- function(project, K = 1, axis_type = 1, connect_points = FALSE, connect_whiskers = FALSE) {
+plot_loglike <- function(project, 
+                         K = 1, 
+                         x_axis_type = 1, 
+                         y_axis_type = 1, 
+                         acceptance = FALSE,
+                         phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_single_pos_int(K, zero_allowed = FALSE)
-  assert_in(axis_type, 1:2)
-  assert_single_logical(connect_points)
-  assert_single_logical(connect_whiskers)
-
+  assert_in(x_axis_type, 1:2)
+  assert_in(phase, c("burnin", "sampling"))
+  
   # get output
-  loglike_intervals <- get_output(project, "loglike_intervals", K)
-
-  # get properties
-  rungs <- nrow(loglike_intervals)
+  beta_raised <- get_output(project, type = "summary", name = "beta_raised", K = K)
+  rungs <- length(beta_raised)
   s <- project$active_set
-
+    
+  # get loglikelihoods
+  if (phase == "burnin") {
+    loglike <- get_output(project, "loglike_burnin", type = "raw")
+    loglike_intervals <- get_output(project, "loglike_intervals_burnin", K)
+    coupling_accept <- NULL
+  } else {
+    loglike <- get_output(project, "loglike_sampling", type = "raw")
+    loglike_intervals <- get_output(project, "loglike_intervals_sampling", K)
+    coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept_samples
+  }
+  
+  # define x-axis type
+  if (x_axis_type == 1) {
+    x_vec <- 1:rungs
+    x_lab <- "rung"
+    x_mid <- (2:rungs) - 0.5
+  } else {
+    x_vec <- beta_raised
+    x_lab <- "thermodynamic power"
+    x_mid <- beta_raised[-1] - diff(beta_raised)/2
+  }
+  
+  # take double-logs if needed
+  y_lab <- "log-likelihood"
+  # if (y_axis_type == 3 & phase == "sampling") {
+  #   loglike <- -2*loglike
+  #   y_lab <- "deviance"
+  # }
+   
+  # get data into ggplot format and define temperature colours
+  df <- as.data.frame(loglike_intervals)
+  df$col <- beta_raised
+   
   # produce plot with different axis options
   plot1 <- ggplot(loglike_intervals) + theme_bw()
-  if (axis_type == 1) {
-    x_vec <- 1:rungs
-    x_fac_vec <- as.factor(1:rungs)
-    plot1 <- plot1 + geom_segment(aes_(x = ~x_fac_vec, y = ~Q2.5, xend = ~x_fac_vec, yend = ~Q97.5))
-    plot1 <- plot1 + geom_point(aes_(x = ~x_fac_vec, y = ~Q50))
-    plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
+  
+  # produce plot
+  plot1 <- ggplot(df) + theme_bw() + theme(panel.grid.minor.x = element_blank(),
+                                           panel.grid.major.x = element_blank())
+  plot1 <- plot1 + geom_vline(aes(xintercept = x_vec), col = grey(0.9))
+  plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50, color = ~col))
+  plot1 <- plot1 + xlab(x_lab) + ylab(y_lab)
+  plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
     
-    # overlay coupling acceptance probabilities
-
+  #   # overlay coupling acceptance probabilities
+  if(acceptance & phase == "sampling")
+  {
     # fix yaxis limits
     y_min <- min(loglike_intervals[,"Q2.5"])
     y_max <- max(loglike_intervals[,"Q97.5"])
-  
-    # overlay coupling acceptance rates on second y-axis
-    coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept
-    df <- data.frame(x = x_vec[-1] - 0.5, y = coupling_accept*(y_max-y_min) + y_min)
     
-    plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max-y_min), name = "coupling acceptance"))
-    plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "red", data = df)
-    plot1 <- plot1 + geom_point(aes(x = x, y = y), colour = "red", data = df)
-
-  } else if (axis_type == 2) {
-    x_vec <- (1:rungs)/rungs
-    plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
-    plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
-    plot1 <- plot1 + xlab(parse(text = "beta")) + ylab("log-likelihood")
-    plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
-
-  } else {
-    # TODO - make this option available if and when we implement temperature rungs
-    # GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
-    #x_vec <- ((1:rungs)/rungs)^GTI_pow
-    #plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
-    #plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
-    #plot1 <- plot1 + xlab(parse(text = "beta^gamma")) + ylab("log-likelihood")
-    #plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
+    # overlay coupling acceptance rates on second y-axis
+    dfmid <- data.frame(x = x_mid, y = coupling_accept*(y_max - y_min) + y_min)
+    
+    plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max - y_min), name = "coupling acceptance"))
+    plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "darkgreen", data = dfmid)
+    plot1 <- plot1 + geom_point(aes(x = x, y = y), colour = "darkgreen", data = dfmid)
   }
-
-  # optionally add central line
-  if (connect_points) {
-    plot1 <- plot1 + geom_line(aes(x = x_vec, y = loglike_intervals$Q50))
-  }
-
-  # optionally connect whiskers
-  if (connect_whiskers) {
-    plot1 <- plot1 + geom_line(aes(x = x_vec, y = loglike_intervals$Q2.5), linetype = "dotted") + geom_line(aes(x = x_vec, y = loglike_intervals$Q97.5), linetype = "dotted")
-  }
-
+  
+  # define y-axis
+  if (y_axis_type == 2) {
+    y_min <- quantile(df$Q2.5, probs = 0.5)
+    y_max <- max(df$Q97.5)
+    plot1 <- plot1 + coord_cartesian(ylim = c(y_min, y_max))
+  } #else if (y_axis_type == 3) {
+  #    plot1 <- plot1 + scale_y_continuous(trans = "log10")
+  #  }
+  
   # return plot object
   return(plot1)
 }

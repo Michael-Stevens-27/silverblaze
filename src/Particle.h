@@ -68,9 +68,10 @@ public:
   std::vector<int> blocked_right;
   
   // store acceptance rates
-  std::vector<int> source_accept;
-  std::vector<int> sigma_accept;
-  
+  std::vector<int> source_accept_burnin;
+  std::vector<int> source_accept_sampling;
+  std::vector<int> sigma_accept_burnin;
+  std::vector<int> sigma_accept_sampling;
   
   // PUBLIC FUNCTIONS
   

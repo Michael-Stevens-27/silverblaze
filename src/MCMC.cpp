@@ -49,9 +49,13 @@ MCMC::MCMC() {
   expected_popsize_sampling = vector<double>(samples);
   
   // objects for storing acceptance rates
-  source_accept = vector<int>(K);
-  sigma_accept = vector<int>(K);
-  coupling_accept = vector<int>(rungs-1);
+  source_accept_burnin = vector<int>(K);
+  source_accept_sampling = vector<int>(K);
+  sigma_accept_burnin = vector<int>(K);
+  sigma_accept_sampling = vector<int>(K);
+  
+  coupling_accept_burnin = vector<int>(rungs - 1);
+  coupling_accept_sampling = vector<int>(rungs - 1);
   
   // store convergence
   rung_converged = vector<bool>(rungs, false);
@@ -112,9 +116,9 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
     } // end loop over rungs
     
-    // TODO TURN ON Metropolis-coupling during burnin
+    // TURN ON Metropolis-coupling during burnin
     if (coupling_on) {
-      metropolis_coupling();
+      metropolis_coupling(TRUE);
     }
         
     // focus on cold rung
@@ -208,6 +212,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     
   }  // end burn-in iterations
   
+  // store acceptance rates
+  source_accept_burnin = particle_vec[cold_rung].source_accept_burnin;
+  sigma_accept_burnin = particle_vec[cold_rung].sigma_accept_burnin;
+  
   // warning if still not converged
   if (!all_convergence_reached && !silent) {
     print("   Warning: convergence still not reached within", burnin, "iterations");
@@ -248,7 +256,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     
     // Metropolis-coupling
     if (coupling_on) {
-      metropolis_coupling();
+      metropolis_coupling(FALSE);
     }
     
     // focus on cold rung
@@ -315,14 +323,14 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   } // end sampling iterations
   
   // store acceptance rates
-  source_accept = particle_vec[cold_rung].source_accept;
-  sigma_accept = particle_vec[cold_rung].sigma_accept;
+  source_accept_sampling = particle_vec[cold_rung].source_accept_sampling;
+  sigma_accept_sampling = particle_vec[cold_rung].sigma_accept_sampling;
   
 }
 
 //------------------------------------------------
 // Metropolis-coupling to propose swaps between temperature rungs
-void MCMC::metropolis_coupling() {
+void MCMC::metropolis_coupling(bool burnin_phase) {
   
   // loop over rungs, starting with the hottest chain and moving to the cold
   // chain. Each time propose a swap with the next rung up
@@ -363,9 +371,14 @@ void MCMC::metropolis_coupling() {
       // swap rung order
       rung_order[i] = rung2;
       rung_order[i + 1] = rung1;
-
-      // update acceptance rates
-      coupling_accept[i]++;
+      
+      if(burnin_phase){
+        // update burnin coupling acceptance rates
+        coupling_accept_burnin[i]++;
+      } else {
+        // update sampling coupling acceptance rates
+        coupling_accept_sampling[i]++;
+      }
     }
   }
 

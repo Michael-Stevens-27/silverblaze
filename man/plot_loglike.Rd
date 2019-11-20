@@ -4,8 +4,8 @@
 \alias{plot_loglike}
 \title{Plot loglikelihood 95\% credible intervals}
 \usage{
-plot_loglike(project, K = 1, axis_type = 1, connect_points = FALSE,
-  connect_whiskers = FALSE)
+plot_loglike(project, K = 1, x_axis_type = 1, y_axis_type = 1,
+  acceptance = FALSE, phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -13,8 +13,15 @@ plot_loglike(project, K = 1, axis_type = 1, connect_points = FALSE,
 
 \item{K}{which value of K to produce the plot for}
 
-\item{axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
+\item{x_axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
 beta, 3 = values of beta raised to the GTI power}
+
+\item{y_axis_type}{how to format the y-axis. 1 = raw values, 2 = truncated at
+auto-chosen lower limit. 3 = double-log scale.}
+
+\item{acceptance}{overlay the acceptance probability between rungs (sampling only)}
+
+\item{phase}{which phase to plot. Must be either "burnin" or "sampling".}
 
 \item{connect_points}{whether to connect points in the middle of intervals}
 

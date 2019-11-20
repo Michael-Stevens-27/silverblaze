@@ -71,9 +71,12 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( mcmc.sigma_sampling ));
   ret.push_back(Rcpp::wrap( mcmc.expected_popsize_sampling ));
   ret.push_back(Rcpp::wrap( mcmc.qmatrix_final ));
-  ret.push_back(Rcpp::wrap( mcmc.source_accept ));
-  ret.push_back(Rcpp::wrap( mcmc.sigma_accept ));
-  ret.push_back(Rcpp::wrap( mcmc.coupling_accept ));
+  ret.push_back(Rcpp::wrap( mcmc.source_accept_burnin ));
+  ret.push_back(Rcpp::wrap( mcmc.source_accept_sampling ));
+  ret.push_back(Rcpp::wrap( mcmc.sigma_accept_burnin ));
+  ret.push_back(Rcpp::wrap( mcmc.sigma_accept_sampling ));
+  ret.push_back(Rcpp::wrap( mcmc.coupling_accept_burnin ));
+  ret.push_back(Rcpp::wrap( mcmc.coupling_accept_sampling ));
   ret.push_back(Rcpp::wrap( mcmc.rung_converged ));
   ret.push_back(Rcpp::wrap( mcmc.convergence_iteration ));
   
@@ -89,9 +92,12 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   ret_names.push_back("sigma_sampling");
   ret_names.push_back("expected_popsize_sampling");
   ret_names.push_back("qmatrix");
-  ret_names.push_back("source_accept");
-  ret_names.push_back("sigma_accept");
-  ret_names.push_back("coupling_accept");
+  ret_names.push_back("source_accept_burnin");
+  ret_names.push_back("source_accept_sampling");
+  ret_names.push_back("sigma_accept_burnin");
+  ret_names.push_back("sigma_accept_sampling");
+  ret_names.push_back("coupling_accept_burnin");
+  ret_names.push_back("coupling_accept_sampling");
   ret_names.push_back("rung_converged");
   ret_names.push_back("convergence_iteration");
   
