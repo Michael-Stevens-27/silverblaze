@@ -111,10 +111,7 @@ theme_empty <- function() {
 #'   beta, 3 = values of beta raised to the GTI power
 #' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
 #'   auto-chosen lower limit. 3 = double-log scale.
-#' @param acceptance overlay the acceptance probability between rungs (sampling only)
 #' @param phase which phase to plot. Must be either "burnin" or "sampling".
-#' @param connect_points whether to connect points in the middle of intervals
-#' @param connect_whiskers whether to connect points at the ends of the whiskers
 #'
 #' @export
 #' @examples
@@ -127,30 +124,19 @@ plot_loglike <- function(project,
                          K = 1, 
                          x_axis_type = 1, 
                          y_axis_type = 1, 
-                         acceptance = FALSE,
                          phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_single_pos_int(K, zero_allowed = FALSE)
   assert_in(x_axis_type, 1:2)
+  assert_in(y_axis_type, 1:3)
   assert_in(phase, c("burnin", "sampling"))
   
   # get output
   beta_raised <- get_output(project, type = "summary", name = "beta_raised", K = K)
   rungs <- length(beta_raised)
   s <- project$active_set
-    
-  # get loglikelihoods
-  if (phase == "burnin") {
-    loglike <- get_output(project, "loglike_burnin", type = "raw")
-    loglike_intervals <- get_output(project, "loglike_intervals_burnin", K)
-    coupling_accept <- NULL
-  } else {
-    loglike <- get_output(project, "loglike_sampling", type = "raw")
-    loglike_intervals <- get_output(project, "loglike_intervals_sampling", K)
-    coupling_accept <- project$output$single_set[[s]]$single_K[[K]]$summary$coupling_accept_samples
-  }
   
   # define x-axis type
   if (x_axis_type == 1) {
@@ -163,19 +149,39 @@ plot_loglike <- function(project,
     x_mid <- beta_raised[-1] - diff(beta_raised)/2
   }
   
-  # take double-logs if needed
+  # get plotting data
+  if (phase == "burnin") {
+    loglike <- get_output(project, "loglike_burnin", type = "raw")
+  } else {
+    loglike <- get_output(project, "loglike_sampling", type = "raw")
+  }
   y_lab <- "log-likelihood"
-  # if (y_axis_type == 3 & phase == "sampling") {
-  #   loglike <- -2*loglike
-  #   y_lab <- "deviance"
-  # }
-   
+  
+  # move to plotting deviance if specified
+  if (y_axis_type == 3) {
+    loglike <- -2 * loglike
+    y_lab <- "deviance"
+    
+    # if needed, scale by adding/subtracting a power of ten until all values are
+    # positive
+    if (min(loglike) < 0) {
+      dev_scale_power <- ceiling(log(abs(min(loglike)))/log(10))
+      dev_scale_sign <- -sign(min(loglike))
+      loglike <- loglike + dev_scale_sign*10^dev_scale_power
+      
+      dev_scale_base <- ifelse(dev_scale_power == 0, 1, 10)
+      dev_scale_power_char <- ifelse(dev_scale_power <= 1, "", paste("^", dev_scale_power))
+      dev_scale_sign_char <- ifelse(dev_scale_sign < 0, "-", "+")
+      y_lab <- parse(text = paste("deviance", dev_scale_sign_char, dev_scale_base, dev_scale_power_char))
+    }
+  }
+  
+  # get 95% credible intervals over plotting values
+  loglike_intervals <- t(apply(loglike, 2, quantile_95))
+  
   # get data into ggplot format and define temperature colours
   df <- as.data.frame(loglike_intervals)
   df$col <- beta_raised
-   
-  # produce plot with different axis options
-  plot1 <- ggplot(loglike_intervals) + theme_bw()
   
   # produce plot
   plot1 <- ggplot(df) + theme_bw() + theme(panel.grid.minor.x = element_blank(),
@@ -185,30 +191,15 @@ plot_loglike <- function(project,
   plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50, color = ~col))
   plot1 <- plot1 + xlab(x_lab) + ylab(y_lab)
   plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
-    
-  #   # overlay coupling acceptance probabilities
-  if(acceptance & phase == "sampling")
-  {
-    # fix yaxis limits
-    y_min <- min(loglike_intervals[,"Q2.5"])
-    y_max <- max(loglike_intervals[,"Q97.5"])
-    
-    # overlay coupling acceptance rates on second y-axis
-    dfmid <- data.frame(x = x_mid, y = coupling_accept*(y_max - y_min) + y_min)
-    
-    plot1 <- plot1 + scale_y_continuous(sec.axis = sec_axis(~ (.-y_min)/(y_max - y_min), name = "coupling acceptance"))
-    plot1 <- plot1 + geom_line(aes(x = x, y = y), colour = "darkgreen", data = dfmid)
-    plot1 <- plot1 + geom_point(aes(x = x, y = y), colour = "darkgreen", data = dfmid)
-  }
   
   # define y-axis
   if (y_axis_type == 2) {
     y_min <- quantile(df$Q2.5, probs = 0.5)
     y_max <- max(df$Q97.5)
     plot1 <- plot1 + coord_cartesian(ylim = c(y_min, y_max))
-  } #else if (y_axis_type == 3) {
-  #    plot1 <- plot1 + scale_y_continuous(trans = "log10")
-  #  }
+  } else if (y_axis_type == 3) {
+    plot1 <- plot1 + scale_y_continuous(trans = "log10")
+  }
   
   # return plot object
   return(plot1)

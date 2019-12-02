@@ -5,7 +5,7 @@
 \title{Plot loglikelihood 95\% credible intervals}
 \usage{
 plot_loglike(project, K = 1, x_axis_type = 1, y_axis_type = 1,
-  acceptance = FALSE, phase = "sampling")
+  phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -19,13 +19,7 @@ beta, 3 = values of beta raised to the GTI power}
 \item{y_axis_type}{how to format the y-axis. 1 = raw values, 2 = truncated at
 auto-chosen lower limit. 3 = double-log scale.}
 
-\item{acceptance}{overlay the acceptance probability between rungs (sampling only)}
-
 \item{phase}{which phase to plot. Must be either "burnin" or "sampling".}
-
-\item{connect_points}{whether to connect points in the middle of intervals}
-
-\item{connect_whiskers}{whether to connect points at the ends of the whiskers}
 }
 \description{
 Plot loglikelihood 95\% credible intervals of current active set
