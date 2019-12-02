@@ -619,11 +619,16 @@ run_mcmc <- function(project,
     }
     
     # ---------- ESS ----------
-
+    
     # get ESS, unless using a fixed sigma model
-    ESS <- effectiveSize(loglike_sampling)
-    ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
-    ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
+    ESS <- apply(loglike_sampling, 2, function(x) {
+      tc <- tryCatch(effectiveSize(x), error = function(e) e, warning = function(w) w)
+      if (is(tc, "error")) {
+        return(NA)
+      } else {
+        return(effectiveSize(x))
+      }
+    })
     names(ESS) <- rung_names
     
     # ---------- model comparison statistics ----------

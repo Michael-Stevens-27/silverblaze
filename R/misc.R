@@ -126,7 +126,11 @@ log_sum <- function(x) {
 # return p-value of Geweke's diagnostic convergence statistic, estimated from package coda
 #' @noRd
 geweke_pvalue <- function(x) {
-  ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail=FALSE)
+  tc <- tryCatch(geweke.diag(x), error = function(e) e, warning = function(w) w)
+  if (is(tc, "error")) {
+    return(0)
+  }
+  ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail = FALSE)
   return(ret)
 }
 #------------------------------------------------
@@ -441,7 +445,7 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #' @export
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
-
+  
   # check inputs
   assert_numeric(longitude)
   assert_numeric(latitude)
@@ -481,14 +485,14 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
 
   # calculate Fourier transform of posterior surface
   f1 = fftw2d(surface_normalised)
-
+  
   # calculate x and y size of one cell in cartesian space. Because of
   # transformation, this size will technically be different for each cell, but
   # use centre of space to get a middling value
   cellSize_trans <- lonlat_to_cartesian(centre_lon, centre_lat, centre_lon + cellSize_lon, centre_lat + cellSize_lat)
   cellSize_trans_lon <- cellSize_trans$x
   cellSize_trans_lat <- cellSize_trans$y
-
+  
   # produce surface over which kernel will be calculated. This surface wraps
   # around in both x and y (i.e. the kernel is actually defined over a torus)
   kernel_lon <- cellSize_trans_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised) - 1)/2):1)
@@ -496,48 +500,55 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
   kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
   kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
-
+  
   # create loss function to minimise
   loss <- function(x, return_loss = TRUE) {
-
+    
     kernel <- dts(kernel_s_mat, df = 3, scale = x)
     f2 = fftw2d(kernel)
-
+    
     # combine Fourier transformed surfaces and take inverse. f4 will ultimately
     # become the main surface of interest.
     f3 = f1*f2
     f4 = Re(fftw2d(f3, inverse = T))/length(surface_normalised)
-
+    
     # subtract from f4 the probability density of each point measured from
     # itself. In other words, move towards a leave-one-out kernel density method
     f5 <- f4 - surface_normalised*dts(0, df = nu, scale = x)
     f5[f5<0] <- 0
     f5 <- f5/sum(f4)
-
+    
     # calculate leave-one-out log-likelihood at each point on surface
     f6 <- surface_normalised*log(f5)
-    loglike <- sum(f6,na.rm=T)
-
+    loglike <- sum(f6, na.rm = TRUE)
+    
     # return negative log-likelihood
     if (return_loss) {
       return(-loglike)
     }
-
+    
     # return surface
     return(f4)
   }
-
+  
   # find best lambda using optim
   lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
-  lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)
-
+  optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
+                        error = function(e) e, warning = function(w) w)
+  if (is (optim_try, "warning")) {
+    warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
+    lambda_ml <- lambda_step
+  } else {
+    lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)$par
+  }
+  
   # get smoothed surface
-  f4 <- loss(lambda_ml$par, return_loss = FALSE)
-
+  f4 <- loss(lambda_ml, return_loss = FALSE)
+  
   # remove guard rail
   f4 <- f4[,(rail_size_lon+1):(ncol(f4)-rail_size_lon)]
   f4 <- f4[(rail_size_lat+1):(nrow(f4)-rail_size_lat),]
-
+  
   # return surface
   return(f4)
 }

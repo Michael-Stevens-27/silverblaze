@@ -151,9 +151,9 @@ plot_loglike <- function(project,
   
   # get plotting data
   if (phase == "burnin") {
-    loglike <- get_output(project, "loglike_burnin", type = "raw")
+    loglike <- get_output(project, "loglike_burnin", type = "raw", K = K)
   } else {
-    loglike <- get_output(project, "loglike_sampling", type = "raw")
+    loglike <- get_output(project, "loglike_sampling", type = "raw", K = K)
   }
   y_lab <- "log-likelihood"
   
