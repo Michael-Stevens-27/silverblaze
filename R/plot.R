@@ -178,6 +178,7 @@ plot_loglike <- function(project,
   
   # get 95% credible intervals over plotting values
   loglike_intervals <- t(apply(loglike, 2, quantile_95))
+  loglike_intervals <- get_output(project, "loglike_intervals_sampling", type = "summary")
   
   # get data into ggplot format and define temperature colours
   df <- as.data.frame(loglike_intervals)
