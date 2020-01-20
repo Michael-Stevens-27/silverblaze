@@ -4,11 +4,22 @@
 \alias{sim_data}
 \title{Simulate data}
 \usage{
-sim_data(sentinel_lon, sentinel_lat, sentinel_radius = 0.1, K = 3,
-  source_lon_min = -0.2, source_lon_max = 0, source_lat_min = 51.45,
-  source_lat_max = 51.55, source_lon = NULL, source_lat = NULL,
-  sigma_model = "single", sigma_mean = 1, sigma_var = 0.1,
-  expected_popsize = 100)
+sim_data(
+  sentinel_lon,
+  sentinel_lat,
+  sentinel_radius = 0.1,
+  K = 3,
+  source_lon_min = -0.2,
+  source_lon_max = 0,
+  source_lat_min = 51.45,
+  source_lat_max = 51.55,
+  source_lon = NULL,
+  source_lat = NULL,
+  sigma_model = "single",
+  sigma_mean = 1,
+  sigma_var = 0.1,
+  expected_popsize = 100
+)
 }
 \arguments{
 \item{sentinel_lon}{vector giving longitudes of sentinel sites.}

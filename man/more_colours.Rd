@@ -7,9 +7,9 @@
 more_colours(n = 5, raw_cols = brewer.pal(12, "Paired"))
 }
 \arguments{
-\item{n}{how many colours to return}
+\item{n}{how many colours to return.}
 
-\item{raw_cols}{vector of colours to interpolate}
+\item{raw_cols}{vector of colours to interpolate.}
 }
 \description{
 Expand a series of colours by interpolation to produce any

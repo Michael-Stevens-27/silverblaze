@@ -8,13 +8,13 @@ plot_density(project, K = NULL, rung = NULL, col = "black")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{value of K to plot}
+\item{K}{value of K to plot.}
 
-\item{rung}{which rung to plot. Defaults to the cold chain}
+\item{rung}{which rung to plot. Defaults to the cold chain.}
 
-\item{col}{colour of the trace}
+\item{col}{colour of the trace.}
 }
 \description{
 Produce MCMC density plot of the log-likelihood

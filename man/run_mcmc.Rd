@@ -4,45 +4,66 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(project, K = 3, burnin = 100, samples = 1000, rungs = 1,
-  auto_converge = TRUE, converge_test = 100, coupling_on = TRUE,
-  GTI_pow = 1, cluster = NULL, pb_markdown = FALSE,
-  store_raw = TRUE, silent = !is.null(cluster))
+run_mcmc(
+  project,
+  K = 3,
+  burnin = 100,
+  samples = 1000,
+  rungs = 1,
+  auto_converge = TRUE,
+  converge_test = 100,
+  coupling_on = TRUE,
+  GTI_pow = 1,
+  beta_manual = NULL,
+  cluster = NULL,
+  pb_markdown = FALSE,
+  store_raw = TRUE,
+  create_maps = TRUE,
+  silent = !is.null(cluster)
+)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{the number of sources}
+\item{K}{the number of sources.}
 
-\item{burnin}{the number of burn-in iterations}
+\item{burnin}{the number of burn-in iterations.}
 
-\item{samples}{the number of sampling iterations}
+\item{samples}{the number of sampling iterations.}
 
-\item{rungs}{the number of temperature rungs used}
+\item{rungs}{the number of temperature rungs used.}
 
 \item{auto_converge}{whether convergence should be assessed automatically
 every \code{converge_test} iterations, leading to termination of the
 burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
-used}
+used.}
 
 \item{converge_test}{test for convergence every \code{convergence_test}
-iterations if \code{auto_converge} is being used}
+iterations if \code{auto_converge} is being used.}
 
-\item{coupling_on}{whether to implement Metropolis coupling}
+\item{coupling_on}{whether to implement Metropolis coupling.}
 
-\item{GTI_pow}{tempering level}
+\item{GTI_pow}{power applied to thermodynamic rungs. Higher values lead to
+rungs clustered around zero.}
+
+\item{beta_manual}{if defined, allows manual specification of thermodynamic
+powers used. Overrides \code{rungs} and \code{GTI_pow}.}
 
 \item{cluster}{option to pass in a cluster environment (see package
-"parallel")}
+"parallel").}
 
 \item{pb_markdown}{whether to run progress bars in markdown mode, in which
-case they are updated once at the end to avoid large amounts of output}
+case they are updated once at the end to avoid large amounts of output.}
 
 \item{store_raw}{whether to store raw MCMC output in addition to summary
-output. Setting to FALSE can considerably reduce output size in memory}
+output. Setting to FALSE can considerably reduce output size in memory.}
 
-\item{silent}{whether to suppress all console output}
+\item{create_maps}{whether to create maps of posterior probability and
+geoprofile. Usually will want to create these maps, but the code runs much
+faster without this step, hence the option.}
+
+\item{silent}{whether to suppress all console output.}
 }
 \description{
 Run the main RgeoProfile MCMC. Model parameters are taken from

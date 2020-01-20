@@ -1,6 +1,7 @@
 
 #------------------------------------------------
 # red-to-blue colours
+#' @importFrom grDevices colorRampPalette
 #' @noRd
 col_hotcold <- function(n = 6) {
   raw_cols <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
@@ -12,6 +13,7 @@ col_hotcold <- function(n = 6) {
 # blue-to-red colours. Full credit to tim.colors from the fields package, from
 # which these colours derive. Copied rather than including the fields package to
 # avoid dependency on another package for the sake of a single colour scheme.
+#' @importFrom grDevices colorRampPalette
 #' @noRd
 col_tim <- function(n = 10) {
   raw_cols <- c("#00008F", "#00009F", "#0000AF", "#0000BF",
@@ -41,9 +43,11 @@ col_tim <- function(n = 10) {
 #'   \code{more_colours(5)} and \code{more_colours(4)}, the first 4 colours will
 #'   be shared between the two series.
 #'
-#' @param n how many colours to return
-#' @param raw_cols vector of colours to interpolate
+#' @param n how many colours to return.
+#' @param raw_cols vector of colours to interpolate.
 #'
+#' @import RColorBrewer
+#' @importFrom grDevices colorRampPalette
 #' @export
 
 more_colours <- function(n = 5, raw_cols = brewer.pal(12, "Paired")) {
@@ -86,6 +90,7 @@ more_colours <- function(n = 5, raw_cols = brewer.pal(12, "Paired")) {
 
 #------------------------------------------------
 # ggplot theme with minimal objects
+#' @import ggplot2
 #' @noRd
 theme_empty <- function() {
   theme(axis.line = element_blank(),
@@ -105,27 +110,26 @@ theme_empty <- function() {
 #' @description Plot loglikelihood 95\% credible intervals of current active set
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to produce the plot for
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to produce the plot for.
 #' @param x_axis_type how to format the x-axis. 1 = integer rungs, 2 = values of
-#'   beta, 3 = values of beta raised to the GTI power
+#'   beta raised to the GTI power.
 #' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
 #'   auto-chosen lower limit. 3 = double-log scale.
 #' @param phase which phase to plot. Must be either "burnin" or "sampling".
 #'
+#' @import ggplot2
+#' @importFrom grDevices grey
 #' @export
+#' 
 #' @examples
-#'
-#' @examples
-#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' plot_loglike(project = p, K = 2)
 
 plot_loglike <- function(project, 
                          K = 1, 
                          x_axis_type = 1, 
                          y_axis_type = 1, 
                          phase = "sampling") {
-
+  
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_single_pos_int(K, zero_allowed = FALSE)
@@ -134,8 +138,8 @@ plot_loglike <- function(project,
   assert_in(phase, c("burnin", "sampling"))
   
   # get output
-  beta_raised <- get_output(project, type = "summary", name = "beta_raised", K = K)
-  rungs <- length(beta_raised)
+  beta_vec <- get_output(project, type = "summary", name = "beta_vec", K = K)
+  rungs <- length(beta_vec)
   s <- project$active_set
   
   # define x-axis type
@@ -144,9 +148,9 @@ plot_loglike <- function(project,
     x_lab <- "rung"
     x_mid <- (2:rungs) - 0.5
   } else {
-    x_vec <- beta_raised
+    x_vec <- beta_vec
     x_lab <- "thermodynamic power"
-    x_mid <- beta_raised[-1] - diff(beta_raised)/2
+    x_mid <- beta_vec[-1] - diff(beta_vec)/2
   }
   
   # get plotting data
@@ -178,11 +182,10 @@ plot_loglike <- function(project,
   
   # get 95% credible intervals over plotting values
   loglike_intervals <- t(apply(loglike, 2, quantile_95))
-  loglike_intervals <- get_output(project, "loglike_intervals_sampling", type = "summary")
   
   # get data into ggplot format and define temperature colours
   df <- as.data.frame(loglike_intervals)
-  df$col <- beta_raised
+  df$col <- beta_vec
   
   # produce plot
   plot1 <- ggplot(df) + theme_bw() + theme(panel.grid.minor.x = element_blank(),
@@ -215,6 +218,7 @@ plot_loglike <- function(project,
 # #' @param y TODO
 # #' @param ... TODO
 # #'
+# #' @import ggplot2
 # #' @export
 # 
 # plot.rgeoprofile_qmatrix <- function(x, y, ...) {
@@ -250,11 +254,13 @@ plot_loglike <- function(project,
 #' @description Produce posterior allocation plot of current active set.
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to produce the plot for
-#' @param divide_ind_on whether to add dividing lines between bars
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to produce the plot for.
+#' @param divide_ind_on whether to add dividing lines between bars.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' # Plot the structure for a single K value.
@@ -343,10 +349,12 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
 #' @details TODO
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_sigma(project = p)
@@ -399,10 +407,12 @@ plot_sigma <- function(project, K = NULL) {
 #' @details TODO
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_expected_popsize(project = p)
@@ -436,12 +446,14 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' @description Produce MCMC trace plot of the log-likelihood at each iteration.
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param rung which rung to plot. Defaults to the cold chain
-#' @param col colour of the trace
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param rung which rung to plot. Defaults to the cold chain.
+#' @param col colour of the trace.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_trace(project = p, K = 2)
@@ -492,12 +504,14 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @description Produce MCMC autocorrelation plot of the log-likelihood
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param rung which rung to plot. Defaults to the cold chain
-#' @param col colour of the trace
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param rung which rung to plot. Defaults to the cold chain.
+#' @param col colour of the trace.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_acf(project = p)
@@ -552,12 +566,14 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @description Produce MCMC density plot of the log-likelihood
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K value of K to plot
-#' @param rung which rung to plot. Defaults to the cold chain
-#' @param col colour of the trace
+#'   \code{rgeoprofile_project()}.
+#' @param K value of K to plot.
+#' @param rung which rung to plot. Defaults to the cold chain.
+#' @param col colour of the trace.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_density(project = p)
@@ -607,12 +623,15 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @details For a value of K produce the auto-correlation, trace and density plots of the MCMC.
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param rung which rung to plot. Defaults to the cold chain
-#' @param col colour of the trace
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param rung which rung to plot. Defaults to the cold chain.
+#' @param col colour of the trace.
 #'
+#' @import ggplot2
+#' @importFrom gridExtra grid.arrange
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_loglike_diagnostic(project = p, K = 2)
@@ -663,7 +682,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   plot3 <- plot3 + ggtitle("density")
   
   # produce grid of plots
-  ret <- grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
+  ret <- gridExtra::grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
 }
 
 #------------------------------------------------
@@ -672,9 +691,11 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
 #' @description Create dynamic map
 #'
 #' @param map_type an index from 1 to 137 indicating the type of base map. The
-#'   map types are taken from \code{leaflet::providers}. Defaults to "CartoDB"
+#'   map types are taken from \code{leaflet::providers}. Defaults to "CartoDB".
 #'
+#' @import leaflet
 #' @export
+#' 
 #' @examples
 #' # Standard OSM format is given by map_type = 1, though
 #' # this value can take anywhere between 1 and 137.
@@ -699,9 +720,11 @@ plot_map <- function(map_type = 97) {
 #' @description Plot DIC over all K for the current active parameter set.
 #'
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
+#'   \code{rgeoprofile_project()}.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_DIC_gelman(p)
@@ -735,13 +758,15 @@ plot_DIC_gelman <- function(project) {
 #'
 #' @details  The hs object is obtained from the \code{get_hitscores()} function.
 #'
-#' @param hs dataframe of hitscores
-#' @param col vector of group colours. Uses \code{more_colours()} by default
+#' @param hs dataframe of hitscores.
+#' @param col vector of group colours. Uses \code{more_colours()} by default.
 #' @param counts optional vector of counts corresponding to each source. If
 #'   specified, the y-axis is in terms of total counts found, rather than total
-#'   sources found
+#'   sources found.
 #'
+#' @import ggplot2
 #' @export
+#' 
 #' @examples
 #' \dontshow{hs <- rgeoprofile_file("tutorial1_hitscore.rds")}
 #' plot_lorenz(hs)
@@ -808,21 +833,24 @@ plot_lorenz <- function(hs, col = NULL, counts = NULL) {
 #'
 #' @param myplot dynamic map produced by \code{plot_map()} function
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
+#'   \code{rgeoprofile_project()}.
 #' @param sentinel_radius the radius of sentinel sites. Taken from the active
-#'   parameter set if unspecified
-#' @param fill whether to fill circles
-#' @param fill_colour colour of circle fill
-#' @param fill_opacity fill opacity
-#' @param border whether to add border to circles
-#' @param border_colour colour of circle borders
-#' @param border_weight thickness of circle borders
-#' @param border_opacity opacity of circle borders
-#' @param legend whether to add a legend for site count
-#' @param label whether to label sentinel sites with densities
-#' @param label_size size of the label 
+#'   parameter set if unspecified.
+#' @param fill whether to fill circles.
+#' @param fill_colour colour of circle fill.
+#' @param fill_opacity fill opacity.
+#' @param border whether to add border to circles.
+#' @param border_colour colour of circle borders.
+#' @param border_weight thickness of circle borders.
+#' @param border_opacity opacity of circle borders.
+#' @param legend whether to add a legend for site count.
+#' @param label whether to label sentinel sites with densities.
+#' @param label_size size of the label.
 #'
+#' @import leaflet
+#' @importFrom grDevices grey
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot1 <- plot_map()
@@ -949,14 +977,15 @@ overlay_sentinels <- function(myplot,
 #'
 #' @description Add points to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
-#' @param lon longitude of points
-#' @param lat latitude of points
-#' @param col colour of points
-#' @param size size of points
-#' @param opacity opacity of points
+#' @param myplot dynamic map produced by \code{plot_map()} function.
+#' @param lon,lat longitude and latitude of points.
+#' @param col colour of points.
+#' @param size size of points.
+#' @param opacity opacity of points.
 #'
+#' @import leaflet
 #' @export
+#' 
 #' @examples
 #' \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
 #' all_records <- mysim$record$data_all
@@ -991,16 +1020,19 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
 #'
 #' @description Add spatial prior to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param myplot dynamic map produced by \code{plot_map()} function.
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param col set of plotting colours
-#' @param opacity opacity of spatial prior
+#'   \code{rgeoprofile_project()}.
+#' @param col set of plotting colours.
+#' @param opacity opacity of spatial prior.
 #' @param smoothing what level of smoothing to apply to spatial prior Smoothing
 #'   is applied using the \code{raster} function \code{disaggregate}, with
-#'   \code{method = "bilinear"}
+#'   \code{method = "bilinear"}.
 #'
+#' @import leaflet
+#' @importFrom raster disaggregate
 #' @export
+#' 
 #' @examples
 #' \dontshow{library(silverblaze)}
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
@@ -1034,11 +1066,11 @@ overlay_spatial_prior <- function(myplot,
 
   # apply smoothing
   if (smoothing > 1.0) {
-    spatial_prior <- disaggregate(spatial_prior, smoothing, method = "bilinear")
+    spatial_prior <- raster::disaggregate(spatial_prior, smoothing, method = "bilinear")
   }
 
   # overlay raster
-  myplot <- addRasterImage(myplot, x = spatial_prior, colors = col, opacity = opacity)
+  myplot <- leaflet::addRasterImage(myplot, x = spatial_prior, colors = col, opacity = opacity)
 
   # return plot object
   return(myplot)
@@ -1049,22 +1081,25 @@ overlay_spatial_prior <- function(myplot,
 #'
 #' @description Add geoprofile to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param myplot dynamic map produced by \code{plot_map()} function.
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param source which source to plot. If NULL then plot combined surface
-#' @param threshold what proportion of geoprofile to plot
-#' @param col set of plotting colours
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param source which source to plot. If NULL then plot combined surface.
+#' @param threshold what proportion of geoprofile to plot.
+#' @param col set of plotting colours.
 #' @param opacity opacity of geoprofile (that is not invisible due to being
-#'   below threshold)
+#'   below threshold).
 #' @param smoothing what level of smoothing to apply to geoprofile. Smoothing is
 #'   applied using the \code{raster} function \code{disaggregate}, with
-#'   \code{method = "bilinear"}
+#'   \code{method = "bilinear"}.
 #' @param legend Set to TRUE or FALSE, this will add a hitscore legend to the
-#'   plot
+#'   plot.
 #'
+#' @import leaflet
+#' @importFrom grDevices grey
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot1 <- plot_map()
@@ -1139,20 +1174,23 @@ overlay_geoprofile <- function(myplot,
 #'
 #' @description Add posterior probability surface to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param myplot dynamic map produced by \code{plot_map()} function.
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param source which source to plot. If NULL then plot combined surface
-#' @param threshold what proportion of posterior probability surface to plot
-#' @param col set of plotting colours
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param source which source to plot. If NULL then plot combined surface.
+#' @param threshold what proportion of posterior probability surface to plot.
+#' @param col set of plotting colours.
 #' @param opacity opacity of posterior probability surface (that is not
-#'   invisible due to being below threshold)
+#'   invisible due to being below threshold).
 #' @param smoothing what level of smoothing to apply to posterior probability
 #'   surface. Smoothing is applied using the \code{raster} function
-#'   \code{disaggregate}, with \code{method = "bilinear"}
+#'   \code{disaggregate}, with \code{method = "bilinear"}.
 #'
+#' @import leaflet
+#' @importFrom grDevices grey
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot1 <- plot_map()
@@ -1219,22 +1257,18 @@ overlay_surface <- function(myplot,
 #'
 #' @description Add sources to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
-#' @param lon longitude of sources
-#' @param lat latitude of sources
-#' @param icon_url what image to use for the icon
-#' @param icon_width the width of the icon
-#' @param icon_height the height of the icon
-#' @param icon_anchor_x the coordinates of the "tip" of the icon (relative to
+#' @param myplot dynamic map produced by \code{plot_map()} function.
+#' @param lon,lat longitude and latitude of sources.
+#' @param icon_url what image to use for the icon.
+#' @param icon_width,icon_height the width and height of the icon.
+#' @param icon_anchor_x,icon_anchor_y the coordinates of the "tip" of the icon (relative to
 #'   its top left corner, i.e. the top left corner means \code{icon_anchor_x =
 #'   0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
-#'   point is at the marker's geographical location
-#' @param icon_anchor_y the coordinates of the "tip" of the icon (relative to
-#'   its top left corner, i.e. the top left corner means \code{icon_anchor_x =
-#'   0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
-#'   point is at the marker's geographical location
+#'   point is at the marker's geographical location.
 #'
+#' @import leaflet
 #' @export
+#' 
 #' @examples
 #' \dontshow{mysim <- rgeoprofile_file("tutorial1_mysim.rds")}
 #' source_locations <- mysim$record$true_source
@@ -1285,15 +1319,17 @@ overlay_sources <- function(myplot,
 #'
 #' @description Add pie charts to dynamic map
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param myplot dynamic map produced by \code{plot_map()} function.
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param min_size lower limit on the size of pie charts
-#' @param max_size upper limit on the size of pie charts
-#' @param col segment colours
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param min_size,max_size lower and upper limits on the size of pie charts.
+#' @param col segment colours.
 #'
+#' @import leaflet
+#' @import leaflet.minicharts
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot1 <- plot_map()
@@ -1345,18 +1381,21 @@ overlay_piecharts <- function(myplot,
 #'
 #' @description Add ring-search geoprofile to dynamic map.
 #'
-#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param myplot dynamic map produced by \code{plot_map()} function.
 #' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param threshold what proportion of geoprofile to plot
-#' @param col set of plotting colours
+#'   \code{rgeoprofile_project()}.
+#' @param threshold what proportion of geoprofile to plot.
+#' @param col set of plotting colours.
 #' @param opacity opacity of geoprofile (that is not invisible due to being
-#'   below threshold)
+#'   below threshold).
 #' @param smoothing what level of smoothing to apply to geoprofile. Smoothing is
 #'   applied using the \code{raster} function \code{disaggregate}, with
-#'   \code{method = "bilinear"}
+#'   \code{method = "bilinear"}.
 #'
+#' @import leaflet
+#' @importFrom grDevices grey
 #' @export
+#' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot1 <- plot_map()

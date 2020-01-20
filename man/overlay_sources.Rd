@@ -4,31 +4,30 @@
 \alias{overlay_sources}
 \title{Add sources to dynamic map}
 \usage{
-overlay_sources(myplot, lon, lat, icon_url = NULL, icon_width = 20,
-  icon_height = 20, icon_anchor_x = 10, icon_anchor_y = 10)
+overlay_sources(
+  myplot,
+  lon,
+  lat,
+  icon_url = NULL,
+  icon_width = 20,
+  icon_height = 20,
+  icon_anchor_x = 10,
+  icon_anchor_y = 10
+)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
-\item{lon}{longitude of sources}
+\item{lon, lat}{longitude and latitude of sources.}
 
-\item{lat}{latitude of sources}
+\item{icon_url}{what image to use for the icon.}
 
-\item{icon_url}{what image to use for the icon}
+\item{icon_width, icon_height}{the width and height of the icon.}
 
-\item{icon_width}{the width of the icon}
-
-\item{icon_height}{the height of the icon}
-
-\item{icon_anchor_x}{the coordinates of the "tip" of the icon (relative to
+\item{icon_anchor_x, icon_anchor_y}{the coordinates of the "tip" of the icon (relative to
 its top left corner, i.e. the top left corner means \code{icon_anchor_x =
 0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
-point is at the marker's geographical location}
-
-\item{icon_anchor_y}{the coordinates of the "tip" of the icon (relative to
-its top left corner, i.e. the top left corner means \code{icon_anchor_x =
-0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
-point is at the marker's geographical location}
+point is at the marker's geographical location.}
 }
 \description{
 Add sources to dynamic map

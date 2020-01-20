@@ -1,40 +1,5 @@
 
 #------------------------------------------------
-# The following commands ensure that package dependencies are listed in the
-# NAMESPACE file.
-
-# Rcpp               - allows C++ integration
-# parallel           - running jobs in parallel
-# coda               - "mcmc" class objects and methods
-# fftwtools          - fast Fourier transform, used when smoothing posterior draws into final surface
-# RColorBrewer       - colours
-# ggplot2            - used to produce layered plots
-# gridExtra          - multi-panel ggplot objects
-# leaflet            - dynamic mapping
-# leaflet.minicharts - overlay charts on dynamic mapping
-# rgdal              - required to load shapefiles
-# raster             - required when defining spatial priors and geoprofiles
-# ...                - other import and importFrom declarations recommended by devtools::check
-
-#' @useDynLib silverblaze
-#' @importFrom Rcpp evalCpp
-#' @import parallel
-#' @import coda
-#' @importFrom fftwtools fftw2d
-#' @import RColorBrewer
-#' @import ggplot2
-#' @import gridExtra
-#' @import leaflet
-#' @import leaflet.minicharts
-#' @import rgdal
-#' @importFrom raster raster values<- values setValues xyFromCell addLayer extract xmin xmax ymin ymax xres yres res<- res disaggregate flip crs crs<- setExtent extent extent<- rasterize projectRaster distance
-#' @importFrom grDevices colorRampPalette grey
-#' @import graphics
-#' @import stats
-#' @import utils
-NULL
-
-#------------------------------------------------
 #' @title Check that silverblaze package has loaded successfully
 #'
 #' @description Simple function to check that silverblaze package has loaded
@@ -110,6 +75,7 @@ bind_data <- function(project,
 #' @param cells_lat  number of cells in latitude direction
 #' @param guard_rail Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.
 #'
+#' @importFrom raster raster setValues
 #' @export
 
 raster_grid <- function (range_lon = c(-0.2, 0),
@@ -137,13 +103,13 @@ raster_grid <- function (range_lon = c(-0.2, 0),
   lomx <- range_lon[2] + dlon/2
   lamn <- range_lat[1] - dlat/2
   lamx <- range_lat[2] + dlat/2
-  r <- raster(xmn = lomn,
-              xmx = lomx,
-              ymn = lamn,
-              ymx = lamx,
-              ncol = cells_lon,
-              nrow = cells_lat)
-  r <- setValues(r, 1/(cells_lon*cells_lat))
+  r <- raster::raster(xmn = lomn,
+                      xmx = lomx,
+                      ymn = lamn,
+                      ymx = lamx,
+                      ncol = cells_lon,
+                      nrow = cells_lat)
+  r <- raster::setValues(r, 1/(cells_lon*cells_lat))
 
   return(r)
 }
@@ -157,6 +123,7 @@ raster_grid <- function (range_lon = c(-0.2, 0),
 #' @param cells_lon number of cells in longitude direction
 #' @param cells_lat number of cells in latitude direction
 #'
+#' @importFrom raster raster extent rasterize projectRaster values
 #' @export
 
 raster_from_shapefile <- function (shp,
@@ -167,13 +134,13 @@ raster_from_shapefile <- function (shp,
   assert_in(class(shp), c("SpatialPolygonsDataFrame","SpatialLinesDataFrame"))
 
   # make raster from shapefile
-  r <- raster(ncol = cells_lon, nrow = cells_lat)
-  extent(r) <- extent(shp)
-  r <- rasterize(shp, r)
-  r <- projectRaster(r, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+  r <- raster::raster(ncol = cells_lon, nrow = cells_lat)
+  raster::extent(r) <- raster::extent(shp)
+  r <- raster::rasterize(shp, r)
+  r <- raster::projectRaster(r, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 
   # set all non-NA values to 1 over number of non-NA cells
-  values(r)[!is.na(values(r))] <- 1/sum(!is.na(values(r)))
+  raster::values(r)[!is.na(values(r))] <- 1/sum(!is.na(values(r)))
 
   return(r)
 }
@@ -339,26 +306,39 @@ delete_set <- function(project,
 #'   rather than using look-up tables.
 #'
 #' @param project an rgeoprofile_project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K the number of sources
-#' @param burnin the number of burn-in iterations
-#' @param samples the number of sampling iterations
-#' @param rungs the number of temperature rungs used
+#'   \code{rgeoprofile_project()}.
+#' @param K the number of sources.
+#' @param burnin the number of burn-in iterations.
+#' @param samples the number of sampling iterations.
+#' @param rungs the number of temperature rungs used.
 #' @param auto_converge whether convergence should be assessed automatically
 #'   every \code{converge_test} iterations, leading to termination of the
 #'   burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
-#'   used
+#'   used.
 #' @param converge_test test for convergence every \code{convergence_test}
-#'   iterations if \code{auto_converge} is being used
-#' @param coupling_on whether to implement Metropolis coupling
-#' @param GTI_pow tempering level
+#'   iterations if \code{auto_converge} is being used.
+#' @param coupling_on whether to implement Metropolis coupling.
+#' @param GTI_pow power applied to thermodynamic rungs. Higher values lead to
+#'   rungs clustered around zero.
+#' @param beta_manual if defined, allows manual specification of thermodynamic
+#'   powers used. Overrides \code{rungs} and \code{GTI_pow}.
 #' @param cluster option to pass in a cluster environment (see package
-#'   "parallel")
+#'   "parallel").
 #' @param pb_markdown whether to run progress bars in markdown mode, in which
-#'   case they are updated once at the end to avoid large amounts of output
+#'   case they are updated once at the end to avoid large amounts of output.
 #' @param store_raw whether to store raw MCMC output in addition to summary
-#'   output. Setting to FALSE can considerably reduce output size in memory
-#' @param silent whether to suppress all console output
+#'   output. Setting to FALSE can considerably reduce output size in memory.
+#' @param create_maps whether to create maps of posterior probability and
+#'   geoprofile. Usually will want to create these maps, but the code runs much
+#'   faster without this step, hence the option.
+#' @param silent whether to suppress all console output.
+#'
+#' @import parallel
+#' @import coda
+#' @import stats
+#' @importFrom fftwtools fftw2d
+#' @importFrom utils txtProgressBar
+#' @importFrom raster values<- values xyFromCell xmin xmax xres ymin ymax yres extent<- extent res<- res addLayer
 #'
 #' @export
 
@@ -371,9 +351,11 @@ run_mcmc <- function(project,
                      converge_test = 1e2,
                      coupling_on = TRUE,
                      GTI_pow = 1,
+                     beta_manual = NULL,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
+                     create_maps = TRUE,
                      silent = !is.null(cluster)) {
   
   # start timer
@@ -389,11 +371,26 @@ run_mcmc <- function(project,
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
   assert_single_logical(coupling_on)
   assert_single_pos(GTI_pow)
+  if (!is.null(beta_manual)) {
+    assert_vector(beta_manual)
+    assert_bounded(beta_manual)
+    assert_eq(beta_manual, sort(beta_manual),
+              message = "beta_manual must be increasing from left to right")
+    assert_eq(beta_manual[length(beta_manual)], 1.0,
+              message = "final value of beta_manual (i.e. cold chain) must equal 1.0")
+  }
   if (!is.null(cluster)) {
     assert_custom_class(cluster, "cluster")
   }
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
+  
+  # define beta_vec manually or from rungs and GTI_pow
+  beta_vec <- beta_manual
+  if (is.null(beta_vec)) {
+    beta_vec <- seq(0, 1, l = rungs)^GTI_pow
+  }
+  rungs <- length(beta_vec)
   
   # get active set
   s <- project$active_set
@@ -411,8 +408,7 @@ run_mcmc <- function(project,
   # input arguments list
   args_inputs <- list(burnin = burnin,
                       samples = samples,
-                      rungs = rungs,
-                      GTI_pow = GTI_pow,
+                      beta_vec = beta_vec,
                       auto_converge = auto_converge,
                       converge_test = converge_test,
                       coupling_on = coupling_on,
@@ -421,24 +417,24 @@ run_mcmc <- function(project,
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
-  spatial_prior_values <- values(spatial_prior)
+  spatial_prior_values <- raster::values(spatial_prior)
   spatial_prior_values[is.na(spatial_prior_values)] <- 0
   
   # initialise sources in a non-NA cell
-  source_init <- raster::xyFromCell(spatial_prior, which(!is.na(values(spatial_prior)))[1])
+  source_init <- raster::xyFromCell(spatial_prior, which(!is.na(raster::values(spatial_prior)))[1])
   
   # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
   # misc properties list
-  args_properties <- list(min_lon = xmin(spatial_prior),
-                          max_lon = xmax(spatial_prior),
-                          res_lon = xres(spatial_prior),
+  args_properties <- list(min_lon = raster::xmin(spatial_prior),
+                          max_lon = raster::xmax(spatial_prior),
+                          res_lon = raster::xres(spatial_prior),
                           n_lon = ncol(spatial_prior),
-                          min_lat = ymin(spatial_prior),
-                          max_lat = ymax(spatial_prior),
-                          res_lat = yres(spatial_prior),
+                          min_lat = raster::ymin(spatial_prior),
+                          max_lat = raster::ymax(spatial_prior),
+                          res_lat = raster::yres(spatial_prior),
                           n_lat = nrow(spatial_prior),
                           spatial_prior_values = spatial_prior_values,
                           source_init = source_init,
@@ -476,8 +472,8 @@ run_mcmc <- function(project,
   
   # split into parallel and serial implementations
   if (!is.null(cluster)) { # run in parallel
-    clusterEvalQ(cluster, library(silverblaze))
-    output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_cpp)
+    parallel::clusterEvalQ(cluster, library(silverblaze))
+    output_raw <- parallel::clusterApplyLB(cl = cluster, parallel_args, run_mcmc_cpp)
   } else { # run in serial
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
@@ -504,23 +500,21 @@ run_mcmc <- function(project,
     convergence_iteration <- output_raw[[i]]$convergence_iteration
     
     # get loglikelihood in coda::mcmc format
-    loglike_burnin <- mapply(function(x, y) mcmc(x[1:y]),
-                             output_raw[[i]]$loglike_burnin, convergence_iteration, SIMPLIFY = FALSE)
-    names(loglike_burnin) <- rung_names
-    loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
-    colnames(loglike_sampling) <- rung_names
+    loglike_burnin <- coda::mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_burnin))[1:convergence_iteration,,drop = FALSE])
+    loglike_sampling <- coda::mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
+    colnames(loglike_sampling) <- colnames(loglike_burnin) <- rung_names
     
     # get source lon lat in coda::mcmc format
-    source_lon_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_burnin)[1:convergence_iteration[1],,drop = FALSE])
-    source_lat_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_burnin)[1:convergence_iteration[1],,drop = FALSE])
+    source_lon_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_burnin)[1:convergence_iteration,,drop = FALSE])
+    source_lat_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_burnin)[1:convergence_iteration,,drop = FALSE])
     colnames(source_lon_burnin) <- colnames(source_lat_burnin) <- group_names
-    source_lon_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_sampling))
-    source_lat_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_sampling))
+    source_lon_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_sampling))
+    source_lat_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_sampling))
     colnames(source_lon_sampling) <- colnames(source_lat_sampling) <- group_names
     
     # get sigma in coda::mcmc format
-    sigma_burnin <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma_burnin)[1:convergence_iteration[1],,drop = FALSE])
-    sigma_sampling <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma_sampling))
+    sigma_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$sigma_burnin)[1:convergence_iteration,,drop = FALSE])
+    sigma_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$sigma_sampling))
     if (args_model$sigma_model == "single") {
       sigma_burnin <- sigma_burnin[, 1, drop = FALSE]
       sigma_sampling <- sigma_sampling[, 1, drop = FALSE]
@@ -530,20 +524,15 @@ run_mcmc <- function(project,
     }
     
     # get expected_popsize in coda::mcmc format
-    expected_popsize_burnin <- mcmc(output_raw[[i]]$expected_popsize_burnin[1:convergence_iteration[1]])
-    expected_popsize_sampling <- mcmc(output_raw[[i]]$expected_popsize_sampling)
+    expected_popsize_burnin <- coda::mcmc(output_raw[[i]]$expected_popsize_burnin[1:convergence_iteration])
+    expected_popsize_sampling <- coda::mcmc(output_raw[[i]]$expected_popsize_sampling)
     
     # ---------- summary results ----------
     
     # get 95% credible intervals over sampling and burnin loglikelihoods
     loglike_intervals_sampling <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
-    loglike_intervals_burnin <- unlist(lapply(1:rungs, FUN = function(y){quantile_95(loglike_burnin[[paste("rung", y, sep = "")]])}))
-    loglike_intervals_burnin <- as.data.frame(matrix(loglike_intervals_burnin, nrow = rungs, byrow = TRUE))
+    loglike_intervals_burnin <- as.data.frame(t(apply(loglike_burnin, 2, quantile_95)))
     
-    # remove those intervals for which convergence was not met during burnin 
-    loglike_intervals_burnin[which(convergence_iteration == 0),] <- rep(NA, 3)
-    dimnames(loglike_intervals_burnin) <- dimnames(loglike_intervals_sampling) 
-
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
@@ -559,30 +548,34 @@ run_mcmc <- function(project,
     
     # create empty raster with correct properties
     raster_empty <- raster()
-    extent(raster_empty) <- extent(spatial_prior)
-    res(raster_empty) <- res(spatial_prior)
+    raster::extent(raster_empty) <- raster::extent(spatial_prior)
+    raster::res(raster_empty) <- raster::res(spatial_prior)
     
     # get breaks for kernel smoothing
-    breaks_lon <- seq(xmin(raster_empty), xmax(raster_empty), xres(raster_empty))
-    breaks_lat <- seq(ymin(raster_empty), ymax(raster_empty), yres(raster_empty))
+    breaks_lon <- seq(raster::xmin(raster_empty), raster::xmax(raster_empty), raster::xres(raster_empty))
+    breaks_lat <- seq(raster::ymin(raster_empty), raster::ymax(raster_empty), raster::yres(raster_empty))
     
     # produce posterior probability surface rasters
     prob_surface_split <- raster()
     prob_surface_mat <- 0
     for (k in 1:K[i]) {
       
-      # get prob_surface for this K by smoothing
-      prob_surface_split_mat <- kernel_smooth(source_lon_sampling[,k],
-                                              source_lat_sampling[,k],
-                                              breaks_lon,
-                                              breaks_lat)
-      prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
-      prob_surface_split_mat <- prob_surface_split_mat/sum(prob_surface_split_mat)
+      if (create_maps) {
+        # get prob_surface for this K by smoothing
+        prob_surface_split_mat <- kernel_smooth(source_lon_sampling[,k],
+                                                source_lat_sampling[,k],
+                                                breaks_lon,
+                                                breaks_lat)
+        prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
+        prob_surface_split_mat <- prob_surface_split_mat/sum(prob_surface_split_mat)
+      } else {
+        prob_surface_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+      }
       
       # add raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
-      values(prob_surface_split_k)[is.na(values(spatial_prior))] <- NA
-      prob_surface_split <- addLayer(prob_surface_split, prob_surface_split_k)
+      raster::values(prob_surface_split_k)[is.na(raster::values(spatial_prior))] <- NA
+      prob_surface_split <- raster::addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
       prob_surface_mat <- prob_surface_mat + prob_surface_split_mat/K[i]
@@ -596,22 +589,26 @@ run_mcmc <- function(project,
     geoprofile_split <- raster()
     geoprofile_mat <- 0
     for (k in 1:K[i]) {
-
-      # make geoprofile matrix from probability surface
-      geoprofile_split_mat <- rank(values(prob_surface_split[[k]]), ties.method = "first")
-      geoprofile_split_mat <- 100 * (1 - geoprofile_split_mat/max(geoprofile_split_mat, na.rm = TRUE))
-
+      
+      if (create_maps) {
+        # make geoprofile matrix from probability surface
+        geoprofile_split_mat <- rank(values(prob_surface_split[[k]]), ties.method = "first")
+        geoprofile_split_mat <- 100 * (1 - geoprofile_split_mat/max(geoprofile_split_mat, na.rm = TRUE))
+      } else {
+        geoprofile_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+      }
+      
       # add raster layer
       geoprofile_split_k <- setValues(raster_empty, geoprofile_split_mat)
       geoprofile_split <- addLayer(geoprofile_split, geoprofile_split_k)
     }
-
+    
     # make combined raster
     geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
     geoprofile_mat <- 100 * (1 - geoprofile_mat/max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
     values(geoprofile)[is.na(values(spatial_prior))] <- NA
-
+    
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
     if (all_converged && any(!converged)) {
@@ -649,10 +646,8 @@ run_mcmc <- function(project,
     sigma_accept_samples <- output_raw[[i]]$sigma_accept_sampling/samples
     names(sigma_accept_burnin) <- names(sigma_accept_samples) <- group_names
     
+    coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
     coupling_accept_samples <- output_raw[[i]]$coupling_accept_sampling/(samples)
-
-    # ---------- beta raised values ----------
-    beta_raised <- ((1:rungs)/rungs)^GTI_pow
       
     # ---------- save arguments ----------
     
@@ -686,8 +681,9 @@ run_mcmc <- function(project,
                                                                     source_accept_samples = source_accept_samples,
                                                                     sigma_accept_burnin = sigma_accept_burnin,
                                                                     sigma_accept_samples = sigma_accept_samples,
+                                                                    coupling_accept_burnin = coupling_accept_burnin,
                                                                     coupling_accept_samples = coupling_accept_samples,
-                                                                    beta_raised = beta_raised,
+                                                                    beta_vec = beta_vec,
                                                                     GTI_pow = GTI_pow)
     
     if (store_raw) {
@@ -736,11 +732,13 @@ run_mcmc <- function(project,
   project$output$single_set[[s]]$all_K$DIC_gelman <- data.frame(K = 1:length(DIC_gelman), DIC_gelman = DIC_gelman)
   
   # end timer
-  tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
-  if (tdiff < 60) {
-    message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
-  } else {
-    message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
+  if (!silent) {
+    tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+    if (tdiff < 60) {
+      message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
+    } else {
+      message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
+    }
   }
   
   # warning if any rungs in any MCMCs did not converge
@@ -870,6 +868,7 @@ align_qmatrix <- function(project) {
 
 #------------------------------------------------
 # ring-search
+#' @importFrom raster extent<- extent res<- res setValues flip
 #' @noRd
 ring_search <- function(project, r) {
   
@@ -877,6 +876,9 @@ ring_search <- function(project, r) {
   if (sum(project$data$counts) == 0) {
     stop("ring search not possible: no positive counts")
   }
+  
+  # avoid "no visible binding" error
+  counts <- NULL
   
   # extract sentinel locations with at least one observation
   data <- subset(project$data, counts > 0)
@@ -902,10 +904,10 @@ ring_search <- function(project, r) {
 
   # get into raster format
   ret <- raster()
-  extent(ret) <- extent(r)
-  res(ret) <- res(r)
-  ret <- setValues(ret, hs)
-  ret <- flip(ret, 2)
+  raster::extent(ret) <- raster::extent(r)
+  raster::res(ret) <- raster::res(r)
+  ret <- raster::setValues(ret, hs)
+  ret <- raster::flip(ret, 2)
 
   return(ret)
 }

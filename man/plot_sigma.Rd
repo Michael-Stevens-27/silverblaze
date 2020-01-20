@@ -8,9 +8,9 @@ plot_sigma(project, K = NULL)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to plot}
+\item{K}{which value of K to plot.}
 }
 \description{
 Plot COI 95\% credible intervals of current active set

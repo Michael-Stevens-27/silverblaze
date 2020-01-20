@@ -8,7 +8,7 @@ plot_DIC_gelman(project)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 }
 \description{
 Plot DIC over all K for the current active parameter set.

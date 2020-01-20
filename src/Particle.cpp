@@ -8,11 +8,13 @@ using namespace std;
 
 //------------------------------------------------
 // constructor for Particle class
-Particle::Particle(double beta_raised) {
+Particle::Particle(Lookup &lookup, double beta) {
   
-  // beta_raised stores values of beta (the thermodynamic power), raised to the
-  // power GTI_pow
-  this -> beta_raised = beta_raised;
+  // load pointer to lookup table
+  lookup_ptr = &lookup;
+  
+  // value of the thermodynamic power
+  this -> beta = beta;
   
   // source locations
   source_lon = vector<double>(K);
@@ -39,8 +41,8 @@ Particle::Particle(double beta_raised) {
   sigma_propSD = vector<double>(K, 1.0);
   
   // Robbins-Monro stepsize constants
-  source_rm_stepsize = 5.58;
-  sigma_rm_stepsize = 4.06;
+  source_rm_stepsize = 5.0;
+  sigma_rm_stepsize = 4.0;
   
   // misc constants
   // area around a sentinel site
@@ -77,13 +79,15 @@ Particle::Particle(double beta_raised) {
   source_accept_sampling = vector<int>(K);
   sigma_accept_burnin = vector<int>(K);
   sigma_accept_sampling = vector<int>(K);
-
   
 }
 
 //------------------------------------------------
 // reset particle
-void Particle::reset() {
+void Particle::reset(double beta) {
+  
+  // reset beta value
+  this->beta = beta;
   
   // initialise source locations
   for (int k = 0; k < K; ++k) {
@@ -164,7 +168,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
   for (int i = 0; i < n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = lookup_ptr->get_data_dist(source_lon_prop, source_lat_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate normal height of data point i from proposed source.
@@ -231,7 +235,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     double loglike_prop = calculate_loglike_source(source_lon_prop, source_lat_prop, k);
     
     // Metropolis-Hastings ratio
-    double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
+    double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
@@ -257,18 +261,18 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
       } else {
         source_accept_sampling[k]++;
       }
-
+    
     } else {
-
+      
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
         source_propSD[k] = exp(log(source_propSD[k]) - source_rm_stepsize*0.234/sqrt(iteration));
       }
-
+      
     }  // end Metropolis-Hastings step
-
+  
   }  // end loop through sources
-
+  
 }
 
 //------------------------------------------------
@@ -339,7 +343,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
   
   // Metropolis-Hastings ratio
-  double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
+  double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
   
   // Metropolis-Hastings step
   if (log(runif_0_1()) < MH_ratio) {
@@ -425,7 +429,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
     double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
     
     // Metropolis-Hastings ratio
-    double MH_ratio = beta_raised*(loglike_prop - loglike) + (logprior_prop - logprior);
+    double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
@@ -482,8 +486,8 @@ void Particle::update_expected_popsize() {
   }
   
   // draw new expected population size
-  double posterior_shape = expected_popsize_prior_shape + beta_raised*counts_total;
-  double posterior_rate = expected_popsize_prior_rate + beta_raised*lambda_total;
+  double posterior_shape = expected_popsize_prior_shape + beta*counts_total;
+  double posterior_rate = expected_popsize_prior_rate + beta*lambda_total;
   expected_popsize = rgamma1(posterior_shape, posterior_rate);
   log_expected_popsize = log(expected_popsize);
 }

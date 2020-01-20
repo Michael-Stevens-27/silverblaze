@@ -8,11 +8,11 @@ plot_structure(project, K = NULL, divide_ind_on = FALSE)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to produce the plot for.}
 
-\item{divide_ind_on}{whether to add dividing lines between bars}
+\item{divide_ind_on}{whether to add dividing lines between bars.}
 }
 \description{
 Produce posterior allocation plot of current active set.

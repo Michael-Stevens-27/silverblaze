@@ -4,22 +4,26 @@
 \alias{overlay_piecharts}
 \title{Add pie charts to dynamic map}
 \usage{
-overlay_piecharts(myplot, project, K = NULL, min_size = 10,
-  max_size = 30, col = NULL)
+overlay_piecharts(
+  myplot,
+  project,
+  K = NULL,
+  min_size = 10,
+  max_size = 30,
+  col = NULL
+)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to plot}
+\item{K}{which value of K to plot.}
 
-\item{min_size}{lower limit on the size of pie charts}
+\item{min_size, max_size}{lower and upper limits on the size of pie charts.}
 
-\item{max_size}{upper limit on the size of pie charts}
-
-\item{col}{segment colours}
+\item{col}{segment colours.}
 }
 \description{
 Add pie charts to dynamic map

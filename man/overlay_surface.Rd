@@ -4,30 +4,37 @@
 \alias{overlay_surface}
 \title{Add posterior probability surface to dynamic map}
 \usage{
-overlay_surface(myplot, project, K = NULL, source = NULL,
-  threshold = 0.1, col = rev(col_hotcold()), opacity = 0.8,
-  smoothing = 1)
+overlay_surface(
+  myplot,
+  project,
+  K = NULL,
+  source = NULL,
+  threshold = 0.1,
+  col = rev(col_hotcold()),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to plot}
+\item{K}{which value of K to plot.}
 
-\item{source}{which source to plot. If NULL then plot combined surface}
+\item{source}{which source to plot. If NULL then plot combined surface.}
 
-\item{threshold}{what proportion of posterior probability surface to plot}
+\item{threshold}{what proportion of posterior probability surface to plot.}
 
-\item{col}{set of plotting colours}
+\item{col}{set of plotting colours.}
 
 \item{opacity}{opacity of posterior probability surface (that is not
-invisible due to being below threshold)}
+invisible due to being below threshold).}
 
 \item{smoothing}{what level of smoothing to apply to posterior probability
 surface. Smoothing is applied using the \code{raster} function
-\code{disaggregate}, with \code{method = "bilinear"}}
+\code{disaggregate}, with \code{method = "bilinear"}.}
 }
 \description{
 Add posterior probability surface to dynamic map

@@ -7,13 +7,13 @@
 plot_lorenz(hs, col = NULL, counts = NULL)
 }
 \arguments{
-\item{hs}{dataframe of hitscores}
+\item{hs}{dataframe of hitscores.}
 
-\item{col}{vector of group colours. Uses \code{more_colours()} by default}
+\item{col}{vector of group colours. Uses \code{more_colours()} by default.}
 
 \item{counts}{optional vector of counts corresponding to each source. If
 specified, the y-axis is in terms of total counts found, rather than total
-sources found}
+sources found.}
 }
 \description{
 Produce Lorenz plot of hitscores

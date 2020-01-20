@@ -28,7 +28,9 @@
 #' @param expected_popsize the expected total number of observations (observed
 #'   and unobserved) in the study area.
 #'
+#' @import stats
 #' @export
+#' 
 #' @examples
 #' # State the number of sources to be generated
 #' K_sim <- 3

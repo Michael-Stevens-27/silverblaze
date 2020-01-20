@@ -4,17 +4,22 @@
 \alias{plot_loglike}
 \title{Plot loglikelihood 95\% credible intervals}
 \usage{
-plot_loglike(project, K = 1, x_axis_type = 1, y_axis_type = 1,
-  phase = "sampling")
+plot_loglike(
+  project,
+  K = 1,
+  x_axis_type = 1,
+  y_axis_type = 1,
+  phase = "sampling"
+)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to produce the plot for}
+\item{K}{which value of K to produce the plot for.}
 
 \item{x_axis_type}{how to format the x-axis. 1 = integer rungs, 2 = values of
-beta, 3 = values of beta raised to the GTI power}
+beta raised to the GTI power.}
 
 \item{y_axis_type}{how to format the y-axis. 1 = raw values, 2 = truncated at
 auto-chosen lower limit. 3 = double-log scale.}
@@ -23,9 +28,4 @@ auto-chosen lower limit. 3 = double-log scale.}
 }
 \description{
 Plot loglikelihood 95\% credible intervals of current active set
-}
-\examples{
-
-\dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-plot_loglike(project = p, K = 2)
 }

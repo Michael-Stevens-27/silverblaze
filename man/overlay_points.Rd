@@ -4,21 +4,18 @@
 \alias{overlay_points}
 \title{Add points to dynamic map}
 \usage{
-overlay_points(myplot, lon, lat, col = "black", size = 1,
-  opacity = 1)
+overlay_points(myplot, lon, lat, col = "black", size = 1, opacity = 1)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
-\item{lon}{longitude of points}
+\item{lon, lat}{longitude and latitude of points.}
 
-\item{lat}{latitude of points}
+\item{col}{colour of points.}
 
-\item{col}{colour of points}
+\item{size}{size of points.}
 
-\item{size}{size of points}
-
-\item{opacity}{opacity of points}
+\item{opacity}{opacity of points.}
 }
 \description{
 Add points to dynamic map

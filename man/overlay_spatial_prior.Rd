@@ -4,22 +4,27 @@
 \alias{overlay_spatial_prior}
 \title{Add spatial prior to dynamic map}
 \usage{
-overlay_spatial_prior(myplot, project, col = col_hotcold(),
-  opacity = 0.8, smoothing = 1)
+overlay_spatial_prior(
+  myplot,
+  project,
+  col = col_hotcold(),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{col}{set of plotting colours}
+\item{col}{set of plotting colours.}
 
-\item{opacity}{opacity of spatial prior}
+\item{opacity}{opacity of spatial prior.}
 
 \item{smoothing}{what level of smoothing to apply to spatial prior Smoothing
 is applied using the \code{raster} function \code{disaggregate}, with
-\code{method = "bilinear"}}
+\code{method = "bilinear"}.}
 }
 \description{
 Add spatial prior to dynamic map

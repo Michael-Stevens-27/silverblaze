@@ -10,13 +10,13 @@ using namespace std;
 // MCMC parameters
 int Parameters::burnin;
 int Parameters::samples;
+vector<double> Parameters::beta_vec;
 int Parameters::rungs;
 bool Parameters::auto_converge;
 int Parameters::converge_test;
 bool Parameters::pb_markdown;
 bool Parameters::silent;
 bool Parameters::coupling_on;
-double Parameters::GTI_pow;
 
 // model parameters
 int Parameters::K;
@@ -46,13 +46,13 @@ Parameters::Parameters(const Rcpp::List &args) {
   // MCMC parameters
   burnin = rcpp_to_int(args["burnin"]);
   samples = rcpp_to_int(args["samples"]);
-  rungs = rcpp_to_int(args["rungs"]);
+  beta_vec = rcpp_to_vector_double(args["beta_vec"]);
+  rungs = int(beta_vec.size());
   auto_converge = rcpp_to_bool(args["auto_converge"]);
   converge_test = rcpp_to_int(args["converge_test"]);
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   silent = rcpp_to_bool(args["silent"]);
   coupling_on = rcpp_to_bool(args["coupling_on"]);
-  GTI_pow = rcpp_to_double(args["GTI_pow"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);

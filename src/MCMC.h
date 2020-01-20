@@ -13,7 +13,6 @@ class MCMC : public Data, public Parameters {
 public:
   
   // thermodynamic parameters
-  std::vector<double> beta_raised_vec;
   std::vector<int> rung_order;
   int cold_rung;
   
@@ -50,13 +49,14 @@ public:
   
   // store convergence
   std::vector<bool> rung_converged;
-  std::vector<int> convergence_iteration;
+  int convergence_iteration;
   
   
   // PUBLIC FUNCTIONS
   
   // constructors
-  MCMC();
+  MCMC() {};
+  MCMC(Lookup &lookup);
   
   // other functions
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);

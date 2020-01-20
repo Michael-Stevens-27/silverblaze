@@ -8,7 +8,7 @@ plot_map(map_type = 97)
 }
 \arguments{
 \item{map_type}{an index from 1 to 137 indicating the type of base map. The
-map types are taken from \code{leaflet::providers}. Defaults to "CartoDB"}
+map types are taken from \code{leaflet::providers}. Defaults to "CartoDB".}
 }
 \description{
 Create dynamic map

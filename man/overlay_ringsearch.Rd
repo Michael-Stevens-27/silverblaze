@@ -4,25 +4,31 @@
 \alias{overlay_ringsearch}
 \title{Add ring-search geoprofile to dynamic map}
 \usage{
-overlay_ringsearch(myplot, project, threshold = 0.1,
-  col = col_hotcold(), opacity = 0.8, smoothing = 1)
+overlay_ringsearch(
+  myplot,
+  project,
+  threshold = 0.1,
+  col = col_hotcold(),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
-\item{myplot}{dynamic map produced by \code{plot_map()} function}
+\item{myplot}{dynamic map produced by \code{plot_map()} function.}
 
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{threshold}{what proportion of geoprofile to plot}
+\item{threshold}{what proportion of geoprofile to plot.}
 
-\item{col}{set of plotting colours}
+\item{col}{set of plotting colours.}
 
 \item{opacity}{opacity of geoprofile (that is not invisible due to being
-below threshold)}
+below threshold).}
 
 \item{smoothing}{what level of smoothing to apply to geoprofile. Smoothing is
 applied using the \code{raster} function \code{disaggregate}, with
-\code{method = "bilinear"}}
+\code{method = "bilinear"}.}
 }
 \description{
 Add ring-search geoprofile to dynamic map.

@@ -5,17 +5,21 @@
 
 #include "Lookup.h"
 #include "Spatial_prior.h"
+#include "Data.h"
+#include "Parameters.h"
 
 //------------------------------------------------
 // class defining particle
-class Particle : public Lookup, public Spatial_prior {
+class Particle : public Data, public Parameters, public Spatial_prior {
 
 public:
   // PUBLIC OBJECTS
   
-  // beta_raised stores values of beta (the thermodynamic power), raised to the 
-  // power GTI_pow
-  double beta_raised;
+  // pointer to lookup table
+  Lookup * lookup_ptr;
+  
+  // value of the thermodynamic power
+  double beta;
   
   // source locations
   std::vector<double> source_lon;
@@ -77,10 +81,10 @@ public:
   
   // constructors
   Particle() {};
-  Particle(double beta_raised);
+  Particle(Lookup &lookup, double beta);
   
   // other functions
-  void reset();
+  void reset(double beta);
   double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
   void update_sources(bool robbins_monro_on, int iteration);

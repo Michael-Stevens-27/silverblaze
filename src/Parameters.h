@@ -12,13 +12,13 @@ public:
   // MCMC parameters
   static int burnin;
   static int samples;
+  static std::vector<double> beta_vec;
   static int rungs;
   static bool auto_converge;
   static int converge_test;
   static bool pb_markdown;
   static bool silent;
   static bool coupling_on;
-  static double GTI_pow;
   
   // model parameters
   static int K;

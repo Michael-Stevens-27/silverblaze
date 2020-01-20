@@ -16,9 +16,10 @@ public:
   static std::vector<double> lookup_dist;
   
   // constructors
-  Lookup();
+  Lookup() {};
   
   // other methods
+  void recalc();
   double get_data_dist(double source_lon, double source_lat, int data_index);
   
 };

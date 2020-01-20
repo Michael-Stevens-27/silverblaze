@@ -10,11 +10,13 @@ using namespace std;
 vector<double> Lookup::lookup_dist;
 
 //------------------------------------------------
-// constructor for Lookup class
-Lookup::Lookup() {
+// recalculate lookup table
+void Lookup::recalc() {
   
   // print size of lookup table
-  //print("lookup table", sizeof(double)*n_lon*n_lat*n/1e6, "megabytes large");
+  if (!silent) {
+    print("lookup table", sizeof(double)*n_lon*n_lat*n/1e6, "megabytes in size");
+  }
   
   // populate lookup table
   lookup_dist = vector<double>(n_lon * n_lat * n);

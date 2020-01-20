@@ -25,13 +25,14 @@ rgeoprofile_file <- function(name) {
 #'
 #' @param name name of file
 #'
+#' @import rgdal
 #' @export
 
 rgeoprofile_shapefile <- function(name) {
 
   # load file from inst/extdata folder
   name_full <- system.file("extdata/", name, package = 'silverblaze', mustWork = TRUE)
-  ret <- readOGR(name_full)
+  ret <- rgdal::readOGR(name_full)
 
   # return
   return(ret)
@@ -70,6 +71,7 @@ user_yes_no <- function(x="continue? (Y/N): ") {
 
 # -----------------------------------
 # draw from Dirichlet distribution
+#' @importFrom stats rgamma
 #' @noRd
 rdirichlet <- function (alpha_vec) {
   Y <- rgamma(length(alpha_vec), shape = alpha_vec, scale = 1)
@@ -123,7 +125,12 @@ log_sum <- function(x) {
 }
 
 #------------------------------------------------
-# return p-value of Geweke's diagnostic convergence statistic, estimated from package coda
+# geweke_pvalue
+# return p-value of Geweke's diagnostic convergence statistic, estimated from
+# package coda
+#' @importFrom stats pnorm
+#' @importFrom coda geweke.diag
+#' @importFrom methods is
 #' @noRd
 geweke_pvalue <- function(x) {
   tc <- tryCatch(geweke.diag(x), error = function(e) e, warning = function(w) w)
@@ -133,6 +140,7 @@ geweke_pvalue <- function(x) {
   ret <- 2*pnorm(abs(geweke.diag(x)$z), lower.tail = FALSE)
   return(ret)
 }
+
 #------------------------------------------------
 # check that geweke p-value non-significant at alpha significance level on
 # values x[1:n]
@@ -165,7 +173,7 @@ test_convergence <- function(x, n, alpha = 0.01) {
 }
 #------------------------------------------------
 # update progress bar
-# (not exported)
+#' @importFrom utils setTxtProgressBar
 #' @noRd
 update_progress <- function(pb_list, name, i, max_i) {
   setTxtProgressBar(pb_list[[name]], i)
@@ -188,7 +196,9 @@ update_progress <- function(pb_list, name, i, max_i) {
 #' @param centre_lat The mean latitude of the normal distribution
 #' @param sigma The standard deviation of the normal distribution
 #'
+#' @importFrom stats rnorm
 #' @export
+#' 
 #' @examples
 #' points <-rnorm_sphere(n = 500, centre_lat = 0, centre_lon = 0, sigma = 1)
 #' plot(points$longitude, points$latitude) 
@@ -442,6 +452,9 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #' @references Barnard, Etienne. "Maximum leave-one-out likelihood for kernel
 #'   density estimation." Proceedings of the Twenty-First Annual Symposium of
 #'   the Pattern Recognition Association of South Africa. 2010
+#' 
+#' @importFrom methods is
+#' 
 #' @export
 
 kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
@@ -535,7 +548,7 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
   optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
                         error = function(e) e, warning = function(w) w)
-  if (is (optim_try, "warning")) {
+  if (is(optim_try, "warning")) {
     warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
     lambda_ml <- lambda_step
   } else {
@@ -660,6 +673,7 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #' @param source_lat latitudes of known sources
 #' @param ring_search Option to compute ring search hitscores
 #'
+#' @importFrom raster extract
 #' @export
 
 get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
@@ -690,16 +704,15 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   df <- data.frame(longitude = source_lon, latitude = source_lat)
 
   # add ring-search hitscores
-  if(ring_search)
-  {
-  ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
-  df$hs_ringsearch <- round(extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
+  if(ring_search) {
+    ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
+    df$hs_ringsearch <- round(raster::extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
   }
   
   # add geoprofile hitscores for all K
   for (k in K) {
     geoprofile <- get_output(project, "geoprofile", k)
-    df$x <- round(extract(geoprofile, cbind(source_lon, source_lat)), digits = 2)
+    df$x <- round(raster::extract(geoprofile, cbind(source_lon, source_lat)), digits = 2)
     names(df)[ncol(df)] <- paste0("hs_geoprofile_K", k)
   }
 

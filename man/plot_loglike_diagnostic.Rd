@@ -4,18 +4,17 @@
 \alias{plot_loglike_diagnostic}
 \title{Produce diagnostic plots of log-likelihood}
 \usage{
-plot_loglike_diagnostic(project, K = NULL, rung = NULL,
-  col = "black")
+plot_loglike_diagnostic(project, K = NULL, rung = NULL, col = "black")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
-\code{rgeoprofile_project()}}
+\code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to plot}
+\item{K}{which value of K to plot.}
 
-\item{rung}{which rung to plot. Defaults to the cold chain}
+\item{rung}{which rung to plot. Defaults to the cold chain.}
 
-\item{col}{colour of the trace}
+\item{col}{colour of the trace.}
 }
 \description{
 Produce diagnostic plots of the log-likelihood.

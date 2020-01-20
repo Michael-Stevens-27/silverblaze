@@ -246,6 +246,6 @@ true_sigma2
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-saveRDS(p1, file = "VarSigproject_no_overlap.rds")
-saveRDS(p2, file = "VarSigproject_overlap.rds")
+#saveRDS(p1, file = "VarSigproject_no_overlap.rds")
+#saveRDS(p2, file = "VarSigproject_overlap.rds")
 ```

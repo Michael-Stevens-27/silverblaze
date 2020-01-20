@@ -7,21 +7,16 @@ using namespace std;
 
 //------------------------------------------------
 // constructor for MCMC class
-MCMC::MCMC() {
+MCMC::MCMC(Lookup &lookup) {
   
-  // thermodynamic parameters. The object beta_raised_vec stores values of beta
-  // (the thermodynamic power), raised to the power GTI_pow
-  beta_raised_vec = vector<double>(rungs);
-  for (int rung = 0; rung < rungs; rung++) {
-    beta_raised_vec[rung] = (rungs == 1) ? 1 : pow((rung + 1)/double(rungs), GTI_pow);
-  }
-  rung_order = seq_int(0,rungs - 1);
+  // initialise rung order
+  rung_order = seq_int(0, rungs - 1);
   cold_rung = rung_order[rungs - 1];
   
   // vector of particles
   particle_vec = vector<Particle>(rungs);
-  for (int rung = 0; rung < rungs; rung++) {
-    particle_vec[rung] = Particle(beta_raised_vec[rung]);
+  for (int r = 0; r < rungs; r++) {
+    particle_vec[r] = Particle(lookup, beta_vec[r]);
   }
   
   // initialise ordering of labels
@@ -59,7 +54,7 @@ MCMC::MCMC() {
   
   // store convergence
   rung_converged = vector<bool>(rungs, false);
-  convergence_iteration = vector<int>(rungs);
+  convergence_iteration = burnin;
   
 }
 
@@ -77,32 +72,18 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   Rcpp::Function test_convergence = args_functions["test_convergence"];
   Rcpp::Function update_progress = args_functions["update_progress"];
   
-  // define points at which convergence checked
-  vector<int> convergence_checkpoint(1,converge_test);
-  while (convergence_checkpoint.back()<burnin) {
-    convergence_checkpoint.push_back(convergence_checkpoint.back()+converge_test);
-  }
-  int checkpoint_i = 0;
-  
   // reset particles
   for (int r = 0; r < rungs; r++) {
-    particle_vec[r].reset();
-    particle_vec[r].beta_raised = beta_raised_vec[r];
+    particle_vec[r].reset(beta_vec[r]);
   }
   rung_order = seq_int(0, rungs-1);
   
   // loop through burnin iterations
-  vector<bool> convergence_reached(rungs, false);
   bool all_convergence_reached = false;
   for (int rep = 0; rep < burnin; rep++) {
     
     // update particles
     for (int r = 0; r < rungs; r++) {
-      
-      // skip over converged rungs
-      if (convergence_reached[r]) {
-        continue;
-      }
       int rung = rung_order[r];
       
       // update sources
@@ -116,11 +97,11 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
     } // end loop over rungs
     
-    // TURN ON Metropolis-coupling during burnin
+    // apply Metropolis-coupling
     if (coupling_on) {
-      metropolis_coupling(TRUE);
+      metropolis_coupling(true);
     }
-        
+    
     // focus on cold rung
     cold_rung = rung_order[rungs - 1];
     
@@ -144,9 +125,6 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     
     // store loglikelihood
     for (int r=0; r<rungs; r++) {
-      if (convergence_reached[r]) {
-        continue;
-      }
       int rung = rung_order[r];
       loglike_burnin[r][rep] = particle_vec[rung].loglike;
     }
@@ -178,35 +156,31 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // check for convergence
-    if ((auto_converge && (rep+1) == convergence_checkpoint[checkpoint_i]) || (!auto_converge && (rep+1) == burnin)) {
+    if ((auto_converge && ((rep+1) % converge_test) == 0) || (rep+1) == burnin) {
       
-      // check for convergence of all unconverged chains
-      for (int r=0; r<rungs; r++) {
-        if (!convergence_reached[r]) {
-          convergence_reached[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
-          if (convergence_reached[r]) {
-            rung_converged[r] = true;
-            convergence_iteration[r] = rep+1;
-          }
-        }
+      // check for convergence of each chain
+      for (int r = 0; r < rungs; ++r) {
+        rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
       }
+      
       // break if convergence reached
       all_convergence_reached = true;
-      for (int r=0; r<rungs; r++) {
-        if (!convergence_reached[r]) {
+      for (int r = 0; r < rungs; ++r) {
+        if (!rung_converged[r]) {
           all_convergence_reached = false;
           break;
         }
       }
+      
       // end if all reached convergence
       if (all_convergence_reached) {
+        convergence_iteration = rep+1;
         if (!silent) {
           update_progress(args_progress, "pb_burnin", burnin, burnin);
-          print("   converged within", rep+1, "iterations");
+          print("   converged within", convergence_iteration, "iterations");
         }
         break;
       }
-      checkpoint_i++;
       
     }  // end if auto_converge
     
@@ -254,9 +228,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       
     } // end loop over rungs
     
-    // Metropolis-coupling
+    // apply Metropolis-coupling
     if (coupling_on) {
-      metropolis_coupling(FALSE);
+      metropolis_coupling(false);
     }
     
     // focus on cold rung
@@ -335,28 +309,28 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
   // loop over rungs, starting with the hottest chain and moving to the cold
   // chain. Each time propose a swap with the next rung up
   for (int i = 0; i < (rungs - 1); i++) {
-
+    
     // define rungs of interest
     int rung1 = rung_order[i];
     int rung2 = rung_order[i + 1];
-
+    
     // get log-likelihoods and beta values of two chains in the comparison
     double loglike1 = particle_vec[rung1].loglike;
     double loglike2 = particle_vec[rung2].loglike;
-
-    double beta_raised1 = particle_vec[rung1].beta_raised;
-    double beta_raised2 = particle_vec[rung2].beta_raised;
-
+    
+    double beta1 = particle_vec[rung1].beta;
+    double beta2 = particle_vec[rung2].beta;
+    
     // calculate acceptance ratio (still in log space)
-    double acceptance = (loglike2*beta_raised1 + loglike1*beta_raised2) - (loglike1*beta_raised1 + loglike2*beta_raised2);
-
+    double acceptance = (loglike2*beta1 + loglike1*beta2) - (loglike1*beta1 + loglike2*beta2);
+    
     // accept or reject move
     double rand1 = runif1();
     if (log(rand1) < acceptance) {
-
+      
       // swap beta values
-      particle_vec[rung1].beta_raised = beta_raised2;
-      particle_vec[rung2].beta_raised = beta_raised1;
+      particle_vec[rung1].beta = beta2;
+      particle_vec[rung2].beta = beta1;
       
       // swap source proposal SD
       vector<double> store_source_propSD1 = particle_vec[rung1].source_propSD;
@@ -372,7 +346,7 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
       rung_order[i] = rung2;
       rung_order[i + 1] = rung1;
       
-      if(burnin_phase){
+      if (burnin_phase){
         // update burnin coupling acceptance rates
         coupling_accept_burnin[i]++;
       } else {

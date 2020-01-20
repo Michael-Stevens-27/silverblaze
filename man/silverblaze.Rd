@@ -3,8 +3,8 @@
 \docType{package}
 \name{silverblaze}
 \alias{silverblaze}
-\alias{silverblaze-package}
-\title{silverblaze}
+\title{Bayesian Geographic Profiling from Presence-Absence Data}
 \description{
-silverblaze
+Bayesian geographic profiling model that allows estimation of
+  source locations given presence and absence data.
 }
