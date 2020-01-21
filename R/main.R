@@ -388,7 +388,11 @@ run_mcmc <- function(project,
   # define beta_vec manually or from rungs and GTI_pow
   beta_vec <- beta_manual
   if (is.null(beta_vec)) {
-    beta_vec <- seq(0, 1, l = rungs)^GTI_pow
+    if (rungs == 1) {
+      beta_vec <- 1
+    } else {
+      beta_vec <- seq(0, 1, l = rungs)^GTI_pow
+    }
   }
   rungs <- length(beta_vec)
   
@@ -639,15 +643,15 @@ run_mcmc <- function(project,
     
     # process acceptance rates
     source_accept_burnin <- output_raw[[i]]$source_accept_burnin/burnin
-    source_accept_samples <- output_raw[[i]]$source_accept_sampling/samples
-    names(source_accept_burnin) <- names(source_accept_samples) <- group_names
+    source_accept_sampling <- output_raw[[i]]$source_accept_sampling/samples
+    names(source_accept_burnin) <- names(source_accept_sampling) <- group_names
     
     sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/burnin
-    sigma_accept_samples <- output_raw[[i]]$sigma_accept_sampling/samples
-    names(sigma_accept_burnin) <- names(sigma_accept_samples) <- group_names
+    sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
+    names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
-    coupling_accept_samples <- output_raw[[i]]$coupling_accept_sampling/(samples)
+    coupling_accept_sampling <- output_raw[[i]]$coupling_accept_sampling/(samples)
       
     # ---------- save arguments ----------
     
@@ -678,11 +682,11 @@ run_mcmc <- function(project,
                                                                     DIC_gelman = DIC_gelman,
                                                                     converged = converged,
                                                                     source_accept_burnin = source_accept_burnin,
-                                                                    source_accept_samples = source_accept_samples,
+                                                                    source_accept_sampling = source_accept_sampling,
                                                                     sigma_accept_burnin = sigma_accept_burnin,
-                                                                    sigma_accept_samples = sigma_accept_samples,
+                                                                    sigma_accept_sampling = sigma_accept_sampling,
                                                                     coupling_accept_burnin = coupling_accept_burnin,
-                                                                    coupling_accept_samples = coupling_accept_samples,
+                                                                    coupling_accept_sampling = coupling_accept_sampling,
                                                                     beta_vec = beta_vec,
                                                                     GTI_pow = GTI_pow)
     
@@ -845,14 +849,14 @@ align_qmatrix <- function(project) {
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
     
     # reorder source_accept
-    source_accept_samples <- x[[i]]$summary$source_accept_samples[best_perm_order]
-    names(source_accept_samples) <- group_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_samples <- source_accept_samples
+    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[best_perm_order]
+    names(source_accept_sampling) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
-    sigma_accept_samples <- x[[i]]$summary$sigma_accept_samples[best_perm_order]
-    names(sigma_accept_samples) <- group_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_samples <- sigma_accept_samples
+    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[best_perm_order]
+    names(sigma_accept_sampling) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
