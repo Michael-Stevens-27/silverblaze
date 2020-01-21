@@ -208,12 +208,15 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     loglike_prop += d->sentinel_counts[i]*log_theta_i - lgamma(d->sentinel_counts[i] + 1);
   }
   
-  // extract some values for convenience
-  double gamma_shape = p->expected_popsize_prior_shape;
-  double gamma_rate = p->expected_popsize_prior_rate;
-  
   // complete loglikelihood
-  loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+  if (p->expected_popsize_prior_sd == 0) {
+    loglike_prop += counts_total*log(p->expected_popsize_prior_mean) - p->expected_popsize_prior_mean*theta_sum;
+  } else {
+    double gamma_shape = p->expected_popsize_prior_shape;
+    double gamma_rate = p->expected_popsize_prior_rate;
+    
+    loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+  }
   
   return loglike_prop;
 }
@@ -347,12 +350,15 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     
   }
   
-  // extract some values for convenience
-  double gamma_shape = p->expected_popsize_prior_shape;
-  double gamma_rate = p->expected_popsize_prior_rate;
-  
   // complete loglikelihood
-  loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+  if (p->expected_popsize_prior_sd == 0) {
+    loglike_prop += counts_total*log(p->expected_popsize_prior_mean) - p->expected_popsize_prior_mean*theta_sum;
+  } else {
+    double gamma_shape = p->expected_popsize_prior_shape;
+    double gamma_rate = p->expected_popsize_prior_rate;
+    
+    loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+  }
   
   // calculate priors
   double logprior = dlnorm1(sigma[0], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
@@ -440,12 +446,15 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       
     }
     
-    // extract some values for convenience
-    double gamma_shape = p->expected_popsize_prior_shape;
-    double gamma_rate = p->expected_popsize_prior_rate;
-    
     // complete loglikelihood
-    loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+    if (p->expected_popsize_prior_sd == 0) {
+      loglike_prop += counts_total*log(p->expected_popsize_prior_mean) - p->expected_popsize_prior_mean*theta_sum;
+    } else {
+      double gamma_shape = p->expected_popsize_prior_shape;
+      double gamma_rate = p->expected_popsize_prior_rate;
+      
+      loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+    }
     
     // calculate priors
     double logprior = dlnorm1(sigma[k], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
