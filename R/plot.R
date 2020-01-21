@@ -121,8 +121,6 @@ theme_empty <- function() {
 #' @import ggplot2
 #' @importFrom grDevices grey
 #' @export
-#' 
-#' @examples
 
 plot_loglike <- function(project, 
                          K = 1, 
@@ -222,8 +220,6 @@ plot_loglike <- function(project,
 #' @import ggplot2
 #' @importFrom grDevices grey
 #' @export
-#' 
-#' @examples
 
 plot_coupling <- function(project, 
                           K = 1, 

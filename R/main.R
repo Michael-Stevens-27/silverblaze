@@ -152,24 +152,23 @@ raster_from_shapefile <- function (shp,
 #'   parameter set becomes the active set once created.
 #'
 #' @param project an rgeoprofile_project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param name an optional name for the parameter set
+#'   \code{rgeoprofile_project()}.
+#' @param name an optional name for the parameter set.
 #' @param spatial_prior a raster file defining the spatial prior. Precision
-#'   values are taken from this raster if it is defined
-#' @param sentinel_radius the observation radius of sentinel sites
+#'   values are taken from this raster if it is defined.
+#' @param sentinel_radius the observation radius of sentinel sites.
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
 #'   distance for all sources, or \code{"independent"} to assume an
-#'   independently drawn dispersal distance for each source
-#' @param sigma_prior_mean the prior mean of the parameter sigma (km)
+#'   independently drawn dispersal distance for each source.
+#' @param sigma_prior_mean the prior mean of the parameter sigma (km).
 #' @param sigma_prior_sd the prior standard deviation of the parameter sigma
 #'   (km). Set to 0 to use a fixed value for sigma (fixed at
-#'   \code{sigma_prior_mean})
+#'   \code{sigma_prior_mean}).
 #' @param expected_popsize_prior_mean the prior mean of the expected total
-#'   population size
+#'   population size.
 #' @param expected_popsize_prior_sd the prior standard deviation of the expected
 #'   total population size. Set to 0 to use a fixed value (fixed at
-#'   \code{expected_popsize_prior_mean}), or set to -1 to use an improper,
-#'   infinitely diffuse prior
+#'   \code{expected_popsize_prior_mean}).
 #'
 #' @export
 
@@ -193,9 +192,7 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
-  if (expected_popsize_prior_sd != -1) {
-    assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
-  }
+  assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   assert_single_string(name)
 
   # make spatial_prior from data limits if unspecified

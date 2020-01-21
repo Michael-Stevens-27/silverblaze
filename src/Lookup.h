@@ -8,15 +8,20 @@
 
 //------------------------------------------------
 // class containing lookup tables
-class Lookup : public Data, public Parameters {
+class Lookup {
   
 public:
   
+  // pointers
+  Data * d;
+  Parameters * p;
+  
   // lookup table
-  static std::vector<double> lookup_dist;
+  std::vector<double> lookup_dist;
   
   // constructors
   Lookup() {};
+  Lookup(Data &data, Parameters &params);
   
   // other methods
   void recalc();

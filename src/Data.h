@@ -9,10 +9,10 @@ class Data {
   
 public:
   
-  static std::vector<double> sentinel_lon;
-  static std::vector<double> sentinel_lat;
-  static std::vector<int> sentinel_counts;
-  static int n;
+  std::vector<double> sentinel_lon;
+  std::vector<double> sentinel_lat;
+  std::vector<int> sentinel_counts;
+  int n;
   
   // constructors
   Data() {};

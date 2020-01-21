@@ -116,7 +116,7 @@ pPopDen <- new_set(project = pPopDen,
              sigma_model = "single",
              sigma_prior_mean = 3,
              sigma_prior_sd = 2,
-             expected_popsize_prior_sd = -1)
+             expected_popsize_prior_sd = 1e3)
 ```
 
 Plot the data with the prior:

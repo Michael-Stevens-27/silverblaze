@@ -38,7 +38,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   // source location in a lon/lat grid. The grid is defined from the lon/lat min
   // and max values ()in the parameter set), and the lon/lat precision (in the
   // MCMC arguments).
-  Lookup lookup;
+  Lookup lookup(data, params);
   lookup.recalc();
   
   // start timer

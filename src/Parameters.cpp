@@ -5,41 +5,6 @@
 using namespace std;
 
 //------------------------------------------------
-// declare static member variables
-
-// MCMC parameters
-int Parameters::burnin;
-int Parameters::samples;
-vector<double> Parameters::beta_vec;
-int Parameters::rungs;
-bool Parameters::auto_converge;
-int Parameters::converge_test;
-bool Parameters::pb_markdown;
-bool Parameters::silent;
-bool Parameters::coupling_on;
-
-// model parameters
-int Parameters::K;
-double Parameters::sentinel_radius;
-double Parameters::min_lon;
-double Parameters::max_lon;
-double Parameters::res_lon;
-int Parameters::n_lon;
-double Parameters::min_lat;
-double Parameters::max_lat;
-double Parameters::res_lat;
-int Parameters::n_lat;
-double Parameters::search_area;
-vector<double> Parameters::source_init;
-int Parameters::sigma_model;
-double Parameters::sigma_prior_meanlog;
-double Parameters::sigma_prior_sdlog;
-double Parameters::expected_popsize_prior_mean;
-double Parameters::expected_popsize_prior_sd;
-double Parameters::expected_popsize_prior_shape;
-double Parameters::expected_popsize_prior_rate;
-
-//------------------------------------------------
 // constructor for Parameters class
 Parameters::Parameters(const Rcpp::List &args) {
   
@@ -79,12 +44,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   // get expected_popsize shape and rate parameters from raw inputs
   expected_popsize_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
   expected_popsize_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
-  if (expected_popsize_prior_sd == -1) {  // improper prior
-    expected_popsize_prior_shape = 0;
-    expected_popsize_prior_rate = 0;
-  } else {  // proper prior
-    expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
-    expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
-  }
+  expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
+  expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
   
 }

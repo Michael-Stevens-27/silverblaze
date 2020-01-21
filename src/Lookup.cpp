@@ -5,9 +5,14 @@
 using namespace std;
 
 //------------------------------------------------
-// declare static member variables
-
-vector<double> Lookup::lookup_dist;
+// constructor
+Lookup::Lookup(Data &data, Parameters &params) {
+  
+  // define pointers
+  d = &data;
+  p = &params;
+  
+}
 
 //------------------------------------------------
 // recalculate lookup table
@@ -19,16 +24,16 @@ void Lookup::recalc() {
   //}
   
   // populate lookup table
-  lookup_dist = vector<double>(n_lon * n_lat * n);
+  lookup_dist = vector<double>(p->n_lon * p->n_lat * d->n);
   int j = 0;
-  for (int i_lon=0; i_lon<n_lon; ++i_lon) {
-    for (int i_lat=0; i_lat<n_lat; ++i_lat) {
-      for (int i=0; i<n; ++i) {
+  for (int i_lon = 0; i_lon < p->n_lon; ++i_lon) {
+    for (int i_lat = 0; i_lat < p->n_lat; ++i_lat) {
+      for (int i = 0; i < d->n; ++i) {
         
         // store great circle distance between this lon/lat point and the data
-        double lon = min_lon + (i_lon + 0.5)*res_lon;
-        double lat = min_lat + (i_lat + 0.5)*res_lat;
-        lookup_dist[j++] = gc_dist(lon, lat, sentinel_lon[i], sentinel_lat[i]);
+        double lon = p->min_lon + (i_lon + 0.5)*p->res_lon;
+        double lat = p->min_lat + (i_lat + 0.5)*p->res_lat;
+        lookup_dist[j++] = gc_dist(lon, lat, d->sentinel_lon[i], d->sentinel_lat[i]);
       }
     }
   }
@@ -41,9 +46,9 @@ void Lookup::recalc() {
 double Lookup::get_data_dist(double source_lon, double source_lat, int data_index) {
   
   // convert lon/lat to index
-  int lon_index = floor((source_lon - min_lon)/res_lon);
-  int lat_index = floor((source_lat - min_lat)/res_lat);
+  int lon_index = floor((source_lon - p->min_lon)/p->res_lon);
+  int lat_index = floor((source_lat - p->min_lat)/p->res_lat);
   
   // lookup value
-  return lookup_dist[(lon_index*n_lat + lat_index)*n + data_index];
+  return lookup_dist[(lon_index*p->n_lat + lat_index)*d->n + data_index];
 }

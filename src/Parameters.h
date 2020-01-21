@@ -10,36 +10,36 @@ class Parameters {
 public:
   
   // MCMC parameters
-  static int burnin;
-  static int samples;
-  static std::vector<double> beta_vec;
-  static int rungs;
-  static bool auto_converge;
-  static int converge_test;
-  static bool pb_markdown;
-  static bool silent;
-  static bool coupling_on;
+  int burnin;
+  int samples;
+  std::vector<double> beta_vec;
+  int rungs;
+  bool auto_converge;
+  int converge_test;
+  bool pb_markdown;
+  bool silent;
+  bool coupling_on;
   
   // model parameters
-  static int K;
-  static double sentinel_radius;
-  static double min_lon;
-  static double max_lon;
-  static double res_lon;
-  static int n_lon;
-  static double min_lat;
-  static double max_lat;
-  static double res_lat;
-  static int n_lat;
-  static double search_area;
-  static std::vector<double> source_init;
-  static int sigma_model;
-  static double sigma_prior_meanlog;
-  static double sigma_prior_sdlog;
-  static double expected_popsize_prior_mean;
-  static double expected_popsize_prior_sd;
-  static double expected_popsize_prior_shape;
-  static double expected_popsize_prior_rate;
+  int K;
+  double sentinel_radius;
+  double min_lon;
+  double max_lon;
+  double res_lon;
+  int n_lon;
+  double min_lat;
+  double max_lat;
+  double res_lat;
+  int n_lat;
+  double search_area;
+  std::vector<double> source_init;
+  int sigma_model;
+  double sigma_prior_meanlog;
+  double sigma_prior_sdlog;
+  double expected_popsize_prior_mean;
+  double expected_popsize_prior_sd;
+  double expected_popsize_prior_shape;
+  double expected_popsize_prior_rate;
   
   // constructors
   Parameters() {};

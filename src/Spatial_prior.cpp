@@ -5,11 +5,6 @@
 using namespace std;
 
 //------------------------------------------------
-// declare static member variables
-
-vector<bool> Spatial_prior::spatial_prior_mask;
-
-//------------------------------------------------
 // constructor for Parameters class
 Spatial_prior::Spatial_prior(const Rcpp::List &args, Parameters &params) {
   
