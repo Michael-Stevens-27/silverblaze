@@ -164,8 +164,9 @@ double Particle::calculate_logprior_source(double source_lon_prop, double source
 // calculate log-likelihood given new proposed source
 double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
   
-  // initialise new likelihood
+  // initialise running values
   double loglike_prop = 0;
+  double theta_sum = 0;
   
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
@@ -198,16 +199,21 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
       }
     }
     
-    // divide by K
-    log_hazard_sum -= log_K;
+    // define theta_i as the sentinel area * the mean hazard. Calculate
+    // log(theta_i) and add theta_i to running sum
+    double log_theta_i = log_sentinel_area + log_hazard_sum - log_K;
+    theta_sum += exp(log_theta_i);
     
-    // define the rate lambda of the Poisson process at this sentinel site,
-    // while remaining in log space
-    double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
-    
-    // calculate the Poisson log-probability of the counts at this sentinel site
-    loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
+    // add necessary terms to loglikelihood
+    loglike_prop += d->sentinel_counts[i]*log_theta_i - lgamma(d->sentinel_counts[i] + 1);
   }
+  
+  // extract some values for convenience
+  double gamma_shape = p->expected_popsize_prior_shape;
+  double gamma_rate = p->expected_popsize_prior_rate;
+  
+  // complete loglikelihood
+  loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
   
   return loglike_prop;
 }
@@ -306,8 +312,9 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
   sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
   
-  // initialise new likelihood
+  // initialise running values
   double loglike_prop = 0;
+  double theta_sum = 0;
   
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
@@ -330,17 +337,22 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
       }
     }
     
-    // divide by K
-    log_hazard_sum -= log_K;
+    // define theta_i as the sentinel area * the mean hazard. Calculate
+    // log(theta_i) and add theta_i to running sum
+    double log_theta_i = log_sentinel_area + log_hazard_sum - log_K;
+    theta_sum += exp(log_theta_i);
     
-    // define the rate lambda of the Poisson process at this sentinel site,
-    // while remaining in log space
-    double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
-    
-    // calculate the Poisson log-probability of the counts at this sentinel site
-    loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
+    // add necessary terms to loglikelihood
+    loglike_prop += d->sentinel_counts[i]*log_theta_i - lgamma(d->sentinel_counts[i] + 1);
     
   }
+  
+  // extract some values for convenience
+  double gamma_shape = p->expected_popsize_prior_shape;
+  double gamma_rate = p->expected_popsize_prior_rate;
+  
+  // complete loglikelihood
+  loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
   
   // calculate priors
   double logprior = dlnorm1(sigma[0], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
@@ -394,8 +406,9 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
     sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
     sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
     
-    // initialise new likelihood
+    // initialise running values
     double loglike_prop = 0;
+    double theta_sum = 0;
     
     // loop through sentinel sites
     for (int i = 0; i < d->n; ++i) {
@@ -417,16 +430,22 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
         }
       }
       
-      // divide by K
-      log_hazard_sum -= log_K;
+      // define theta_i as the sentinel area * the mean hazard. Calculate
+      // log(theta_i) and add theta_i to running sum
+      double log_theta_i = log_sentinel_area + log_hazard_sum - log_K;
+      theta_sum += exp(log_theta_i);
       
-      // define the rate lambda of the Poisson process at this sentinel site,
-      // while remaining in log space
-      double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
+      // add necessary terms to loglikelihood
+      loglike_prop += d->sentinel_counts[i]*log_theta_i - lgamma(d->sentinel_counts[i] + 1);
       
-      // calculate the Poisson log-probability of the counts at this sentinel site
-      loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
     }
+    
+    // extract some values for convenience
+    double gamma_shape = p->expected_popsize_prior_shape;
+    double gamma_rate = p->expected_popsize_prior_rate;
+    
+    // complete loglikelihood
+    loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
     
     // calculate priors
     double logprior = dlnorm1(sigma[k], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
@@ -482,8 +501,6 @@ void Particle::update_expected_popsize() {
   // sum of Poisson rate over sentinel sites
   double lambda_total = 0;
   for (int i = 0; i < d->n; ++i) {
-    
-    // take mean of hazard over sources
     for (int k = 0; k < p->K; ++k) {
       lambda_total += exp(log_sentinel_area + log_hazard_height[i][k] - log_K);
     }

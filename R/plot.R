@@ -210,6 +210,57 @@ plot_loglike <- function(project,
 }
 
 #------------------------------------------------
+#' @title Plot acceptance rate between rungs
+#'
+#' @description TODO
+#'
+#' @param project an RgeoProfile project, as produced by the function
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to produce the plot for.
+#' @param phase which phase to plot. Must be either "burnin" or "sampling".
+#'
+#' @import ggplot2
+#' @importFrom grDevices grey
+#' @export
+#' 
+#' @examples
+
+plot_coupling <- function(project, 
+                          K = 1, 
+                          phase = "sampling") {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  assert_in(phase, c("burnin", "sampling"))
+  
+  # get plotting data
+  if (phase == "burnin") {
+    coupling <- get_output(project, "coupling_accept_burnin", type = "summary", K = K)
+  } else {
+    coupling <- get_output(project, "coupling_accept_sampling", type = "summary", K = K)
+  }
+  
+  # get x values
+  x_vec <- 1:length(coupling) + 0.5
+  
+  # create plotting dataframe
+  df_plot <- data.frame(x = x_vec, y = coupling)
+  
+  # produce plot
+  plot1 <- ggplot(df_plot) + theme_bw() + theme(panel.grid.minor.x = element_blank(),
+                                           panel.grid.major.x = element_blank())
+  plot1 <- plot1 + geom_point(aes_(x = ~x, y = ~y))
+  plot1 <- plot1 + geom_vline(aes_(xintercept = ~x-0.5), col = grey(0.9))
+  plot1 <- plot1 + geom_vline(aes(xintercept = length(coupling)+1), col = grey(0.9))
+  plot1 <- plot1 + ylim(c(0, 1)) + xlim(c(1, length(coupling)+1))
+  plot1 <- plot1 + xlab("rung") + ylab("coupling acceptance rate")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
 #' @title Posterior allocation plot
 #'
 #' @description Produce posterior allocation plot of current active set.
@@ -1413,3 +1464,4 @@ overlay_ringsearch <- function(myplot,
   # return plot object
   return(myplot)
 }
+
