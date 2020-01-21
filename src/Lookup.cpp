@@ -14,9 +14,9 @@ vector<double> Lookup::lookup_dist;
 void Lookup::recalc() {
   
   // print size of lookup table
-  if (!silent) {
-    print("lookup table", sizeof(double)*n_lon*n_lat*n/1e6, "megabytes in size");
-  }
+  //if (!silent) {
+  //  print("lookup table", sizeof(double)*n_lon*n_lat*n/1e6, "megabytes in size");
+  //}
   
   // populate lookup table
   lookup_dist = vector<double>(n_lon * n_lat * n);

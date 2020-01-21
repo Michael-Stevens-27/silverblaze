@@ -7,54 +7,58 @@ using namespace std;
 
 //------------------------------------------------
 // constructor for MCMC class
-MCMC::MCMC(Lookup &lookup) {
+MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatprior) {
+  
+  // store pointer to data and parameters
+  p = &params;
+  d = &data;
   
   // initialise rung order
-  rung_order = seq_int(0, rungs - 1);
-  cold_rung = rung_order[rungs - 1];
+  rung_order = seq_int(0, p->rungs - 1);
+  cold_rung = rung_order[p->rungs - 1];
   
   // vector of particles
-  particle_vec = vector<Particle>(rungs);
-  for (int r = 0; r < rungs; r++) {
-    particle_vec[r] = Particle(lookup, beta_vec[r]);
+  particle_vec = vector<Particle>(p->rungs);
+  for (int r = 0; r < p->rungs; r++) {
+    particle_vec[r] = Particle(data, params, lookup, spatprior, p->beta_vec[r]);
   }
   
   // initialise ordering of labels
-  label_order = seq_int(0, K - 1);
+  label_order = seq_int(0, p->K - 1);
   
   // qmatrices
-  log_qmatrix_running = vector<vector<double>>(n, vector<double>(K));
-  if (K == 1) {
-    qmatrix_final = vector<vector<double>>(n, vector<double>(K, samples));
+  log_qmatrix_running = vector<vector<double>>(d->n, vector<double>(p->K));
+  if (p->K == 1) {
+    qmatrix_final = vector<vector<double>>(d->n, vector<double>(p->K, p->samples));
   } else {
-    qmatrix_final = vector<vector<double>>(n, vector<double>(K));
+    qmatrix_final = vector<vector<double>>(d->n, vector<double>(p->K));
   }
   
   // objects for storing results
-  loglike_burnin = vector<vector<double>>(rungs, vector<double>(burnin));
-  source_lon_burnin = vector<vector<double>>(burnin, vector<double>(K));
-  source_lat_burnin = vector<vector<double>>(burnin, vector<double>(K));
-  sigma_burnin = vector<vector<double>>(burnin, vector<double>(K));
-  expected_popsize_burnin = vector<double>(burnin);
+  loglike_burnin = vector<vector<double>>(p->rungs, vector<double>(p->burnin));
+  source_lon_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
+  source_lat_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
+  sigma_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
+  expected_popsize_burnin = vector<double>(p->burnin);
   
-  loglike_sampling = vector<vector<double>>(rungs, vector<double>(samples));
-  source_lon_sampling = vector<vector<double>>(samples, vector<double>(K));
-  source_lat_sampling = vector<vector<double>>(samples, vector<double>(K));
-  sigma_sampling = vector<vector<double>>(samples, vector<double>(K));
-  expected_popsize_sampling = vector<double>(samples);
+  loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
+  source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  expected_popsize_sampling = vector<double>(p->samples);
   
   // objects for storing acceptance rates
-  source_accept_burnin = vector<int>(K);
-  source_accept_sampling = vector<int>(K);
-  sigma_accept_burnin = vector<int>(K);
-  sigma_accept_sampling = vector<int>(K);
+  source_accept_burnin = vector<int>(p->K);
+  source_accept_sampling = vector<int>(p->K);
+  sigma_accept_burnin = vector<int>(p->K);
+  sigma_accept_sampling = vector<int>(p->K);
   
-  coupling_accept_burnin = vector<int>(rungs - 1);
-  coupling_accept_sampling = vector<int>(rungs - 1);
+  coupling_accept_burnin = vector<int>(p->rungs - 1);
+  coupling_accept_sampling = vector<int>(p->rungs - 1);
   
   // store convergence
-  rung_converged = vector<bool>(rungs, false);
-  convergence_iteration = burnin;
+  rung_converged = vector<bool>(p->rungs, false);
+  convergence_iteration = p->burnin;
   
 }
 
@@ -63,8 +67,8 @@ MCMC::MCMC(Lookup &lookup) {
 void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   
   // print header
-  if (!silent) {
-    print("Running MCMC for K =", K);
+  if (!p->silent) {
+    print("Running MCMC for K =", p->K);
     print("Burn-in phase");
   }
   
@@ -73,17 +77,17 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   Rcpp::Function update_progress = args_functions["update_progress"];
   
   // reset particles
-  for (int r = 0; r < rungs; r++) {
-    particle_vec[r].reset(beta_vec[r]);
+  for (int r = 0; r < p->rungs; r++) {
+    particle_vec[r].reset(p->beta_vec[r]);
   }
-  rung_order = seq_int(0, rungs-1);
+  rung_order = seq_int(0, p->rungs-1);
   
   // loop through burnin iterations
   bool all_convergence_reached = false;
-  for (int rep = 0; rep < burnin; rep++) {
+  for (int rep = 0; rep < p->burnin; rep++) {
     
     // update particles
-    for (int r = 0; r < rungs; r++) {
+    for (int r = 0; r < p->rungs; r++) {
       int rung = rung_order[r];
       
       // update sources
@@ -98,15 +102,15 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     } // end loop over rungs
     
     // apply Metropolis-coupling
-    if (coupling_on) {
+    if (p->coupling_on) {
       metropolis_coupling(true);
     }
     
     // focus on cold rung
-    cold_rung = rung_order[rungs - 1];
+    cold_rung = rung_order[p->rungs - 1];
     
     // methods that only apply when K>1
-    if (K > 1) {
+    if (p->K > 1) {
       
       // update qmatrix of cold rung
       particle_vec[cold_rung].update_qmatrix();
@@ -116,27 +120,27 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       label_order = particle_vec[cold_rung].label_order;
       
       // add particle log_qmatrix to log_qmatrix_running
-      for (int i=0; i<n; i++) {
-        for (int k=0; k<K; k++) {
+      for (int i = 0; i < d->n; ++i) {
+        for (int k = 0; k < p->K; ++k) {
           log_qmatrix_running[i][k] = log_sum(log_qmatrix_running[i][k], particle_vec[cold_rung].log_qmatrix[i][label_order[k]]);
         }
       }
     }
     
     // store loglikelihood
-    for (int r=0; r<rungs; r++) {
+    for (int r = 0; r < p->rungs; ++r) {
       int rung = rung_order[r];
       loglike_burnin[r][rep] = particle_vec[rung].loglike;
     }
     
     // store source locations
-    for (int k=0; k<K; k++) {
+    for (int k = 0; k < p->K; ++k) {
       source_lon_burnin[rep][k] = particle_vec[cold_rung].source_lon[label_order[k]];
       source_lat_burnin[rep][k] = particle_vec[cold_rung].source_lat[label_order[k]];
     }
     
     // store sigma
-    for (int k=0; k<K; k++) {
+    for (int k = 0; k < p->K; ++k) {
       sigma_burnin[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
     }
     
@@ -144,28 +148,28 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     expected_popsize_burnin[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
-    if (!silent) {
-      if ((rep+1) == burnin) {
-        update_progress(args_progress, "pb_burnin", rep+1, burnin);
+    if (!p->silent) {
+      if ((rep+1) == p->burnin) {
+        update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
       } else {
-        int remainder = rep % int(ceil(double(burnin)/100));
-        if (remainder == 0 && !pb_markdown) {
-          update_progress(args_progress, "pb_burnin", rep+1, burnin);
+        int remainder = rep % int(ceil(double(p->burnin)/100));
+        if (remainder == 0 && !p->pb_markdown) {
+          update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
         }
       }
     }
     
     // check for convergence
-    if ((auto_converge && ((rep+1) % converge_test) == 0) || (rep+1) == burnin) {
+    if ((p->auto_converge && ((rep+1) % p->converge_test) == 0) || (rep+1) == p->burnin) {
       
       // check for convergence of each chain
-      for (int r = 0; r < rungs; ++r) {
+      for (int r = 0; r < p->rungs; ++r) {
         rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
       }
       
       // break if convergence reached
       all_convergence_reached = true;
-      for (int r = 0; r < rungs; ++r) {
+      for (int r = 0; r < p->rungs; ++r) {
         if (!rung_converged[r]) {
           all_convergence_reached = false;
           break;
@@ -175,8 +179,8 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       // end if all reached convergence
       if (all_convergence_reached) {
         convergence_iteration = rep+1;
-        if (!silent) {
-          update_progress(args_progress, "pb_burnin", burnin, burnin);
+        if (!p->silent) {
+          update_progress(args_progress, "pb_burnin", p->burnin, p->burnin);
           print("   converged within", convergence_iteration, "iterations");
         }
         break;
@@ -191,8 +195,8 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   sigma_accept_burnin = particle_vec[cold_rung].sigma_accept_burnin;
   
   // warning if still not converged
-  if (!all_convergence_reached && !silent) {
-    print("   Warning: convergence still not reached within", burnin, "iterations");
+  if (!all_convergence_reached && !p->silent) {
+    print("   Warning: convergence still not reached within", p->burnin, "iterations");
   }
   
 }
@@ -202,7 +206,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
 void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   
   // print header
-  if (!silent) {
+  if (!p->silent) {
     print("Sampling phase");
   }
   
@@ -211,10 +215,10 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   Rcpp::Function update_progress = args_functions["update_progress"];
   
   // loop through sampling iterations
-  for (int rep=0; rep<samples; rep++) {
+  for (int rep = 0; rep < p->samples; ++rep) {
     
     // update particles
-    for (int r=0; r<rungs; r++) {
+    for (int r = 0; r < p->rungs; ++r) {
       int rung = rung_order[r];
       
       // update sources
@@ -229,15 +233,15 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     } // end loop over rungs
     
     // apply Metropolis-coupling
-    if (coupling_on) {
+    if (p->coupling_on) {
       metropolis_coupling(false);
     }
     
     // focus on cold rung
-    cold_rung = rung_order[rungs - 1];
+    cold_rung = rung_order[p->rungs - 1];
     
     // methods that only apply when K>1
-    if (K > 1) {
+    if (p->K > 1) {
       
       // update qmatrix of cold rung
       particle_vec[cold_rung].update_qmatrix();
@@ -247,15 +251,15 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       label_order = particle_vec[cold_rung].label_order;
       
       // add particle log_qmatrix to log_qmatrix_running
-      for (int i=0; i<n; i++) {
-        for (int k=0; k<K; k++) {
+      for (int i = 0; i < d->n; ++i) {
+        for (int k = 0; k < p->K; ++k) {
           log_qmatrix_running[i][k] = log_sum(log_qmatrix_running[i][k], particle_vec[cold_rung].log_qmatrix[i][label_order[k]]);
         }
       }
       
       // add particle qmatrix to qmatrix_final
-      for (int i=0; i<n; i++) {
-        for (int k=0; k<K; k++) {
+      for (int i = 0; i < d->n; ++i) {
+        for (int k = 0; k < p->K; ++k) {
           qmatrix_final[i][k] += particle_vec[cold_rung].qmatrix[i][label_order[k]];
         }
       }
@@ -263,19 +267,19 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // store loglikelihood
-    for (int r=0; r<rungs; r++) {
+    for (int r = 0; r < p->rungs; ++r) {
       int rung = rung_order[r];
       loglike_sampling[r][rep] = particle_vec[rung].loglike;
     }
     
     // store source locations
-    for (int k=0; k<K; k++) {
+    for (int k = 0; k < p->K; ++k) {
       source_lon_sampling[rep][k] = particle_vec[cold_rung].source_lon[label_order[k]];
       source_lat_sampling[rep][k] = particle_vec[cold_rung].source_lat[label_order[k]];
     }
     
     // store sigma
-    for (int k=0; k<K; k++) {
+    for (int k = 0; k < p->K; ++k) {
       sigma_sampling[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
     }
     
@@ -283,13 +287,13 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     expected_popsize_sampling[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
-    if (!silent) {
-      if ((rep+1) == samples) {
-        update_progress(args_progress, "pb_samples", rep+1, samples);
+    if (!p->silent) {
+      if ((rep+1) == p->samples) {
+        update_progress(args_progress, "pb_samples", rep+1, p->samples);
       } else {
-        int remainder = rep % int(ceil(double(samples)/100));
-        if (remainder == 0 && !pb_markdown) {
-          update_progress(args_progress, "pb_samples", rep+1, samples);
+        int remainder = rep % int(ceil(double(p->samples)/100));
+        if (remainder == 0 && !p->pb_markdown) {
+          update_progress(args_progress, "pb_samples", rep+1, p->samples);
         }
       }
     }
@@ -308,7 +312,7 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
   
   // loop over rungs, starting with the hottest chain and moving to the cold
   // chain. Each time propose a swap with the next rung up
-  for (int i = 0; i < (rungs - 1); i++) {
+  for (int i = 0; i < (p->rungs - 1); i++) {
     
     // define rungs of interest
     int rung1 = rung_order[i];

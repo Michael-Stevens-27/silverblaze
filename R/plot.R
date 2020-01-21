@@ -209,45 +209,6 @@ plot_loglike <- function(project,
   return(plot1)
 }
 
-# #------------------------------------------------
-# #' @title TODO
-# #'
-# #' @description default plot for class rgeoprofile_qmatrix.
-# #'
-# #' @param x TODO
-# #' @param y TODO
-# #' @param ... TODO
-# #'
-# #' @import ggplot2
-# #' @export
-# 
-# plot.rgeoprofile_qmatrix <- function(x, y, ...) {
-# 
-#   # get data into ggplot format
-#   m <- unclass(x)
-#   m <- m[!is.na(m[,1]), , drop = FALSE]
-#   n <- nrow(m)
-#   K <- ncol(m)
-#   df <- data.frame(sentinel_site = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), prob = as.vector(t(m)))
-# 
-#   # produce basic plot
-#   plot1 <- ggplot(df) + theme_empty()
-#   plot1 <- plot1 + geom_bar(aes_(x = ~sentinel_site, y = ~prob, fill = ~k), width = 1, stat = "identity")
-#   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-#   plot1 <- plot1 + xlab("positive sentinel site") + ylab("probability")
-# 
-#   # add legends
-#   plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
-#   plot1 <- plot1 + scale_colour_manual(values = "white")
-#   plot1 <- plot1 + guides(colour = FALSE)
-# 
-#   # add border
-#   plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
-# 
-#   # return plot object
-#   return(plot1)
-# }
-
 #------------------------------------------------
 #' @title Posterior allocation plot
 #'
@@ -342,9 +303,9 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
 }
 
 #------------------------------------------------
-#' @title Plot COI 95\% credible intervals
+#' @title Plot sigma 95\% credible intervals
 #'
-#' @description Plot COI 95\% credible intervals of current active set
+#' @description TODO
 #'
 #' @details TODO
 #'
@@ -400,9 +361,9 @@ plot_sigma <- function(project, K = NULL) {
 }
 
 #------------------------------------------------
-#' @title Plot COI 95\% credible intervals
+#' @title Plot expected population size 95\% credible intervals
 #'
-#' @description Plot COI 95\% credible intervals of current active set
+#' @description TODO
 #'
 #' @details TODO
 #'
@@ -416,7 +377,6 @@ plot_sigma <- function(project, K = NULL) {
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_expected_popsize(project = p)
-
 
 plot_expected_popsize <- function(project, K = NULL) {
 
@@ -701,7 +661,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
 #' # this value can take anywhere between 1 and 137.
 #' plot_map(map_type = 1)
 
-plot_map <- function(map_type = 97) {
+plot_map <- function(map_type = 110) {
 
   # check inputs
   assert_in(map_type, 1:137, message = "map_type must be in 1:137")

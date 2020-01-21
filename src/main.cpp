@@ -28,10 +28,10 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   Data data(args_data);
   
   // read in parameters into separate class
-  Parameters parameters(args_model);
+  Parameters params(args_model);
   
   // define spatial prior
-  Spatial_prior spatial_prior(args_model);
+  Spatial_prior spatprior(args_model, params);
   
   // define lookup table from data and parameters. The lookup table 
   // precalculates the distance in km of every data point from every possible 
@@ -45,7 +45,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
   
   // create MCMC object
-  MCMC mcmc(lookup);
+  MCMC mcmc(data, params, lookup, spatprior);
   
   // run MCMC
   mcmc.burnin_mcmc(args_functions, args_progress);
@@ -54,7 +54,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   // end timer
   chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
   chrono::duration<double> time_span = chrono::duration_cast< chrono::duration<double> >(t2-t1);
-  if (!parameters.silent) {
+  if (!params.silent) {
     print("   completed in", time_span.count(), "seconds\n");
   }
   

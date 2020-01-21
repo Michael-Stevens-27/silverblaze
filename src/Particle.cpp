@@ -8,37 +8,40 @@ using namespace std;
 
 //------------------------------------------------
 // constructor for Particle class
-Particle::Particle(Lookup &lookup, double beta) {
+Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatprior, double beta) {
   
-  // load pointer to lookup table
-  lookup_ptr = &lookup;
+  // load pointers
+  d = &data;
+  p = &params;
+  l = &lookup;
+  sp = &spatprior;
   
   // value of the thermodynamic power
   this -> beta = beta;
   
   // source locations
-  source_lon = vector<double>(K);
-  source_lat = vector<double>(K);
+  source_lon = vector<double>(p->K);
+  source_lat = vector<double>(p->K);
   
   // standard deviation of sources (km)
-  sigma = vector<double>(K, 1);
+  sigma = vector<double>(p->K, 1);
   
   // scaling factor on hazard surface, equivalent to the expected total
   // population size (both observed and unobserved) in unit time
-  if (expected_popsize_prior_sd <= 0) {
-    expected_popsize = expected_popsize_prior_mean;
+  if (p->expected_popsize_prior_sd <= 0) {
+    expected_popsize = p->expected_popsize_prior_mean;
   } else {
-    expected_popsize = rgamma1(expected_popsize_prior_shape, expected_popsize_prior_rate);
+    expected_popsize = rgamma1(p->expected_popsize_prior_shape, p->expected_popsize_prior_rate);
   }
   log_expected_popsize = log(expected_popsize);
   
   // qmatrices
-  log_qmatrix = vector<vector<double>>(n, vector<double>(K));
-  qmatrix = vector<vector<double>>(n, vector<double>(K));
+  log_qmatrix = vector<vector<double>>(d->n, vector<double>(p->K));
+  qmatrix = vector<vector<double>>(d->n, vector<double>(p->K));
   
   // proposal standard deviations
-  source_propSD = vector<double>(K, 0.01);
-  sigma_propSD = vector<double>(K, 1.0);
+  source_propSD = vector<double>(p->K, 0.01);
+  sigma_propSD = vector<double>(p->K, 1.0);
   
   // Robbins-Monro stepsize constants
   source_rm_stepsize = 5.0;
@@ -46,39 +49,39 @@ Particle::Particle(Lookup &lookup, double beta) {
   
   // misc constants
   // area around a sentinel site
-  log_sentinel_area = LOG_PI + 2*log(sentinel_radius);
+  log_sentinel_area = LOG_PI + 2*log(p->sentinel_radius);
   // sum of counts over all sentinel sites
-  counts_total = sum(sentinel_counts);
+  counts_total = sum(d->sentinel_counts);
   // log of K
-  log_K = log(K);
+  log_K = log(p->K);
   
   // likelihood
-  dist_source_data = vector<vector<double>>(n, vector<double>(K));
-  dist_source_data_prop = vector<double>(n);
-  log_hazard_height = vector<vector<double>>(n, vector<double>(K));
-  log_hazard_height_prop = vector<double>(n);
-  log_hazard_height_prop2 = vector<vector<double>>(n, vector<double>(K));
+  dist_source_data = vector<vector<double>>(d->n, vector<double>(p->K));
+  dist_source_data_prop = vector<double>(d->n);
+  log_hazard_height = vector<vector<double>>(d->n, vector<double>(p->K));
+  log_hazard_height_prop = vector<double>(d->n);
+  log_hazard_height_prop2 = vector<vector<double>>(d->n, vector<double>(p->K));
   logprior = 0;
   loglike = 0;
   
   // initialise ordering of labels
-  label_order = seq_int(0, K - 1);
-  label_order_new = vector<int>(K);
+  label_order = seq_int(0, p->K - 1);
+  label_order_new = vector<int>(p->K);
   
   // objects for solving label switching problem
-  cost_mat = vector<vector<double>>(K, vector<double>(K));
-  best_perm = vector<int>(K);
-  best_perm_order = vector<int>(K);
-  edges_left = vector<int>(K);
-  edges_right = vector<int>(K);
-  blocked_left = vector<int>(K);
-  blocked_right = vector<int>(K);
+  cost_mat = vector<vector<double>>(p->K, vector<double>(p->K));
+  best_perm = vector<int>(p->K);
+  best_perm_order = vector<int>(p->K);
+  edges_left = vector<int>(p->K);
+  edges_right = vector<int>(p->K);
+  blocked_left = vector<int>(p->K);
+  blocked_right = vector<int>(p->K);
   
   // store acceptance rates
-  source_accept_burnin = vector<int>(K);
-  source_accept_sampling = vector<int>(K);
-  sigma_accept_burnin = vector<int>(K);
-  sigma_accept_sampling = vector<int>(K);
+  source_accept_burnin = vector<int>(p->K);
+  source_accept_sampling = vector<int>(p->K);
+  sigma_accept_burnin = vector<int>(p->K);
+  sigma_accept_sampling = vector<int>(p->K);
   
 }
 
@@ -90,55 +93,55 @@ void Particle::reset(double beta) {
   this->beta = beta;
   
   // initialise source locations
-  for (int k = 0; k < K; ++k) {
-    source_lon[k] = source_init[0];
-    source_lat[k] = source_init[1];
+  for (int k = 0; k < p->K; ++k) {
+    source_lon[k] = p->source_init[0];
+    source_lat[k] = p->source_init[1];
   }
   
   // draw sigma from prior
-  if (sigma_prior_sdlog == 0) {
-    sigma = vector<double>(K, exp(sigma_prior_meanlog));
+  if (p->sigma_prior_sdlog == 0) {
+    sigma = vector<double>(p->K, exp(p->sigma_prior_meanlog));
   } else {
-    if (sigma_model == 1) {
-      sigma = vector<double>(K, exp(rnorm1(sigma_prior_meanlog, sigma_prior_sdlog)) );
-    } else if (sigma_model == 2) {
-      for (int k = 0; k < K; ++k) {
-        sigma[k] = exp(rnorm1(sigma_prior_meanlog, sigma_prior_sdlog));
+    if (p->sigma_model == 1) {
+      sigma = vector<double>(p->K, exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog)) );
+    } else if (p->sigma_model == 2) {
+      for (int k = 0; k < p->K; ++k) {
+        sigma[k] = exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog));
       }
     }
   }
   
   // draw expected popsize from prior
-  if (expected_popsize_prior_sd <= 0) {
-    expected_popsize = expected_popsize_prior_mean;
+  if (p->expected_popsize_prior_sd <= 0) {
+    expected_popsize = p->expected_popsize_prior_mean;
   } else {
-    expected_popsize = rgamma1(expected_popsize_prior_shape, expected_popsize_prior_rate);
+    expected_popsize = rgamma1(p->expected_popsize_prior_shape, p->expected_popsize_prior_rate);
   }
   log_expected_popsize = log(expected_popsize);
   
   // initialise proposal standard deviations
-  source_propSD = vector<double>(K, 0.01);
-  sigma_propSD = vector<double>(K, 1.0);
+  source_propSD = vector<double>(p->K, 0.01);
+  sigma_propSD = vector<double>(p->K, 1.0);
   
   // calculate initial likelihood. Calling calculate_loglike_source() on each
   // source updates the dist_source_data_prop and log_hazard_height_prop
   // objects, which can then be stored back into the final matrices. This is
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
-  for (int k=0; k<K; ++k) {
+  for (int k = 0; k < p->K; ++k) {
     logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
-    for (int i=0; i<n; ++i) {
+    for (int i = 0; i < d->n; ++i) {
       dist_source_data[i][k] = dist_source_data_prop[i];
       log_hazard_height[i][k] = log_hazard_height_prop[i];
     }
   }
   
   // reset acceptance rates
-  source_accept_burnin = vector<int>(K);
-  source_accept_sampling = vector<int>(K);
-  sigma_accept_burnin = vector<int>(K);
-  sigma_accept_sampling = vector<int>(K);
+  source_accept_burnin = vector<int>(p->K);
+  source_accept_sampling = vector<int>(p->K);
+  sigma_accept_burnin = vector<int>(p->K);
+  sigma_accept_sampling = vector<int>(p->K);
   
 }
 
@@ -147,7 +150,7 @@ void Particle::reset(double beta) {
 double Particle::calculate_logprior_source(double source_lon_prop, double source_lat_prop) {
   
   // get logprior probability
-  double logprior_prob = get_value(source_lon_prop, source_lat_prop);
+  double logprior_prob = sp->get_value(source_lon_prop, source_lat_prop);
   
   // catch values with zero prior probability
   if (logprior_prob == 0) {
@@ -165,10 +168,10 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
   double loglike_prop = 0;
   
   // loop through sentinel sites
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = lookup_ptr->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate normal height of data point i from proposed source.
@@ -184,7 +187,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop[i];
-    for (int j = 0; j < K; ++j) {
+    for (int j = 0; j < p->K; ++j) {
       if (j == k) {
         continue;
       }
@@ -203,7 +206,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
     
     // calculate the Poisson log-probability of the counts at this sentinel site
-    loglike_prop += sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(sentinel_counts[i]+1);
+    loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
   }
   
   return loglike_prop;
@@ -214,14 +217,15 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
 void Particle::update_sources(bool robbins_monro_on, int iteration) {
 
   // loop through all sources
-  for (int k = 0; k < K; ++k) {
+  for (int k = 0; k < p->K; ++k) {
     
     // propose new source location
     double source_lon_prop = rnorm1(source_lon[k], source_propSD[k]);
     double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
     
     // check proposed source within defined range
-    if (source_lon_prop <= min_lon || source_lon_prop >= max_lon || source_lat_prop <= min_lat || source_lat_prop >= max_lat) {
+    if (source_lon_prop <= p->min_lon || source_lon_prop >= p->max_lon ||
+        source_lat_prop <= p->min_lat || source_lat_prop >= p->max_lat) {
       
       // auto-reject proposed move
       if (robbins_monro_on) {
@@ -245,7 +249,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
       source_lat[k] = source_lat_prop;
       
       // update stored distances and hazard values
-      for (int i=0; i<n; ++i) {
+      for (int i = 0; i < d->n; ++i) {
         dist_source_data[i][k] = dist_source_data_prop[i];
         log_hazard_height[i][k] = log_hazard_height_prop[i];
       }
@@ -280,17 +284,17 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
 void Particle::update_sigma(bool robbins_monro_on, int iteration) {
   
   // return if prior is exact
-  if (sigma_prior_sdlog == 0) {
+  if (p->sigma_prior_sdlog == 0) {
     return;
   }
   
   // update single sigma or separately for each source
-  if (sigma_model == 1) {
+  if (p->sigma_model == 1) {
     update_sigma_single(robbins_monro_on, iteration);
-  } else if (sigma_model == 2) {
+  } else if (p->sigma_model == 2) {
     update_sigma_independent(robbins_monro_on, iteration);
   }
-
+  
 }
 
 //------------------------------------------------
@@ -306,10 +310,10 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   double loglike_prop = 0;
   
   // loop through sentinel sites
-  for (int i=0; i<n; ++i) {
+  for (int i = 0; i < d->n; ++i) {
     
     // loop through sources
-    for (int k=0; k<K; ++k) {
+    for (int k = 0; k < p->K; ++k) {
       
       // recalculate hazard given new sigma
       double dist = dist_source_data[i][k];
@@ -318,7 +322,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop2[i][0];
-    for (int k=1; k<K; ++k) {
+    for (int k = 1; k < p->K; ++k) {
       if (log_hazard_sum < log_hazard_height_prop2[i][k]) {
         log_hazard_sum = log_hazard_height_prop2[i][k] + log(1 + exp(log_hazard_sum - log_hazard_height_prop2[i][k]));
       } else {
@@ -334,13 +338,13 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
     double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
     
     // calculate the Poisson log-probability of the counts at this sentinel site
-    loglike_prop += sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(sentinel_counts[i]+1);
+    loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
     
   }
   
   // calculate priors
-  double logprior = dlnorm1(sigma[0], sigma_prior_meanlog, sigma_prior_sdlog);
-  double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
+  double logprior = dlnorm1(sigma[0], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
+  double logprior_prop = dlnorm1(sigma_prop, p->sigma_prior_meanlog, p->sigma_prior_sdlog);
   
   // Metropolis-Hastings ratio
   double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -349,7 +353,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   if (log(runif_0_1()) < MH_ratio) {
     
     // update sigma for all sources
-    for (int k=0; k<K; ++k) {
+    for (int k = 0; k < p->K; ++k) {
       sigma[k] = sigma_prop;
     }
     
@@ -383,7 +387,7 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
 void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
   
   // loop through sources
-  for (int k=0; k<K; ++k) {
+  for (int k = 0; k < p->K; ++k) {
     
     // propose new value
     double sigma_prop = rnorm1(sigma[k], sigma_propSD[k]);
@@ -394,7 +398,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
     double loglike_prop = 0;
     
     // loop through sentinel sites
-    for (int i=0; i<n; ++i) {
+    for (int i = 0; i < d->n; ++i) {
       
       // recalculate hazard given new sigma
       double dist = dist_source_data[i][k];
@@ -402,7 +406,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       
       // sum hazard over sources while remaining in log space
       double log_hazard_sum = log_hazard_height_prop[i];
-      for (int j=0; j<K; ++j) {
+      for (int j = 0; j < p->K; ++j) {
         if (j == k) {
           continue;
         }
@@ -421,12 +425,12 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
       
       // calculate the Poisson log-probability of the counts at this sentinel site
-      loglike_prop += sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(sentinel_counts[i]+1);
+      loglike_prop += d->sentinel_counts[i]*log_lambda - exp(log_lambda) - lgamma(d->sentinel_counts[i]+1);
     }
     
     // calculate priors
-    double logprior = dlnorm1(sigma[k], sigma_prior_meanlog, sigma_prior_sdlog);
-    double logprior_prop = dlnorm1(sigma_prop, sigma_prior_meanlog, sigma_prior_sdlog);
+    double logprior = dlnorm1(sigma[k], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
+    double logprior_prop = dlnorm1(sigma_prop, p->sigma_prior_meanlog, p->sigma_prior_sdlog);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -438,7 +442,7 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
       sigma[k] = sigma_prop;
       
       // update stored hazard values
-      for (int i=0; i<n; ++i) {
+      for (int i = 0; i < d->n; ++i) {
         log_hazard_height[i][k] = log_hazard_height_prop[i];
       }
       
@@ -471,23 +475,23 @@ void Particle::update_sigma_independent(bool robbins_monro_on, int iteration) {
 void Particle::update_expected_popsize() {
   
   // return if prior is exact
-  if (expected_popsize_prior_sd == 0) {
+  if (p->expected_popsize_prior_sd == 0) {
     return;
   }
   
   // sum of Poisson rate over sentinel sites
   double lambda_total = 0;
-  for (int i=0; i<n; ++i) {
+  for (int i = 0; i < d->n; ++i) {
     
     // take mean of hazard over sources
-    for (int k=0; k<K; ++k) {
+    for (int k = 0; k < p->K; ++k) {
       lambda_total += exp(log_sentinel_area + log_hazard_height[i][k] - log_K);
     }
   }
   
   // draw new expected population size
-  double posterior_shape = expected_popsize_prior_shape + beta*counts_total;
-  double posterior_rate = expected_popsize_prior_rate + beta*lambda_total;
+  double posterior_shape = p->expected_popsize_prior_shape + beta*counts_total;
+  double posterior_rate = p->expected_popsize_prior_rate + beta*lambda_total;
   expected_popsize = rgamma1(posterior_shape, posterior_rate);
   log_expected_popsize = log(expected_popsize);
 }
@@ -495,31 +499,31 @@ void Particle::update_expected_popsize() {
 //------------------------------------------------
 // update qmatrix
 void Particle::update_qmatrix() {
-
+  
   // loop through sentinel sites
-  for (int i=0; i<n; ++i) {
-
+  for (int i = 0; i < d->n; ++i) {
+    
     // skip if no observations at this site
-    if (sentinel_counts[i] == 0) {
+    if (d->sentinel_counts[i] == 0) {
       continue;
     }
-
+    
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = -OVERFLO;
-    for (int j=0; j<K; ++j) {
+    for (int j = 0; j < p->K; ++j) {
       if (log_hazard_sum < log_hazard_height[i][j]) {
         log_hazard_sum = log_hazard_height[i][j] + log(1 + exp(log_hazard_sum - log_hazard_height[i][j]));
       } else {
         log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
       }
     }
-
+    
     // qmatrix equal to normalised hazard
-    for (int j=0; j<K; ++j) {
+    for (int j = 0; j < p->K; ++j) {
       log_qmatrix[i][j] = log_hazard_height[i][j] - log_hazard_sum;
       qmatrix[i][j] = exp(log_hazard_height[i][j] - log_hazard_sum);
     }
-
+    
   }  // end loop through sentinel sites
   
 }
@@ -527,31 +531,31 @@ void Particle::update_qmatrix() {
 //------------------------------------------------
 // solve label switching problem
 void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_running) {
-
+  
   // recalculate cost matrix
-  for (int k1=0; k1<K; k1++) {
+  for (int k1 = 0; k1 < p->K; ++k1) {
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
-    for (int k2=0; k2<K; k2++) {
-      for (int i=0; i<n; i++) {
-        if (sentinel_counts[i] > 0) {
+    for (int k2 = 0; k2 < p->K; ++k2) {
+      for (int i = 0; i < d->n; ++i) {
+        if (d->sentinel_counts[i] > 0) {
           cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] - log_qmatrix_running[i][k2]);
         }
       }
     }
   }
-
+  
   // find best permutation of current labels using Hungarian algorithm
   best_perm = hungarian(cost_mat, edges_left, edges_right, blocked_left, blocked_right);
-
+  
   // define best_perm_order
-  for (int k=0; k<K; k++) {
+  for (int k = 0; k < p->K; ++k) {
     best_perm_order[best_perm[k]] = k;
   }
-
+  
   // replace old label order with new
-  for (int k=0; k<K; k++) {
+  for (int k = 0; k < p->K; ++k) {
     label_order_new[k] = label_order[best_perm_order[k]];
   }
   label_order = label_order_new;
-
+  
 }

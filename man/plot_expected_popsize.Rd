@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_expected_popsize}
 \alias{plot_expected_popsize}
-\title{Plot COI 95\% credible intervals}
+\title{Plot expected population size 95\% credible intervals}
 \usage{
 plot_expected_popsize(project, K = NULL)
 }
@@ -13,7 +13,7 @@ plot_expected_popsize(project, K = NULL)
 \item{K}{which value of K to plot.}
 }
 \description{
-Plot COI 95\% credible intervals of current active set
+TODO
 }
 \details{
 TODO

@@ -4,7 +4,7 @@
 \alias{plot_map}
 \title{Create dynamic map}
 \usage{
-plot_map(map_type = 97)
+plot_map(map_type = 110)
 }
 \arguments{
 \item{map_type}{an index from 1 to 137 indicating the type of base map. The

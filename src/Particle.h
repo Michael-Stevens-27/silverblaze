@@ -10,13 +10,16 @@
 
 //------------------------------------------------
 // class defining particle
-class Particle : public Data, public Parameters, public Spatial_prior {
+class Particle {
 
 public:
   // PUBLIC OBJECTS
   
-  // pointer to lookup table
-  Lookup * lookup_ptr;
+  // pointers
+  Data * d;
+  Parameters * p;
+  Lookup * l;
+  Spatial_prior * sp;
   
   // value of the thermodynamic power
   double beta;
@@ -81,7 +84,7 @@ public:
   
   // constructors
   Particle() {};
-  Particle(Lookup &lookup, double beta);
+  Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatprior, double beta);
   
   // other functions
   void reset(double beta);

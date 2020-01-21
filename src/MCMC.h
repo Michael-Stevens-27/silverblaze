@@ -8,9 +8,13 @@
 
 //------------------------------------------------
 // class defining MCMC
-class MCMC : public Data, public Parameters {
+class MCMC {
   
 public:
+  
+  // pointers to data and parameters
+  Parameters * p;
+  Data * d;
   
   // thermodynamic parameters
   std::vector<int> rung_order;
@@ -56,7 +60,7 @@ public:
   
   // constructors
   MCMC() {};
-  MCMC(Lookup &lookup);
+  MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatprior);
   
   // other functions
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);

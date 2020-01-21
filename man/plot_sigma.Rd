@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_sigma}
 \alias{plot_sigma}
-\title{Plot COI 95\% credible intervals}
+\title{Plot sigma 95\% credible intervals}
 \usage{
 plot_sigma(project, K = NULL)
 }
@@ -13,7 +13,7 @@ plot_sigma(project, K = NULL)
 \item{K}{which value of K to plot.}
 }
 \description{
-Plot COI 95\% credible intervals of current active set
+TODO
 }
 \details{
 TODO
