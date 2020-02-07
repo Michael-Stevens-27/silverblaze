@@ -38,9 +38,17 @@ bind_data <- function(project,
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_dataframe(df)
-  assert_ncol(df, 3)
-  assert_eq(names(df), c("longitude", "latitude", "counts"))
+  assert_in(ncol(df), c(3,4))
+  
+  if(ncol(df) == 3)
+  {
+    assert_eq(names(df), c("longitude", "latitude", "counts"))
+  } else if(ncol(df) == 4)  {
+    assert_eq(names(df), c("longitude", "latitude", "counts", "total_counts"))
+    assert_pos_int(df$total_counts, zero_allowed = TRUE)
+  }
   assert_pos_int(df$counts, zero_allowed = TRUE)
+    
   if (!is.null(name)) {
     assert_single_string(name)
   }
@@ -194,7 +202,15 @@ new_set <- function(project,
   assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
   assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   assert_single_string(name)
-
+  
+  # decide on the model type given the form of the data
+  if(ncol(p$data) == 3)
+  {
+    model_type <- "poisson"
+  } else if(ncol(p$data) == 4) {
+    model_type <- "binomial"
+  }
+  
   # make spatial_prior from data limits if unspecified
   if (is.null(spatial_prior)) {
     range_lon <- range(project$data$longitude)
@@ -222,7 +238,8 @@ new_set <- function(project,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
-                                      expected_popsize_prior_sd = expected_popsize_prior_sd)
+                                      expected_popsize_prior_sd = expected_popsize_prior_sd,
+                                      model_type = model_type)
   
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
@@ -405,7 +422,8 @@ run_mcmc <- function(project,
   # data list
   args_data <- list(longitude = project$data$longitude,
                     latitude = project$data$latitude,
-                    counts = project$data$counts)
+                    counts = project$data$counts,
+                    total_counts = project$data$total_counts)
   
   # input arguments list
   args_inputs <- list(burnin = burnin,
@@ -429,6 +447,9 @@ run_mcmc <- function(project,
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
+  # convert model type to numeric
+  model_numeric <- match(project$parameter_sets[[s]]$model_type, c("poisson", "binomial"))
+
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -441,7 +462,8 @@ run_mcmc <- function(project,
                           spatial_prior_values = spatial_prior_values,
                           source_init = source_init,
                           sigma_model_numeric = sigma_model_numeric,
-                          fixed_sigma_model = fixed_sigma_model)
+                          fixed_sigma_model = fixed_sigma_model,
+                          model_numeric = model_numeric)
 
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
@@ -491,7 +513,6 @@ run_mcmc <- function(project,
   ret <- list()
   all_converged <- TRUE
   for (i in 1:length(K)) {
-    
     # create name lists
     group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
@@ -526,8 +547,8 @@ run_mcmc <- function(project,
     }
     
     # get expected_popsize in coda::mcmc format
-    expected_popsize_burnin <- coda::mcmc(output_raw[[i]]$expected_popsize_burnin[1:convergence_iteration])
-    expected_popsize_sampling <- coda::mcmc(output_raw[[i]]$expected_popsize_sampling)
+    expected_popsize_burnin <- coda::mcmc(output_raw[[i]]$ep_burnin[1:convergence_iteration])
+    expected_popsize_sampling <- coda::mcmc(output_raw[[i]]$ep_sampling)
     
     # ---------- summary results ----------
     

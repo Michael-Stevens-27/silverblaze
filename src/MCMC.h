@@ -35,19 +35,21 @@ public:
   std::vector<std::vector<double>> source_lon_burnin;
   std::vector<std::vector<double>> source_lat_burnin;
   std::vector<std::vector<double>> sigma_burnin;
-  std::vector<double> expected_popsize_burnin;
+  std::vector<double> ep_burnin;
   
   std::vector<std::vector<double>> loglike_sampling;
   std::vector<std::vector<double>> source_lon_sampling;
   std::vector<std::vector<double>> source_lat_sampling;
   std::vector<std::vector<double>> sigma_sampling;
-  std::vector<double> expected_popsize_sampling;
+  std::vector<double> ep_sampling;
   
   // objects for storing acceptance rates
   std::vector<int> source_accept_burnin;
   std::vector<int> source_accept_sampling;
   std::vector<int> sigma_accept_burnin;
   std::vector<int> sigma_accept_sampling;
+  int ep_accept_burnin;
+  int ep_accept_sampling;
   std::vector<int> coupling_accept_burnin;
   std::vector<int> coupling_accept_sampling;
   

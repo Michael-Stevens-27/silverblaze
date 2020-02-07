@@ -1009,7 +1009,6 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
   assert_numeric(lat)
   assert_vector(lat)
   assert_same_length(lon, lat)
-  assert_single_string(col)
   assert_single_pos(size, zero_allowed = FALSE)
   assert_single_pos(opacity, zero_allowed = TRUE)
   assert_bounded(opacity)
@@ -1460,4 +1459,3 @@ overlay_ringsearch <- function(myplot,
   # return plot object
   return(myplot)
 }
-

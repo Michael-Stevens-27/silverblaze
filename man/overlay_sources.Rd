@@ -4,16 +4,8 @@
 \alias{overlay_sources}
 \title{Add sources to dynamic map}
 \usage{
-overlay_sources(
-  myplot,
-  lon,
-  lat,
-  icon_url = NULL,
-  icon_width = 20,
-  icon_height = 20,
-  icon_anchor_x = 10,
-  icon_anchor_y = 10
-)
+overlay_sources(myplot, lon, lat, icon_url = NULL, icon_width = 20,
+  icon_height = 20, icon_anchor_x = 10, icon_anchor_y = 10)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

@@ -33,6 +33,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   search_area = rcpp_to_double(args["study_area"]);
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
+  model_type = rcpp_to_int(args["model_numeric"]);
   
   // get sigma prior mean and sd in log space from raw inputs
   double sigma_prior_mean = rcpp_to_double(args["sigma_prior_mean"]);
@@ -42,9 +43,12 @@ Parameters::Parameters(const Rcpp::List &args) {
   sigma_prior_meanlog = log(sigma_prior_mean) - sigma_prior_varlog/2.0;
   
   // get expected_popsize shape and rate parameters from raw inputs
-  expected_popsize_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
-  expected_popsize_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
-  expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
-  expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
+  ep_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
+  ep_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
+  ep_prior_shape = pow(ep_prior_mean,2)/pow(ep_prior_sd,2);
+  ep_prior_rate = ep_prior_mean/pow(ep_prior_sd,2);
+  double ep_prior_varlog = log(pow(ep_prior_sd,2)/pow(ep_prior_mean,2) + 1);
+  ep_prior_sdlog = sqrt(ep_prior_varlog);
+  ep_prior_meanlog = log(ep_prior_mean) - ep_prior_varlog/2.0;
   
 }

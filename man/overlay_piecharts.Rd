@@ -4,14 +4,8 @@
 \alias{overlay_piecharts}
 \title{Add pie charts to dynamic map}
 \usage{
-overlay_piecharts(
-  myplot,
-  project,
-  K = NULL,
-  min_size = 10,
-  max_size = 30,
-  col = NULL
-)
+overlay_piecharts(myplot, project, K = NULL, min_size = 10,
+  max_size = 30, col = NULL)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

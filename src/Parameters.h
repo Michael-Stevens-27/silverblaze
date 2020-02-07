@@ -34,12 +34,15 @@ public:
   double search_area;
   std::vector<double> source_init;
   int sigma_model;
+  int model_type;
   double sigma_prior_meanlog;
   double sigma_prior_sdlog;
-  double expected_popsize_prior_mean;
-  double expected_popsize_prior_sd;
-  double expected_popsize_prior_shape;
-  double expected_popsize_prior_rate;
+  double ep_prior_mean;
+  double ep_prior_sd;
+  double ep_prior_shape;
+  double ep_prior_rate;
+  double ep_prior_meanlog;
+  double ep_prior_sdlog;
   
   // constructors
   Parameters() {};
