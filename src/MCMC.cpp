@@ -39,19 +39,21 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   source_lon_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   source_lat_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   sigma_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
-  expected_popsize_burnin = vector<double>(p->burnin);
+  ep_burnin = vector<double>(p->burnin);
   
   loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
   source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
-  expected_popsize_sampling = vector<double>(p->samples);
+  ep_sampling = vector<double>(p->samples);
   
   // objects for storing acceptance rates
   source_accept_burnin = vector<int>(p->K);
   source_accept_sampling = vector<int>(p->K);
   sigma_accept_burnin = vector<int>(p->K);
   sigma_accept_sampling = vector<int>(p->K);
+  int ep_accept_burnin;
+  int ep_accept_sampling;
   
   coupling_accept_burnin = vector<int>(p->rungs - 1);
   coupling_accept_sampling = vector<int>(p->rungs - 1);
@@ -97,7 +99,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       particle_vec[rung].update_sigma(true, rep + 1);
       
       // update expected population size
-      particle_vec[rung].update_expected_popsize();
+      particle_vec[rung].update_expected_popsize(true, rep + 1);
       
     } // end loop over rungs
     
@@ -145,7 +147,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // store expected population size
-    expected_popsize_burnin[rep] = particle_vec[cold_rung].expected_popsize;
+    ep_burnin[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
     if (!p->silent) {
@@ -193,6 +195,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   // store acceptance rates
   source_accept_burnin = particle_vec[cold_rung].source_accept_burnin;
   sigma_accept_burnin = particle_vec[cold_rung].sigma_accept_burnin;
+  ep_accept_burnin = particle_vec[cold_rung].ep_accept_burnin;
   
   // warning if still not converged
   if (!all_convergence_reached && !p->silent) {
@@ -227,8 +230,8 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       // update sigma
       particle_vec[rung].update_sigma(false, 0);
       
-      // update expected population size
-      particle_vec[rung].update_expected_popsize();
+      // update expected popsize
+      particle_vec[rung].update_expected_popsize(false, 0);
       
     } // end loop over rungs
     
@@ -284,7 +287,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // store expected population size
-    expected_popsize_sampling[rep] = particle_vec[cold_rung].expected_popsize;
+    ep_sampling[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
     if (!p->silent) {
@@ -303,7 +306,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   // store acceptance rates
   source_accept_sampling = particle_vec[cold_rung].source_accept_sampling;
   sigma_accept_sampling = particle_vec[cold_rung].sigma_accept_sampling;
-  
+  ep_accept_sampling = particle_vec[cold_rung].ep_accept_sampling;
 }
 
 //------------------------------------------------
@@ -345,6 +348,11 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
       vector<double> store_sigma_propSD1 = particle_vec[rung1].sigma_propSD;
       particle_vec[rung1].sigma_propSD = particle_vec[rung2].sigma_propSD;
       particle_vec[rung2].sigma_propSD = store_sigma_propSD1;
+      
+      // swap expected_pop proposal SD
+      double store_ep_propSD1 = particle_vec[rung1].ep_propSD;
+      particle_vec[rung1].ep_propSD = particle_vec[rung2].ep_propSD;
+      particle_vec[rung2].ep_propSD = store_ep_propSD1;
       
       // swap rung order
       rung_order[i] = rung2;

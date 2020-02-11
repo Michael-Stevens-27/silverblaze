@@ -27,6 +27,10 @@
 #'   to use a fixed distance.
 #' @param expected_popsize the expected total number of observations (observed
 #'   and unobserved) in the study area.
+#' @param data_type what model we wish to simulate under - a poisson or binomial
+#'  corresponding to "counts" or "prevalence"
+#' @param reg_population number of individuals present in the search area that 
+#'  fail the trial (randomly distributed)
 #'
 #' @import stats
 #' @export
@@ -63,7 +67,9 @@ sim_data <- function(sentinel_lon,
                      sigma_model = "single",
                      sigma_mean = 1.0,
                      sigma_var = 0.1,
-                     expected_popsize = 100)
+                     expected_popsize = 100,
+                     data_type = "counts",
+                     reg_population = 10)
                      {
 
   # check inputs
@@ -102,6 +108,8 @@ sim_data <- function(sentinel_lon,
            assert_pos(sigma_var, zero_allowed = TRUE)
          })
   assert_single_pos(expected_popsize, zero_allowed = FALSE)
+  assert_in(data_type, c("counts", "prevalence"))
+  assert_single_pos_int(reg_population)
   
   # draw total number of points
   N <- rpois(1, expected_popsize)
@@ -132,17 +140,28 @@ sim_data <- function(sentinel_lon,
       df_all <- rbind(df_all, as.data.frame(rand_k))
     }
   }
+  df_all <- cbind(df_all, outcome = 1)
   
+  # generate remaining population location - distributing randomly
+  buffer <- 0.00001
+  remaining_population_lon <- runif(reg_population, min(sentinel_lon) - buffer, max(sentinel_lon) + buffer)
+  remaining_population_lat <- runif(reg_population, min(sentinel_lat) - buffer, max(sentinel_lat) + buffer)
+  df_all <- rbind(df_all, data.frame(longitude = remaining_population_lon, latitude = remaining_population_lat, outcome = 0))
+
   # get distance between all points and sentinel sites
   gc_dist <- mapply(function(x, y) {
     lonlat_to_bearing(x, y, df_all$longitude, df_all$latitude)$gc_dist
   }, x = sentinel_lon, y = sentinel_lat)
   
   # assign points as observed or unobserved based on distance to sentinel sites
-  counts <- colSums(gc_dist < sentinel_radius)
+  pos_counts <- colSums(gc_dist[df_all$outcome == 1,] < sentinel_radius)
+  neg_counts <- colSums(gc_dist[df_all$outcome == 0,] < sentinel_radius)
+  sentinel_total <- pos_counts + neg_counts
+  
   df_observed <- data.frame(longitude = sentinel_lon,
                             latitude = sentinel_lat,
-                            counts = counts)
+                            counts = pos_counts,
+                            total_counts = sentinel_total)
   
   # add record of whether data point is observed or unobserved to df_all
   df_all$observed <- rowSums(gc_dist < sentinel_radius)
@@ -164,6 +183,11 @@ sim_data <- function(sentinel_lon,
   # return simulated data and true parameter values
   ret_data <- df_observed
   ret_record <- list()
+  if(data_type == "counts")
+  {
+    ret_data <- df_observed[,1:3]
+    df_all <- subset(df_all, df_all$outcome == 1)
+  }
   
   ret_record$sentinel_radius <- sentinel_radius
   ret_record$true_source <- data.frame(longitude = source_lon, latitude = source_lat)

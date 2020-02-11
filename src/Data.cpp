@@ -11,5 +11,6 @@ Data::Data(const Rcpp::List &args) {
   sentinel_lon = rcpp_to_vector_double(args["longitude"]);
   sentinel_lat = rcpp_to_vector_double(args["latitude"]);
   sentinel_counts = rcpp_to_vector_int(args["counts"]);
+  total_counts = rcpp_to_vector_int(args["total_counts"]);
   n = int(sentinel_counts.size());
 }
