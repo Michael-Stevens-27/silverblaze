@@ -1,10 +1,6 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
-R: bioc-devel
-script: 
-  - R -e 'install.packages("BiocManager")'
-  - R -e 'BiocManager::install(version = "3.9")'
 addons:
   apt:
     packages:

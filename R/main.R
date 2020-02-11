@@ -952,3 +952,101 @@ gini <- function(hs) {
 
   return(ret)
 }
+
+#------------------------------------------------
+# repeatedly run analysis to find vector of beta values that achieves a required
+# coupling acceptance rate between all rungs
+#' @noRd
+optimise_beta <- function(proj,
+                          K = 3,
+                          target_acceptance = 0.4,
+                          max_iterations = 1e3,
+                          beta_init = seq(0,1,l=20),
+                          silent = FALSE,
+                          ...) {
+  
+  # check inputs (only those not checked by later functions)
+  assert_single_pos(target_acceptance)
+  assert_bounded(target_acceptance)
+  assert_single_pos_int(max_iterations, zero_allowed = FALSE)
+  
+  # get arguments from ellipsis
+  args_list <- list(...)
+  
+  # check arguments not doubly defined
+  if ("beta_manual" %in% names(args_list)) {
+    stop("cannot define beta_manual in optimise_beta() function")
+  }
+  
+  # initialise beta_vec
+  beta_vec <- beta_init
+  
+  # iteratively improve beta_vec
+  ret <- list()
+  for (j in 1:max_iterations) {
+    
+    # run MCMC using beta_vec
+    proj <- run_mcmc(project = proj,
+                     K = K,
+                     beta_manual = beta_vec,
+                     silent = silent,
+                     ...)
+    
+    # get current rungs
+    rungs <- length(beta_vec)
+    
+    # get coupling rate of burnin phase
+    coupling_burnin <- get_output(proj, "coupling_accept_burnin", K)
+    
+    # store results of this iteration
+    ret$beta_vec <- c(ret$beta_vec, list(beta_vec))
+    ret$coupling <- c(ret$coupling, list(coupling_burnin))
+    
+    # report progress to console
+    if (!silent) {
+      message("--------------------")
+      message(sprintf("K = %s", K))
+      message(sprintf("iteration = %s", j))
+      message(sprintf("rungs = %s", rungs))
+      message("beta values:")
+      message(paste(signif(beta_vec, digits = 3), collapse = ", "))
+      message("coupling acceptance:")
+      message(paste(coupling_burnin, collapse = ", "))
+    }
+    
+    # return if all coupling over target threshold
+    if (all(coupling_burnin >= target_acceptance)) {
+      return(ret)
+    }
+    
+    # update beta sequence
+    for (i in 1:(rungs-2)) {
+      if (coupling_burnin[i] < target_acceptance) {
+        
+        # get acceptance rate relative to target (small additions to control max
+        # and min possible values)
+        rel_accept <-  (coupling_burnin[i] + 0.01)/(target_acceptance + 0.1)
+        
+        # calculate how far to adjust sequence based on rel_accept
+        move_left <- diff(beta_vec)[i] * (1 - rel_accept)
+        
+        # adjust sequence
+        beta_vec[-(1:i)] <- beta_vec[-(1:i)] - move_left
+      }
+    }
+    
+    # if final coupling value is less than target, add another rung
+    if (coupling_burnin[rungs-1] < target_acceptance) {
+      beta_vec <- c(beta_vec, 1)
+      rungs <- length(beta_vec)
+    }
+    
+    # ensure final value in sequence always equals 1
+    beta_vec[length(beta_vec)] <- 1
+    
+  }  # end loop over iterations
+  
+  # if reached this point then not converged within max_iterations
+  warning(sprintf("optimise_beta() did not find solution within %s iterations", max_iterations))
+  return(ret)
+}
