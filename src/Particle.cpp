@@ -34,7 +34,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
     if(p->model_type == 1){
       expected_popsize = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
     } else if(p->model_type == 2){
-      expected_popsize = abs(rnorm1(p->ep_prior_mean, 100));
+      expected_popsize = abs(rnorm1(p->ep_prior_mean, p->ep_prior_sd));
     }
   }
   log_expected_popsize = log(expected_popsize);
@@ -128,7 +128,7 @@ void Particle::reset(double beta) {
     if(p->model_type == 1){
       expected_popsize = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
     } else if(p->model_type == 2){
-      expected_popsize = abs(rnorm1(p->ep_prior_mean, 100));
+      expected_popsize = abs(rnorm1(p->ep_prior_mean, p->ep_prior_sd));
     }
   }
   log_expected_popsize = log(expected_popsize);
@@ -145,7 +145,13 @@ void Particle::reset(double beta) {
   // guaranteed to be accepted
   for (int k = 0; k < p->K; ++k) {
     logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
-    loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
+    // update source based on binomial or poisson model
+    if (p->model_type == 1) {
+      loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
+    } else if (p->model_type == 2) {
+      loglike = BINOM_calculate_loglike_source(source_lon[k], source_lat[k], k);
+    }
+    
     for (int i = 0; i < d->n; ++i) {
       dist_source_data[i][k] = dist_source_data_prop[i];
       log_hazard_height[i][k] = log_hazard_height_prop[i];
@@ -372,14 +378,14 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
     return;
   }
   // update source based on binomial or poisson model
-  if (p->model_type == 1) {
+  if (p->model_type == 1) { // Poisson
     // update single sigma or separately for each source
     if (p->sigma_model == 1) {
       update_sigma_single(robbins_monro_on, iteration);
     } else if (p->sigma_model == 2) {
       update_sigma_independent(robbins_monro_on, iteration);
     }
-  } else if (p->model_type == 2) {
+  } else if (p->model_type == 2) { // binomial
     // update single sigma or separately for each source
     if (p->sigma_model == 1) {
       BINOM_update_sigma_single(robbins_monro_on, iteration);
@@ -483,7 +489,6 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
   
 }
 
-
 //------------------------------------------------
 // update single sigma for all sources
 void Particle::BINOM_update_sigma_single(bool robbins_monro_on, int iteration) {
@@ -492,6 +497,7 @@ void Particle::BINOM_update_sigma_single(bool robbins_monro_on, int iteration) {
   double sigma_prop = rnorm1(sigma[0], sigma_propSD[0]);
   sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
   sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
+  
   // initialise running values
   double loglike_prop = 0;
   double theta_sum = 0;
@@ -756,13 +762,25 @@ void Particle::BINOM_update_sigma_independent(bool robbins_monro_on, int iterati
 }
 
 //------------------------------------------------
-// update separate sigma for each source
-void Particle::update_expected_popsize() {
+// update sigma
+void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   
   // return if prior is exact
   if (p->ep_prior_sd == 0) {
     return;
   }
+  
+  // update expected_pop_size based on binomial or poisson model
+  if (p->model_type == 1) { // Poisson 
+    update_expected_popsize_gibbs();
+  } else if (p->model_type == 2) { // Binomial 
+    BINOM_update_expected_popsize(robbins_monro_on, iteration);
+  }
+}
+
+//------------------------------------------------
+// update separate sigma for each source
+void Particle::update_expected_popsize_gibbs() {
   
   // sum of Poisson rate over sentinel sites
   double lambda_total = 0;
@@ -803,13 +821,12 @@ void Particle::BINOM_update_expected_popsize(bool robbins_monro_on, int iteratio
           log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
         }
       }
-    
       // define theta_i as the sentinel area * the mean hazard. Calculate
       // log(theta_i) and add theta_i to running sum
       double log_theta_i = log_sentinel_area + log_hazard_sum - log_K;
 
       // add necessary terms to loglikelihood
-      loglike_prop += lgamma(d->total_counts[i] + 1) - lgamma(d->sentinel_counts[i] + 1) - lgamma(d->total_counts[i] - d->sentinel_counts[i]  + 1)
+      loglike_prop += lgamma(d->total_counts[i] + 1) - lgamma(d->sentinel_counts[i] + 1) - lgamma(d->total_counts[i] - d->sentinel_counts[i] + 1)
                       + d->sentinel_counts[i]*log(expected_popsize*exp(log_theta_i)) - d->total_counts[i]*log(1 + expected_popsize*exp(log_theta_i));
       }
     

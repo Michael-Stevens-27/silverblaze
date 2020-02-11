@@ -106,7 +106,8 @@ public:
   void BINOM_update_sigma_single(bool robbins_monro_on, int iteration);
   void BINOM_update_sigma_independent(bool robbins_monro_on, int iteration);
   
-  void update_expected_popsize();
+  void update_expected_popsize(bool robbins_monro_on, int iteration);
+  void update_expected_popsize_gibbs();
   void BINOM_update_expected_popsize(bool robbins_monro_on, int iteration);
   
   void update_qmatrix();

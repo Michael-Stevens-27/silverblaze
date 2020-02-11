@@ -551,10 +551,9 @@ run_mcmc <- function(project,
     expected_popsize_sampling <- coda::mcmc(output_raw[[i]]$ep_sampling)
     
     # ---------- summary results ----------
-    
     # get 95% credible intervals over sampling and burnin loglikelihoods
-    loglike_intervals_sampling <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
     loglike_intervals_burnin <- as.data.frame(t(apply(loglike_burnin, 2, quantile_95)))
+    loglike_intervals_sampling <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
     
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
@@ -669,6 +668,14 @@ run_mcmc <- function(project,
     sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
     names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     
+    expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
+    
+    if(model_numeric == 2)
+    {
+      expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
+      expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
+    }
+    
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
     coupling_accept_sampling <- output_raw[[i]]$coupling_accept_sampling/(samples)
       
@@ -704,6 +711,8 @@ run_mcmc <- function(project,
                                                                     source_accept_sampling = source_accept_sampling,
                                                                     sigma_accept_burnin = sigma_accept_burnin,
                                                                     sigma_accept_sampling = sigma_accept_sampling,
+                                                                    expected_popsize_accept_burnin = expected_popsize_accept_burnin,
+                                                                    expected_popsize_accept_sampling = expected_popsize_accept_sampling,
                                                                     coupling_accept_burnin = coupling_accept_burnin,
                                                                     coupling_accept_sampling = coupling_accept_sampling,
                                                                     beta_vec = beta_vec,

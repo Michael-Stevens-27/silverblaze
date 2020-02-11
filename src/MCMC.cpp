@@ -99,11 +99,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       particle_vec[rung].update_sigma(true, rep + 1);
       
       // update expected population size
-      if(p->model_type = 1){
-      particle_vec[rung].update_expected_popsize();
-    } else if(p->model_type = 2){
-      particle_vec[rung].BINOM_update_expected_popsize(true, rep + 1);
-      } 
+      particle_vec[rung].update_expected_popsize(true, rep + 1);
       
     } // end loop over rungs
     
@@ -234,11 +230,8 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       // update sigma
       particle_vec[rung].update_sigma(false, 0);
       
-      if(p->model_type = 1){
-      particle_vec[rung].update_expected_popsize();
-    } else if(p->model_type = 2){
-      particle_vec[rung].BINOM_update_expected_popsize(false, 0);
-      } 
+      // update expected popsize
+      particle_vec[rung].update_expected_popsize(false, 0);
       
     } // end loop over rungs
     

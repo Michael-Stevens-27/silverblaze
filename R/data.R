@@ -144,8 +144,8 @@ sim_data <- function(sentinel_lon,
   
   # generate remaining population location - distributing randomly
   buffer <- 0.00001
-  remaining_population_lon <- runif(reg_population, min(df_all$lon) - buffer, max(df_all$lon) + buffer)
-  remaining_population_lat <- runif(reg_population, min(df_all$lat) - buffer, max(df_all$lat) + buffer)
+  remaining_population_lon <- runif(reg_population, min(sentinel_lon) - buffer, max(sentinel_lon) + buffer)
+  remaining_population_lat <- runif(reg_population, min(sentinel_lat) - buffer, max(sentinel_lat) + buffer)
   df_all <- rbind(df_all, data.frame(longitude = remaining_population_lon, latitude = remaining_population_lat, outcome = 0))
 
   # get distance between all points and sentinel sites
