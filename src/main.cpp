@@ -47,6 +47,8 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   // create MCMC object
   MCMC mcmc(data, params, lookup, spatprior);
   
+  Rcpp::stop("foo");
+  
   // run MCMC
   mcmc.burnin_mcmc(args_functions, args_progress);
   mcmc.sampling_mcmc(args_functions, args_progress);
