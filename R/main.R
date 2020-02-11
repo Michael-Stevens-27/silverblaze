@@ -961,7 +961,7 @@ optimise_beta <- function(proj,
                           K = 3,
                           target_acceptance = 0.4,
                           max_iterations = 1e3,
-                          beta_init = seq(0,1,l=20),
+                          beta_init = seq(0, 1, l = 10),
                           silent = FALSE,
                           ...) {
   
