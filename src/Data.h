@@ -11,9 +11,11 @@ public:
   
   std::vector<double> sentinel_lon;
   std::vector<double> sentinel_lat;
-  std::vector<int> sentinel_counts;
-  std::vector<int> total_counts;
+  std::vector<int> counts;
+  std::vector<int> tested;
+  std::vector<int> positive;
   int n;
+  int data_type;
   
   // constructors
   Data() {};

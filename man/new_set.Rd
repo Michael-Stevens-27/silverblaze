@@ -4,10 +4,17 @@
 \alias{new_set}
 \title{Create new parameter set}
 \usage{
-new_set(project, spatial_prior = NULL, sentinel_radius = 0.2,
-  sigma_model = "single", sigma_prior_mean = 1, sigma_prior_sd = 1,
-  expected_popsize_prior_mean = 100, expected_popsize_prior_sd = 10,
-  name = "(no name)")
+new_set(
+  project,
+  spatial_prior = NULL,
+  sentinel_radius = 0.2,
+  sigma_model = "single",
+  sigma_prior_mean = 1,
+  sigma_prior_sd = 1,
+  expected_popsize_prior_mean = 100,
+  expected_popsize_prior_sd = 10,
+  name = "(no name)"
+)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function

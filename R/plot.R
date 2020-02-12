@@ -919,7 +919,7 @@ overlay_sentinels <- function(myplot,
   assert_single_pos(label_size)
   
   # check for data
-  df <- project$data
+  df <- project$data$frame
   if (is.null(df)) {
     stop("no data loaded")
   }
@@ -1365,9 +1365,9 @@ overlay_piecharts <- function(myplot,
 
   # get data into ggplot format
   w <- which(!is.na(qmatrix[,1]))
-  lon <- project$data$longitude[w]
-  lat <- project$data$latitude[w]
-  counts <- project$data$counts[w]
+  lon <- project$data$frame$longitude[w]
+  lat <- project$data$frame$latitude[w]
+  counts <- project$data$frame$counts[w]
   pie_size <- min_size + counts/max(counts)*(max_size - min_size)
   df <- round(qmatrix[w,], digits = 3)
 

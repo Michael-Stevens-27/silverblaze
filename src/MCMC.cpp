@@ -52,8 +52,6 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   source_accept_sampling = vector<int>(p->K);
   sigma_accept_burnin = vector<int>(p->K);
   sigma_accept_sampling = vector<int>(p->K);
-  int ep_accept_burnin;
-  int ep_accept_sampling;
   
   coupling_accept_burnin = vector<int>(p->rungs - 1);
   coupling_accept_sampling = vector<int>(p->rungs - 1);

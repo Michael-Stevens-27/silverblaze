@@ -82,8 +82,8 @@ public:
   std::vector<int> source_accept_sampling;
   std::vector<int> sigma_accept_burnin;
   std::vector<int> sigma_accept_sampling;
-  double ep_accept_burnin;
-  double ep_accept_sampling;
+  int ep_accept_burnin;
+  int ep_accept_sampling;
     
   // PUBLIC FUNCTIONS
   
@@ -93,22 +93,25 @@ public:
   
   // other functions
   void reset(double beta);
+  
   double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
-  double BINOM_calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
   
   void update_sources(bool robbins_monro_on, int iteration);
+  
   void update_sigma(bool robbins_monro_on, int iteration);
-  
   void update_sigma_single(bool robbins_monro_on, int iteration);
+  void update_sigma_single_pois(bool robbins_monro_on, int iteration);
+  void update_sigma_single_binom(bool robbins_monro_on, int iteration);
   void update_sigma_independent(bool robbins_monro_on, int iteration);
-  
-  void BINOM_update_sigma_single(bool robbins_monro_on, int iteration);
-  void BINOM_update_sigma_independent(bool robbins_monro_on, int iteration);
+  void update_sigma_independent_pois(bool robbins_monro_on, int iteration);
+  void update_sigma_independent_binom(bool robbins_monro_on, int iteration);
   
   void update_expected_popsize(bool robbins_monro_on, int iteration);
-  void update_expected_popsize_gibbs();
-  void BINOM_update_expected_popsize(bool robbins_monro_on, int iteration);
+  void update_expected_popsize_pois();
+  void update_expected_popsize_binom(bool robbins_monro_on, int iteration);
   
   void update_qmatrix();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);

@@ -4,11 +4,21 @@
 \alias{overlay_sentinels}
 \title{Add sentinel sites to dynamic map}
 \usage{
-overlay_sentinels(myplot, project, sentinel_radius = NULL, fill = TRUE,
-  fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5,
-  border = FALSE, border_colour = "black", border_weight = 1,
-  border_opacity = 1, legend = FALSE, label = FALSE,
-  label_size = 15)
+overlay_sentinels(
+  myplot,
+  project,
+  sentinel_radius = NULL,
+  fill = TRUE,
+  fill_colour = c(grey(0.5), "red"),
+  fill_opacity = 0.5,
+  border = FALSE,
+  border_colour = "black",
+  border_weight = 1,
+  border_opacity = 1,
+  legend = FALSE,
+  label = FALSE,
+  label_size = 15
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}

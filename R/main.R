@@ -22,8 +22,14 @@ check_silverblaze_loaded <- function() {
 #'
 #' @param project an \code{rgeoprofile_project}, as produced by the function
 #'   \code{rgeoprofile_project()}
-#' @param df a dataframe with three columns named "longitude", "latitude",
-#'   "counts" (in that order). Counts must be positive integers or zero
+#' @param df a dataframe with columns that must conform to the following rules:
+#'   \itemize{
+#'     \item for \code{data_type = "counts"}, data must have columns
+#'     "longitude", "latitude" and "counts".
+#'     \item for \code{data_type = "prevalence"}, data must have columns
+#'     "longitude", "latitude", "tested" and "positive"
+#'     }
+#' @param data_type the type of data, either "counts" or "prevalence".
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting
 #'   existing data
@@ -32,30 +38,33 @@ check_silverblaze_loaded <- function() {
 
 bind_data <- function(project,
                       df,
+                      data_type,
                       name = NULL,
                       check_delete_output = TRUE) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_dataframe(df)
-  assert_in(ncol(df), c(3,4))
-  
-  if(ncol(df) == 3)
-  {
-    assert_eq(names(df), c("longitude", "latitude", "counts"))
-  } else if(ncol(df) == 4)  {
-    assert_eq(names(df), c("longitude", "latitude", "counts", "total_counts"))
-    assert_pos_int(df$total_counts, zero_allowed = TRUE)
+  assert_single_string(data_type)
+  assert_in(data_type, c("counts", "prevalence"))
+  if (data_type == "counts") {
+    assert_in(c("longitude", "latitude", "counts"), names(df))
+    assert_pos_int(df$counts, zero_allowed = TRUE)
+  } else if (data_type == "prevalence") {
+    assert_in(c("longitude", "latitude", "tested", "positive"), names(df))
+    assert_pos_int(df$tested, zero_allowed = TRUE)
+    assert_pos_int(df$positive, zero_allowed = TRUE)
+    assert_leq(df$positive, df$tested)
   }
-  assert_pos_int(df$counts, zero_allowed = TRUE)
-    
+  assert_numeric(df$longitude)
+  assert_numeric(df$latitude)
   if (!is.null(name)) {
     assert_single_string(name)
   }
   assert_single_logical(check_delete_output)
-
+  
   # check before overwriting existing output
-  if (project$active_set>0 && check_delete_output) {
+  if (project$active_set > 0 && check_delete_output) {
 
     # ask before overwriting. On abort, return original project
     if (!user_yes_no("All existing output and parameter sets for this project will be lost. Continue? (Y/N): ")) {
@@ -65,10 +74,11 @@ bind_data <- function(project,
     # replace old project with fresh empty version
     project <- rgeoprofile_project()
   }
-
+  
   # add data to project
-  project$data <- df
-
+  project$data <- list(frame = df,
+                       data_type = data_type)
+  
   return(project)
 }
 
@@ -189,7 +199,7 @@ new_set <- function(project,
                     expected_popsize_prior_mean = 100,
                     expected_popsize_prior_sd = 10,
                     name = "(no name)") {
-
+  
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(spatial_prior)) {
@@ -203,19 +213,11 @@ new_set <- function(project,
   assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   assert_single_string(name)
   
-  # decide on the model type given the form of the data
-  if(ncol(p$data) == 3)
-  {
-    model_type <- "poisson"
-  } else if(ncol(p$data) == 4) {
-    model_type <- "binomial"
-  }
-  
   # make spatial_prior from data limits if unspecified
   if (is.null(spatial_prior)) {
-    range_lon <- range(project$data$longitude)
+    range_lon <- range(project$data$frame$longitude)
     range_lon <- mean(range_lon) + 1.05*c(-1,1)*diff(range_lon)/2
-    range_lat <- range(project$data$latitude)
+    range_lat <- range(project$data$frame$latitude)
     range_lat <- mean(range_lat) + 1.05*c(-1,1)*diff(range_lat)/2
     spatial_prior <- raster_grid(range_lon, range_lat)
   }
@@ -238,8 +240,7 @@ new_set <- function(project,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
-                                      expected_popsize_prior_sd = expected_popsize_prior_sd,
-                                      model_type = model_type)
+                                      expected_popsize_prior_sd = expected_popsize_prior_sd)
   
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
@@ -419,11 +420,22 @@ run_mcmc <- function(project,
   
   # ---------- create argument lists ----------
   
-  # data list
-  args_data <- list(longitude = project$data$longitude,
-                    latitude = project$data$latitude,
-                    counts = project$data$counts,
-                    total_counts = project$data$total_counts)
+  # data list depending on data_type
+  if (project$data$data_type == "counts") {
+    args_data <- list(longitude = project$data$frame$longitude,
+                      latitude = project$data$frame$latitude,
+                      counts = project$data$frame$counts,
+                      tested = -1,
+                      positive = -1,
+                      data_type = 1)
+  } else if (project$data$data_type == "prevalence") {
+    args_data <- list(longitude = project$data$frame$longitude,
+                      latitude = project$data$frame$latitude,
+                      counts = -1,
+                      tested = project$data$frame$tested,
+                      positive = project$data$frame$positive,
+                      data_type = 2)
+  }
   
   # input arguments list
   args_inputs <- list(burnin = burnin,
@@ -447,9 +459,6 @@ run_mcmc <- function(project,
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
-  # convert model type to numeric
-  model_numeric <- match(project$parameter_sets[[s]]$model_type, c("poisson", "binomial"))
-
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -462,9 +471,8 @@ run_mcmc <- function(project,
                           spatial_prior_values = spatial_prior_values,
                           source_init = source_init,
                           sigma_model_numeric = sigma_model_numeric,
-                          fixed_sigma_model = fixed_sigma_model,
-                          model_numeric = model_numeric)
-
+                          fixed_sigma_model = fixed_sigma_model)
+  
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
   
@@ -502,6 +510,8 @@ run_mcmc <- function(project,
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
   
+  #return(output_raw)
+  
   #------------------------
   
   # begin processing results
@@ -513,6 +523,7 @@ run_mcmc <- function(project,
   ret <- list()
   all_converged <- TRUE
   for (i in 1:length(K)) {
+    
     # create name lists
     group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
@@ -564,7 +575,7 @@ run_mcmc <- function(project,
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
-    qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
+    qmatrix[project$data$frame$counts == 0,] <- rep(NA, K[i])
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
@@ -670,8 +681,7 @@ run_mcmc <- function(project,
     
     expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
     
-    if(model_numeric == 2)
-    {
+    if (project$data$data_type == "prevalence") {
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
     }
@@ -746,7 +756,7 @@ run_mcmc <- function(project,
   project <- align_qmatrix(project)
   
   # run ring-search prior to MCMC
-  if (sum(project$data$counts) > 0) {
+  if (sum(project$data$frame$counts) > 0) {
     ringsearch <- ring_search(project, spatial_prior)
     project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
   }
@@ -905,7 +915,7 @@ align_qmatrix <- function(project) {
 ring_search <- function(project, r) {
   
   # check that there is at least one positive observation
-  if (sum(project$data$counts) == 0) {
+  if (sum(project$data$frame$counts) == 0) {
     stop("ring search not possible: no positive counts")
   }
   
@@ -913,7 +923,7 @@ ring_search <- function(project, r) {
   counts <- NULL
   
   # extract sentinel locations with at least one observation
-  data <- subset(project$data, counts > 0)
+  data <- subset(project$data$frame, counts > 0)
   sentinel_lon <- data$longitude
   sentinel_lat <- data$latitude
 

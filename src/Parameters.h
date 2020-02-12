@@ -34,7 +34,6 @@ public:
   double search_area;
   std::vector<double> source_init;
   int sigma_model;
-  int model_type;
   double sigma_prior_meanlog;
   double sigma_prior_sdlog;
   double ep_prior_mean;
