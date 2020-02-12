@@ -84,7 +84,9 @@ p <- rgeoprofile_project()
 We then add in our simulated data using `bind_data()`.
 
 ```{r}
-p <- bind_data(p, mysim$data)
+p <- bind_data(p,
+               df = mysim$data,
+               data_type = "counts")
 ```
 
 ## Simple spatial prior
@@ -255,7 +257,7 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 
 ```{r, echo=FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-# saveRDS(mysim, file = "tutorial1_mysim.rds")
-# saveRDS(p, file = "tutorial1_project.rds")
-# saveRDS(hs, file = "tutorial1_hitscore.rds")
+# saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
+# saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
+# saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
 ```

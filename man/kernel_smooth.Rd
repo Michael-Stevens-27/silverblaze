@@ -4,8 +4,14 @@
 \alias{kernel_smooth}
 \title{Produce a smooth surface using 2D kernel density smoothing}
 \usage{
-kernel_smooth(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL,
-  nu = 3)
+kernel_smooth(
+  longitude,
+  latitude,
+  breaks_lon,
+  breaks_lat,
+  lambda = NULL,
+  nu = 3
+)
 }
 \arguments{
 \item{longitude}{longitude of input points}

@@ -293,8 +293,8 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
     double log_theta_i = log_hazard_sum - log_K;
     
     // add necessary terms to loglikelihood
-    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->counts[i] + 1) - lgamma(d->tested[i] - d->counts[i]  + 1)
-                    + d->counts[i]*log(expected_popsize*exp(log_theta_i)) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
+    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->positive[i] + 1) - lgamma(d->tested[i] - d->positive[i]  + 1)
+                    + d->positive[i]*(log(expected_popsize) + log_theta_i) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
     
   }
   
@@ -533,8 +533,8 @@ void Particle::update_sigma_single_binom(bool robbins_monro_on, int iteration) {
     double log_theta_i = log_hazard_sum - log_K;
 
     // add necessary terms to loglikelihood
-    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->counts[i] + 1) - lgamma(d->tested[i] - d->counts[i]  + 1)
-                    + d->counts[i]*log(expected_popsize*exp(log_theta_i)) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
+    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->positive[i] + 1) - lgamma(d->tested[i] - d->positive[i]  + 1)
+      + d->positive[i]*(log(expected_popsize) + log_theta_i) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
 
   }
   
@@ -731,8 +731,8 @@ void Particle::update_sigma_independent_binom(bool robbins_monro_on, int iterati
       double log_theta_i = log_hazard_sum - log_K;
 
       // add necessary terms to loglikelihood
-      loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->counts[i] + 1) - lgamma(d->tested[i] - d->counts[i]  + 1)
-                      + d->counts[i]*log(expected_popsize*exp(log_theta_i)) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
+      loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->positive[i] + 1) - lgamma(d->tested[i] - d->positive[i]  + 1)
+        + d->positive[i]*(log(expected_popsize) + log_theta_i) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
       
     }
     
@@ -830,9 +830,11 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
   for (int i = 0; i < d->n; ++i) {
     
     // sum hazard over sources while remaining in log space
-    double log_hazard_sum = 0;
+    double log_hazard_sum = 0;  // note special case when j=0 in loop below, hence this value is actually -Inf initially
     for (int j = 0; j < p->K; ++j) {
-      if (log_hazard_sum < log_hazard_height[i][j]) {
+      if (j == 0) {
+        log_hazard_sum = log_hazard_height[i][j];
+      } else if (log_hazard_sum < log_hazard_height[i][j]) {
         log_hazard_sum = log_hazard_height[i][j] + log(1 + exp(log_hazard_sum - log_hazard_height[i][j]));
       } else {
         log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
@@ -844,8 +846,8 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
     double log_theta_i = log_hazard_sum - log_K;
     
     // add necessary terms to loglikelihood
-    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->counts[i] + 1) - lgamma(d->tested[i] - d->counts[i] + 1)
-                    + d->counts[i]*log(expected_popsize*exp(log_theta_i)) - d->tested[i]*log(1 + expected_popsize*exp(log_theta_i));
+    loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->positive[i] + 1) - lgamma(d->tested[i] - d->positive[i]  + 1)
+      + d->positive[i]*(log(ep_prop) + log_theta_i) - d->tested[i]*log(1 + ep_prop*exp(log_theta_i));
   }
   
   // calculate priors

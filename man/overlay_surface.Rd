@@ -4,9 +4,16 @@
 \alias{overlay_surface}
 \title{Add posterior probability surface to dynamic map}
 \usage{
-overlay_surface(myplot, project, K = NULL, source = NULL,
-  threshold = 0.1, col = rev(col_hotcold()), opacity = 0.8,
-  smoothing = 1)
+overlay_surface(
+  myplot,
+  project,
+  K = NULL,
+  source = NULL,
+  threshold = 0.1,
+  col = rev(col_hotcold()),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

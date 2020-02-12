@@ -29,6 +29,7 @@ check_silverblaze_loaded <- function() {
 #'     \item for \code{data_type = "prevalence"}, data must have columns
 #'     "longitude", "latitude", "tested" and "positive"
 #'     }
+#' @param data_type the type of data, either "counts" or "prevalence".
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting
 #'   existing data
@@ -47,10 +48,10 @@ bind_data <- function(project,
   assert_single_string(data_type)
   assert_in(data_type, c("counts", "prevalence"))
   if (data_type == "counts") {
-    assert_in(names(df), c("longitude", "latitude", "counts"))
+    assert_in(c("longitude", "latitude", "counts"), names(df))
     assert_pos_int(df$counts, zero_allowed = TRUE)
   } else if (data_type == "prevalence") {
-    assert_in(names(df), c("longitude", "latitude", "tested", "positive"))
+    assert_in(c("longitude", "latitude", "tested", "positive"), names(df))
     assert_pos_int(df$tested, zero_allowed = TRUE)
     assert_pos_int(df$positive, zero_allowed = TRUE)
     assert_leq(df$positive, df$tested)
@@ -509,6 +510,8 @@ run_mcmc <- function(project,
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
   
+  #return(output_raw)
+  
   #------------------------
   
   # begin processing results
@@ -678,8 +681,7 @@ run_mcmc <- function(project,
     
     expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
     
-    if(model_numeric == 2)
-    {
+    if (project$data$data_type == "prevalence") {
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
     }
@@ -921,9 +923,9 @@ ring_search <- function(project, r) {
   counts <- NULL
   
   # extract sentinel locations with at least one observation
-  data <- subset(project$data, counts > 0)
-  sentinel_lon <- data$frame$longitude
-  sentinel_lat <- data$frame$latitude
+  data <- subset(project$data$frame, counts > 0)
+  sentinel_lon <- data$longitude
+  sentinel_lat <- data$latitude
 
   # get breaks, midpoints, and coordinates of all points in grid
   breaks_lon <- seq(xmin(r), xmax(r), xres(r))

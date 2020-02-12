@@ -4,14 +4,21 @@
 \alias{bind_data}
 \title{Bind data to project}
 \usage{
-bind_data(project, df, name = NULL, check_delete_output = TRUE)
+bind_data(project, df, data_type, name = NULL, check_delete_output = TRUE)
 }
 \arguments{
 \item{project}{an \code{rgeoprofile_project}, as produced by the function
 \code{rgeoprofile_project()}}
 
-\item{df}{a dataframe with three columns named "longitude", "latitude",
-"counts" (in that order). Counts must be positive integers or zero}
+\item{df}{a dataframe with columns that must conform to the following rules:
+\itemize{
+  \item for \code{data_type = "counts"}, data must have columns
+  "longitude", "latitude" and "counts".
+  \item for \code{data_type = "prevalence"}, data must have columns
+  "longitude", "latitude", "tested" and "positive"
+  }}
+
+\item{data_type}{the type of data, either "counts" or "prevalence".}
 
 \item{name}{optional name of the data set to aid in record keeping}
 

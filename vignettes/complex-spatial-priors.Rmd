@@ -103,7 +103,9 @@ Create a geographic profiling project:
 
 ```{r}
 pPopDen <- rgeoprofile_project()
-pPopDen <- bind_data(pPopDen, df_all)
+pPopDen <- bind_data(pPopDen,
+                     df = df_all,
+                     data_type = "counts")
 ```
 
 Create parameter sets:
@@ -159,6 +161,6 @@ plot3
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-# saveRDS(pPopDen, file = "complex_spatial_project.rds")
+# saveRDS(pPopDen, file = "../inst/extdata/complex_spatial_project.rds")
 ```
 ### References

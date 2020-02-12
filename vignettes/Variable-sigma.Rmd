@@ -78,7 +78,9 @@ Notice `sigma_var` is equal to zero for both sources, this allows us to force th
 
 # create a project and bind data
 p1 <- rgeoprofile_project()
-p1 <- bind_data(p1, sim1$data)
+p1 <- bind_data(p1,
+                df = sim1$data,
+                data_type = "counts")
 
 # add parameter set to project
 p1 <- new_set(project = p1,
@@ -171,7 +173,9 @@ true_sigma2 <- sim2$record$true_sigma
 
 # create a project and bind data
 p2 <- rgeoprofile_project()
-p2 <- bind_data(p2, sim2$data)
+p2 <- bind_data(p2,
+                df = sim2$data,
+                data_type = "counts")
 
 # add parameter set to project
 p2 <- new_set(project = p2,
@@ -246,6 +250,6 @@ true_sigma2
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-#saveRDS(p1, file = "VarSigproject_no_overlap.rds")
-#saveRDS(p2, file = "VarSigproject_overlap.rds")
+#saveRDS(p1, file = "../inst/extdata/VarSigproject_no_overlap.rds")
+#saveRDS(p2, file = "./inst/extdata/VarSigproject_overlap.rds")
 ```
