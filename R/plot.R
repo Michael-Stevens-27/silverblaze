@@ -1022,8 +1022,7 @@ overlay_trial_sites <- function(myplot,
                                 border_opacity = 1.0,
                                 legend = FALSE,
                                 label = FALSE,
-                                label_size = 15,
-                                icon = FALSE) {
+                                label_size = 15) {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
