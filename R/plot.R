@@ -1081,7 +1081,7 @@ overlay_trial_sites <- function(myplot,
   # call in house icon                    
   house_icon <- makeIcon(iconUrl = "https://image.flaticon.com/icons/svg/25/25694.svg", 
   iconWidth = 5, iconHeight = 5,
-  iconAnchorX = , iconAnchorY = 1)
+  iconAnchorX = 1, iconAnchorY = 1)
   
   # add icon as markers
   myplot <- addMarkers(myplot, 
