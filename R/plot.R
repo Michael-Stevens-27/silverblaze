@@ -1289,11 +1289,10 @@ overlay_geoprofile <- function(myplot,
                           fill = FALSE, weight = 2, color = grey(0.2))
 
   # add hitscore legend
-  if(legend == TRUE)
-  {
-  hitscoreSequence <- seq(0, threshold, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = hitscoreSequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscoreSequence, title = "Hitscore", opacity = 1)
+  if(legend == TRUE) {
+  hitscore_sequence <- seq(0, threshold, threshold/(length(col) - 1))
+  pal <- colorNumeric(palette = col, domain = hitscore_sequence)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hitscore", opacity = 1)
   }
   # return plot object
   return(myplot)
@@ -1316,6 +1315,7 @@ overlay_geoprofile <- function(myplot,
 #' @param smoothing what level of smoothing to apply to posterior probability
 #'   surface. Smoothing is applied using the \code{raster} function
 #'   \code{disaggregate}, with \code{method = "bilinear"}.
+#' @param legend whether or not a legend is plotted
 #'
 #' @import leaflet
 #' @importFrom grDevices grey
@@ -1334,7 +1334,8 @@ overlay_surface <- function(myplot,
                             threshold = 0.1,
                             col = rev(col_hotcold()),
                             opacity = 0.8,
-                            smoothing = 1.0) {
+                            smoothing = 1.0,
+                            legend = FALSE) {
 
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -1349,6 +1350,8 @@ overlay_surface <- function(myplot,
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
+  assert_single_logical(legend)
+
 
   # extract geoprofile
   if (is.null(source)) {
@@ -1377,6 +1380,160 @@ overlay_surface <- function(myplot,
   myplot <- addRectangles(myplot, xmin(prob_surface), ymin(prob_surface),
                           xmax(prob_surface), ymax(prob_surface),
                           fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # add legend
+  if(legend == TRUE) {
+  prob_sequence <- seq(0, threshold, threshold/(length(col) - 1))
+  pal <- colorNumeric(palette = col, domain = prob_sequence)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nProbability", opacity = 1)
+  }                        
+
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add risk surface to dynamic map
+#'
+#' @description Add posterior probability surface to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function.
+#' @param project an RgeoProfile project, as produced by the function
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param source which source to plot. If NULL then plot combined surface.
+#' @param threshold what proportion of posterior probability surface to plot.
+#' @param col set of plotting colours.
+#' @param opacity opacity of posterior probability surface (that is not
+#'   invisible due to being below threshold).
+#' @param smoothing what level of smoothing to apply to posterior probability
+#'   surface. Smoothing is applied using the \code{raster} function
+#'   \code{disaggregate}, with \code{method = "bilinear"}.
+#' @param legend whether or not a legend is plotted
+#' @param iterations the number of random parameter sets to generate and combine
+#'   risk maps
+#'
+#' @import leaflet
+#' @importFrom grDevices grey
+#' @export
+#' 
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <-overlay_surface(myplot = plot1, project = p, K = 2, source = NULL, threshold = 0.5)
+#' plot1
+
+overlay_risk_map <- function(myplot,
+                             project,
+                             K = NULL,
+                             source = NULL,
+                             threshold = 0.1,
+                             col = rev(col_hotcold()),
+                             opacity = 0.8,
+                             smoothing = 1.0,
+                             legend = FALSE,
+                             iterations = 50) {
+
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+  assert_single_numeric(threshold)
+  assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_string(col)
+  assert_single_numeric(opacity)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
+  assert_single_logical(legend)
+
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # create risk map 
+  
+  # extract param values for the model run
+  longs <- get_output(project, name = "source_lon_sampling", type = "raw", K = K)
+  lats <- get_output(project, name = "source_lat_sampling", type = "raw", K = K)
+  sigmas <- get_output(project, name = "sigma_sampling", type = "raw", K = K)
+  expected_popsizes <- get_output(project, name = "expected_popsize_sampling", type = "raw", K = K)
+  
+  # get spatial prior
+  spatial_prior <- project$parameter_sets[[s]]$spatial_prior
+  raster_dims <- dim(spatial_prior)
+  
+  # create look up table
+  grid_extent <- extent(spatial_prior)
+  longrid <- seq(grid_extent[1], grid_extent[2], l = raster_dims[2])
+  latgrid <- seq(grid_extent[3], grid_extent[4], l = raster_dims[1])
+  
+  # fix the second run through all the first, then shift the second and run 
+  # through all of the first again
+  grid <- expand.grid(longrid, latgrid)
+  grid <- data.frame(longitude = grid$Var1, latitude = grid$Var2)
+  
+  # how many iterations will this be done for
+  samples <- length(longs[,1])
+  chosen_iterations <- sample(1:samples, iterations)
+  ncells <- ncell(spatial_prior)
+  risk_map_matrix <- matrix(NA, ncol = iterations, nrow = ncells)
+  
+  for(i in 1:iterations){
+    # get distances from each source to every grid cell
+    gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist}, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
+    
+    # get heights of each cell on the mixture of normals
+    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], F)*dnorm(0, 0, sigmas[chosen_iterations[i],], F)
+    mixture_densities <- apply(densities, 1, mean)
+    
+    # multiply by the expected popsize and then map to binom prob
+    hazard_values <- expected_popsizes[chosen_iterations[i]]*mixture_densities
+    binom_prob <- hazard_values/(hazard_values + 1)
+    
+    # store risk map
+    risk_map_matrix[,i] <- binom_prob
+  }
+  
+  # average over all risk_map values
+  risk_map <- apply(risk_map_matrix, 1, mean)
+  risk_raster <- uniform_prior
+  
+  # manipulate the values of the risk map to conform to the form a raster 
+  # receives values
+  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = T))
+  risk_raster <- setValues(risk_raster, apply(manipulated_value,1,rev))
+    
+  # apply smoothing
+  if (smoothing > 1.0) {
+    risk_mat <- disaggregate(risk_mat, smoothing, method = "bilinear")
+  }  
+  
+  # threshold = 1
+  # apply threshold
+  risk_map_mat <- matrix(values(risk_raster), nrow(risk_raster), byrow = TRUE)
+  threshold_final <- sort(risk_map_mat, decreasing = TRUE)[ceiling(length(risk_map_mat)*threshold)]
+  risk_map_mat[risk_map_mat < threshold_final] <- NA
+  risk_map <- setValues(risk_raster, risk_map_mat)
+  
+  # overlay raster
+  myplot <- addRasterImage(myplot, x = risk_raster, colors = col, opacity = opacity)
+
+  # add bounding rect
+  myplot <- addRectangles(myplot, xmin(risk_raster), ymin(risk_raster),
+                          xmax(risk_raster), ymax(risk_raster),
+                          fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # add legend
+  if(legend == TRUE) {
+  prob_sequence <- seq(0, threshold, threshold/(length(col) - 1))
+  pal <- colorNumeric(palette = col, domain = prob_sequence)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Trial\nProbability", opacity = 1)
+  }          
 
   # return plot object
   return(myplot)
