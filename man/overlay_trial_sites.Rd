@@ -7,8 +7,8 @@
 overlay_trial_sites(myplot, project, fill = TRUE,
   fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5,
   border = FALSE, border_colour = "black", border_weight = 1,
-  border_opacity = 1, legend = FALSE, label = FALSE,
-  label_size = 15)
+  border_opacity = 1, legend = FALSE, site_radius = 20,
+  plot_type = "piecharts")
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
@@ -32,9 +32,9 @@ overlay_trial_sites(myplot, project, fill = TRUE,
 
 \item{legend}{whether to add a legend for site count.}
 
-\item{label}{whether to label sentinel sites with densities.}
+\item{site_radius}{radius in Km shown at each site}
 
-\item{label_size}{size of the label.}
+\item{plot_type}{plot trial sites as circles or piecharts}
 }
 \description{
 Add trial sites to dynamic map

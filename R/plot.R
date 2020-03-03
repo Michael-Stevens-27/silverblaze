@@ -996,8 +996,8 @@ overlay_sentinels <- function(myplot,
 #' @param border_weight thickness of circle borders.
 #' @param border_opacity opacity of circle borders.
 #' @param legend whether to add a legend for site count.
-#' @param label whether to label sentinel sites with densities.
-#' @param label_size size of the label.
+#' @param site_radius radius in Km shown at each site
+#' @param plot_type plot trial sites as circles or piecharts
 #'
 #' @import leaflet
 #' @importFrom grDevices grey
@@ -1021,8 +1021,8 @@ overlay_trial_sites <- function(myplot,
                                 border_weight = 1,
                                 border_opacity = 1.0,
                                 legend = FALSE,
-                                label = FALSE,
-                                label_size = 15) {
+                                site_radius = 20,
+                                plot_type = "piecharts") {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -1056,8 +1056,8 @@ overlay_trial_sites <- function(myplot,
   assert_single_pos(border_opacity)
   assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_logical(legend)
-  assert_logical(label)
-  assert_single_pos(label_size)
+  assert_single_pos_int(site_radius)
+  assert_in(plot_type, c("circles", "piecharts"))
   
   # check for data
   df <- project$data$frame
@@ -1065,6 +1065,7 @@ overlay_trial_sites <- function(myplot,
     stop("no data loaded")
   }
   
+  if(plot_type == "circles")  {
   # make circle attributes depend on counts
   n <- nrow(df)
   fill_vec <- rep(fill[1], n)
@@ -1078,27 +1079,42 @@ overlay_trial_sites <- function(myplot,
   border_colour_vec <- rep(border_colour[1], n)
   border_colour_vec[df$positive > 0] <- border_colour[2]
   
-  # call in house icon                    
-  house_icon <- makeIcon(iconUrl = "https://image.flaticon.com/icons/svg/25/25694.svg", 
-  iconWidth = 5, iconHeight = 5,
-  iconAnchorX = 1, iconAnchorY = 1)
-  
-  # add icon as markers
-  myplot <- addMarkers(myplot, 
-    lng = df$longitude, lat = df$latitude, 
-    label = paste(df$positive, " out of ", df$tested, " tested", sep = ""),
-    icon = house_icon,
-    labelOptions = labelOptions(noHide = F, textsize = "15px"))      
-      
   # overlay circles
-  myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
-                      radius = 250,
-                      fill = fill_vec, fillColor = fill_colour_vec, fillOpacity = fill_opacity,
-                      stroke = border_vec, color = border_colour_vec,
-                      opacity = border_opacity, weight = border_weight)
+  myplot <- addCircles(myplot, 
+                       lng = df$longitude, 
+                       lat = df$latitude,
+                       radius = site_radius,
+                       fill = fill_vec, 
+                       fillColor = fill_colour_vec, 
+                       fillOpacity = fill_opacity,
+                       stroke = border_vec, 
+                       color = border_colour_vec,
+                       opacity = border_opacity, 
+                       weight = border_weight)
+                        
+  } else if(plot_type == "piecharts"){
+    
+  # get data into ggplot format
+  lon <- project$data$frame$longitude
+  lat <- project$data$frame$latitude
+  positive <- project$data$frame$positive
+  tested <- project$data$frame$tested
+  # proportions <- positive/tested
   
+  pie_size <- site_radius
+  df <- data.frame(positive = positive, 
+                   negative = tested - positive)
 
-  # return plot object
+  # overlay pie charts
+  myplot <- addMinicharts(myplot, lon, lat,
+                          type = "pie",
+                          chartdata = df,
+                          colorPalette = c("red", "grey"),
+                          width = pie_size,
+                          transitionTime = 20)
+  
+  
+  }
   return(myplot)
 }
 
