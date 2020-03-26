@@ -9,6 +9,7 @@
 #' @param sentinel_lat vector giving latitudes of sentinel sites.
 #' @param sentinel_radius observation radius of the sentinel site (km).
 #' @param K the number of sources.
+#' @param source_weights the proportion of events coming from each source
 #' @param source_lon_min minimum limit on source longitudes.
 #' @param source_lon_max maximum limit on source longitudes.
 #' @param source_lat_min minimum limit on source latitudes.
@@ -58,6 +59,7 @@ sim_data <- function(sentinel_lon,
                      sentinel_lat,
                      sentinel_radius = 0.1,
                      K = 3,
+                     source_weights = NULL, 
                      source_lon_min = -0.2,
                      source_lon_max = 0.0,
                      source_lat_min = 51.45,
@@ -77,6 +79,11 @@ sim_data <- function(sentinel_lon,
   assert_numeric(sentinel_lat)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   assert_single_pos_int(K, zero_allowed = FALSE)
+  if(is.null(source_weights)){
+    source_weights <- rep(1/K, K)
+  }
+  assert_length(source_weights, K)
+  assert_bounded(source_weights)
   assert_single_numeric(source_lon_min)
   assert_single_numeric(source_lon_max)
   assert_single_numeric(source_lat_min)
@@ -118,7 +125,7 @@ sim_data <- function(sentinel_lon,
   }
   
   # draw true allocation of all points to sources
-  group <- sort(sample(K, N, replace = TRUE))
+  group <- sort(sample(K, N, replace = TRUE, prob = source_weights))
   source_N <- tabulate(group)
   
   # draw sigma
@@ -185,14 +192,14 @@ sim_data <- function(sentinel_lon,
     gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, source_lon, source_lat)$gc_dist},
                                       x = sentinel_lon, y = sentinel_lat)
     
-    # calculate mean height of each sentinel site on the mixture of bivariate normals
+    # calculate height of each sentinel site on the mixture of bivariate normals
     heights <- dnorm(gc_dist, 0, sigma)*dnorm(0, 0, sigma)
     if(is.vector(heights)){
-      av_heights <- heights       
+      heights <- heights       
     } else{
-      av_heights <- apply(heights, 2, mean)
+      heights <- apply(heights*source_weights, 2, sum)
     }
-    rate <- expected_popsize*av_heights
+    rate <- expected_popsize*heights
     
     # transform the rate to a trial success probability
     binom_prob <- rate/(1 + rate)

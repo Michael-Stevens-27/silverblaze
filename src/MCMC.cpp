@@ -39,19 +39,21 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   source_lon_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   source_lat_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   sigma_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
-  ep_burnin = vector<double>(p->burnin);
+  ep_burnin =  vector<vector<double>>(p->burnin, vector<double>(p->K));
   
   loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
   source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
-  ep_sampling = vector<double>(p->samples);
+  ep_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   
   // objects for storing acceptance rates
   source_accept_burnin = vector<int>(p->K);
   source_accept_sampling = vector<int>(p->K);
   sigma_accept_burnin = vector<int>(p->K);
   sigma_accept_sampling = vector<int>(p->K);
+  ep_accept_burnin = vector<int>(p->K);
+  ep_accept_sampling = vector<int>(p->K);
   
   coupling_accept_burnin = vector<int>(p->rungs - 1);
   coupling_accept_sampling = vector<int>(p->rungs - 1);
@@ -145,8 +147,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // store expected population size
-    ep_burnin[rep] = particle_vec[cold_rung].expected_popsize;
-    
+    for (int k = 0; k < p->K; ++k) {
+      ep_burnin[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+    }
+  
     // update progress bars
     if (!p->silent) {
       if ((rep+1) == p->burnin) {
@@ -285,8 +289,10 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // store expected population size
-    ep_sampling[rep] = particle_vec[cold_rung].expected_popsize;
-    
+    for (int k = 0; k < p->K; ++k) {
+      ep_sampling[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+    }
+  
     // update progress bars
     if (!p->silent) {
       if ((rep+1) == p->samples) {
@@ -348,7 +354,7 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
       particle_vec[rung2].sigma_propSD = store_sigma_propSD1;
       
       // swap expected_pop proposal SD
-      double store_ep_propSD1 = particle_vec[rung1].ep_propSD;
+      vector<double> store_ep_propSD1 = particle_vec[rung1].ep_propSD;
       particle_vec[rung1].ep_propSD = particle_vec[rung2].ep_propSD;
       particle_vec[rung2].ep_propSD = store_ep_propSD1;
       

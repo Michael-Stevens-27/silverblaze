@@ -428,5 +428,3 @@ double gc_dist(double lon0, double lat0, double lon1, double lat1) {
   
   return gc_dist;
 }
-
-

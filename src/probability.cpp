@@ -131,6 +131,21 @@ double rgamma1(double shape, double rate) {
 }
 
 //------------------------------------------------
+// density of gamma(shape,rate) distribution
+double dgamma1(double x, double shape, double rate) {
+  double y = R::dgamma(x, shape, 1/rate, FALSE);
+  
+  // check for zero or infinite values (catches bug present in Visual Studio 2010)
+  if (y<UNDERFLO) {
+    y = UNDERFLO;
+  }
+  if (y>OVERFLO) {
+    y = OVERFLO;
+  }
+  return y;
+}
+
+//------------------------------------------------
 // draw from beta(alpha,beta) distribution
 double rbeta1(double shape1, double shape2) {
   if (shape1==1 && shape2==1) {
@@ -208,4 +223,21 @@ int rnbinom1(double lambda, double gamma) {
 // variance gamma*lambda (gamma must be >1)
 double dnbinom1(int n, double lambda, double gamma, bool returnLog) {
   return R::dnbinom(n, lambda/(gamma-1), 1/gamma, returnLog);
+}
+
+// //------------------------------------------------
+// // a function to deal with drawing a value from a distribution with any density 
+// // via inverse sampling transform 
+// double approx(std::vector<double> &cumulative_sum_vector,std::vector<double> &domain, double random_uniform) {
+// 
+// 
+//   return R::approx(cumulative_sum_vector, domain, random_uniform);
+// 
+// }
+
+double closest(std::vector<double> const& vec, double value) {
+    auto const it = std::lower_bound(vec.begin(), vec.end(), value);
+    if (it == vec.end()) { return -1; }
+
+    return *it;
 }

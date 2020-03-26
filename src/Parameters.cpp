@@ -33,8 +33,9 @@ Parameters::Parameters(const Rcpp::List &args) {
   search_area = rcpp_to_double(args["study_area"]);
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
-  
-  // get sigma prior mean and sd in log space from raw inputs
+  ep_model = rcpp_to_int(args["expected_popsize_model_numeric"]);
+
+    // get sigma prior mean and sd in log space from raw inputs
   double sigma_prior_mean = rcpp_to_double(args["sigma_prior_mean"]);
   double sigma_prior_sd = rcpp_to_double(args["sigma_prior_sd"]);
   double sigma_prior_varlog = log(pow(sigma_prior_sd,2)/pow(sigma_prior_mean,2) + 1);

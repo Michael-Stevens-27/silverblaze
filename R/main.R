@@ -182,6 +182,9 @@ raster_from_shapefile <- function (shp,
 #' @param sigma_prior_sd the prior standard deviation of the parameter sigma
 #'   (km). Set to 0 to use a fixed value for sigma (fixed at
 #'   \code{sigma_prior_mean}).
+#' @param expected_popsize_model set as \code{"single"} to assume the same
+#'   number of events for all sources, or \code{"independent"} to assume an
+#'   independently drawn number of events for each source.
 #' @param expected_popsize_prior_mean the prior mean of the expected total
 #'   population size.
 #' @param expected_popsize_prior_sd the prior standard deviation of the expected
@@ -196,6 +199,7 @@ new_set <- function(project,
                     sigma_model = "single",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
+                    expected_popsize_model = "single",
                     expected_popsize_prior_mean = 100,
                     expected_popsize_prior_sd = 10,
                     name = "(no name)") {
@@ -209,6 +213,7 @@ new_set <- function(project,
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
+  assert_in(expected_popsize_model, c("single", "independent"))
   assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
   assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   assert_single_string(name)
@@ -239,6 +244,7 @@ new_set <- function(project,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
+                                      expected_popsize_model = expected_popsize_model,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd)
   
@@ -455,9 +461,12 @@ run_mcmc <- function(project,
   # initialise sources in a non-NA cell
   source_init <- raster::xyFromCell(spatial_prior, which(!is.na(raster::values(spatial_prior)))[1])
   
-  # convert sigma_model to numeric
+  # convert sigma_model and expected_popsize_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
+  
+  expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
+  fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
   
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
@@ -471,7 +480,9 @@ run_mcmc <- function(project,
                           spatial_prior_values = spatial_prior_values,
                           source_init = source_init,
                           sigma_model_numeric = sigma_model_numeric,
-                          fixed_sigma_model = fixed_sigma_model)
+                          fixed_sigma_model = fixed_sigma_model,
+                          expected_popsize_model_numeric = expected_popsize_model_numeric,
+                          fixed_expected_popsize_model = fixed_expected_popsize_model)
   
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
@@ -556,10 +567,16 @@ run_mcmc <- function(project,
     } else {
       colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
     }
-    
     # get expected_popsize in coda::mcmc format
-    expected_popsize_burnin <- coda::mcmc(output_raw[[i]]$ep_burnin[1:convergence_iteration])
-    expected_popsize_sampling <- coda::mcmc(output_raw[[i]]$ep_sampling)
+    expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
+    expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
+    if (args_model$expected_popsize_model == "single") {
+      expected_popsize_burnin <- expected_popsize_burnin[, 1, drop = FALSE]
+      expected_popsize_sampling <- expected_popsize_sampling[, 1, drop = FALSE]
+      colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- "all_groups"
+    } else {
+      colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
+    }
     
     # ---------- summary results ----------
     # get 95% credible intervals over sampling and burnin loglikelihoods
@@ -570,8 +587,7 @@ run_mcmc <- function(project,
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
     # get 95% credible intervals over expected_popsize
-    expected_popsize_intervals <- as.data.frame(t(quantile_95(expected_popsize_sampling)))
-    rownames(expected_popsize_intervals) <- "expected_popsize"
+    expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
@@ -685,7 +701,7 @@ run_mcmc <- function(project,
     
     expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
     
-    if (project$data$data_type == "prevalence") {
+    if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
     }
