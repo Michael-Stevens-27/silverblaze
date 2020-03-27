@@ -36,7 +36,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 1.0);
+  ep_propSD = vector<double>(p->K, 100.0);
   
   // Robbins-Monro stepsize constants
   source_rm_stepsize = 5.0;
@@ -153,6 +153,8 @@ void Particle::reset(double beta) {
   source_accept_sampling = vector<int>(p->K);
   sigma_accept_burnin = vector<int>(p->K);
   sigma_accept_sampling = vector<int>(p->K);
+  ep_accept_burnin = vector<int>(p->K);
+  ep_accept_sampling = vector<int>(p->K);
 }
 
 //------------------------------------------------
@@ -289,13 +291,10 @@ double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, do
       }
     }
     
-    // divide by K
-    log_hazard_sum -= log_K;
-    
     // define the rate lambda of the Poisson process at this sentinel site,
     // while remaining in log space
     double log_lambda = log_sentinel_area + log_hazard_sum;
-    
+        
     // calculate the Poisson log-probability of the counts at this sentinel site
     loglike_prop += d->counts[i]*log_lambda - exp(log_lambda) - lgamma(d->counts[i] + 1);
   }
@@ -587,9 +586,6 @@ void Particle::update_sigma_single_pois_ind_exp_pop(bool robbins_monro_on, int i
          }
        }
        
-       // divide by K
-       log_hazard_sum -= log_K;
-       
        // define the rate lambda of the Poisson process at this sentinel site,
        // while remaining in log space
        double log_lambda = log_sentinel_area + log_hazard_sum;
@@ -873,9 +869,6 @@ void Particle::update_sigma_independent_pois_ind_exp_pop(bool robbins_monro_on, 
           }
         }
         
-        // divide by K
-        log_hazard_sum -= log_K;
-        
         // define the rate lambda of the Poisson process at this sentinel site,
         // while remaining in log space
         double log_lambda = log_sentinel_area + log_hazard_sum;
@@ -1015,7 +1008,7 @@ void Particle::update_sigma_independent_binom(bool robbins_monro_on, int iterati
 }
 
 //------------------------------------------------
-// update sigma
+// update expected popsize
 void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   
   // return if prior is exact
@@ -1023,7 +1016,7 @@ void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
     return;
   }
   
-  // update expected_pop_size based on binomial or poisson model
+  // update expected_popsize based on binomial or poisson model
   if (d->data_type == 1) { // Poisson 
     if(p->ep_model == 1){
       update_expected_popsize_pois_single();
@@ -1142,6 +1135,7 @@ void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on, i
         // recalculate hazard given new ep
         double dist = dist_source_data[i][k];
         log_hazard_height_prop[i] = log(ep_prop) + dnorm1(dist, 0, sigma[k], true) + dnorm1(0, 0, sigma[k], true);
+        
         // sum hazard over sources while remaining in log space
         double log_hazard_sum = log_hazard_height_prop[i];
         for (int j = 0; j < p->K; ++j) {
@@ -1155,12 +1149,9 @@ void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on, i
           }
         }
         
-        // divide by K
-        log_hazard_sum -= log_K;
-        
         // define the rate lambda of the Poisson process at this sentinel site,
         // while remaining in log space
-        double log_lambda = log_sentinel_area + log_hazard_sum;
+        double log_lambda = log_sentinel_area + log_hazard_sum; 
         
         // calculate the Poisson log-probability of the counts at this sentinel site
         loglike_prop += d->counts[i]*log_lambda - exp(log_lambda) - lgamma(d->counts[i] + 1);
@@ -1196,7 +1187,6 @@ void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on, i
       }
 
     } else {
-      
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
         ep_propSD[k] = exp(log(ep_propSD[k]) - ep_rm_stepsize*0.44/sqrt(iteration));
