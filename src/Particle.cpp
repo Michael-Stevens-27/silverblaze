@@ -1044,6 +1044,11 @@ void Particle::update_expected_popsize_pois_single() {
   double posterior_shape = p->ep_prior_shape + beta*counts_total;
   double posterior_rate = p->ep_prior_rate + beta*lambda_total;
   expected_popsize[0] = rgamma1(posterior_shape, posterior_rate);
+  
+  // update ep for all sources
+  for (int k = 0; k < p->K; ++k) {
+  expected_popsize[k] = expected_popsize[0];
+  }
 }
 
 // //------------------------------------------------
