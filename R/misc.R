@@ -694,7 +694,7 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   }
   
   # get values of K with output
-  empty_output_logical <- !is.na(p$output$single_set[[s]]$all_K$DIC_gelman$DIC_gelman)
+  empty_output_logical <- !is.na(project$output$single_set[[s]]$all_K$DIC_gelman$DIC_gelman)
   K <- which(empty_output_logical == TRUE)
   
   # initialise hitscore dataframe
