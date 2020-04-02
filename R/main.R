@@ -1084,34 +1084,57 @@ optimise_beta <- function(proj,
       return(ret)
     }
     
-    # update beta sequence
-    for (i in 1:(rungs-2)) {
-      if (coupling_burnin[i] < target_acceptance) {
+  
+    # get index of those acceptance values less than target
+    update <- which(coupling_burnin < target_acceptance)
+    
+    # loop over index of acceptance prob less than target
+    for(i in 1:length(update)){
+        # access index that needs changing
+        update_single <- update[i]
         
-        # get acceptance rate relative to target (small additions to control max
-        # and min possible values)
-        rel_accept <-  (coupling_burnin[i] + 0.01)/(target_acceptance + 0.1)
+        # calculate beta value in the middle of the two that produced the low transition probability 
+        beta_increase <- 0.5*(beta_vec[update_single + 1] - beta_vec[update_single])
+        new_beta <- beta_vec[update_single] + beta_increase
         
-        # calculate how far to adjust sequence based on rel_accept
-        move_left <- diff(beta_vec)[i] * (1 - rel_accept)
+        # append this new value in beta_vec
+        beta_vec <- append(x = beta_vec, values = new_beta, after = update_single)
         
-        # adjust sequence
-        beta_vec[-(1:i)] <- beta_vec[-(1:i)] - move_left
-      }
+        # update vector of indexes to account for new length of beta_vec
+        update <- update + 1
     }
     
-    # if final coupling value is less than target, add another rung
-    if (coupling_burnin[rungs-1] < target_acceptance) {
-      beta_vec <- c(beta_vec, 1)
-      rungs <- length(beta_vec)
-    }
-    
-    # ensure final value in sequence always equals 1
-    beta_vec[length(beta_vec)] <- 1
     
   }  # end loop over iterations
   
   # if reached this point then not converged within max_iterations
   warning(sprintf("optimise_beta() did not find solution within %s iterations", max_iterations))
   return(ret)
+
+  # TODO Keep or remove Bob's version of the beta function 
+  # # update beta sequence
+  # for (i in 1:(rungs - 2)) {
+  #   if (coupling_burnin[i] < target_acceptance) {
+  # 
+  #     # get acceptance rate relative to target (small additions to control max
+  #     # and min possible values)
+  #     rel_accept <- (coupling_burnin[i] + 0.01)/(target_acceptance + 0.1)
+  # 
+  #     # calculate how far to adjust sequence based on rel_accept
+  #     move_left <- diff(beta_vec)[i] * (1 - rel_accept)
+  # 
+  #     # adjust sequence
+  #     beta_vec[-(1:i)] <- beta_vec[-(1:i)] - move_left
+  #   }
+  # }
+  # 
+  # # if final coupling value is less than target, add another rung
+  # if (coupling_burnin[rungs - 1] < target_acceptance) {
+  #   beta_vec <- c(beta_vec, 1)
+  #   rungs <- length(beta_vec)
+  # 
+  # 
+  # # ensure final value in sequence always equals 1
+  # beta_vec[length(beta_vec)] <- 1
+
 }
