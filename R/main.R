@@ -1067,6 +1067,9 @@ optimise_beta <- function(proj,
     ret$beta_vec <- c(ret$beta_vec, list(beta_vec))
     ret$coupling <- c(ret$coupling, list(coupling_burnin))
     
+    # count how many probabilities are below target
+    under_target <- sum(coupling_burnin < target_acceptance)
+    
     # report progress to console
     if (!silent) {
       message("--------------------")
@@ -1077,6 +1080,11 @@ optimise_beta <- function(proj,
       message(paste(signif(beta_vec, digits = 3), collapse = ", "))
       message("coupling acceptance:")
       message(paste(coupling_burnin, collapse = ", "))
+      message("--------------------")
+      message(paste0(under_target, " out of ", rungs - 1, 
+                     " probabilities are under target (", target_acceptance, ")" )
+)
+
     }
     
     # return if all coupling over target threshold
