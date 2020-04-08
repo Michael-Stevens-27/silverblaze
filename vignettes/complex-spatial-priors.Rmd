@@ -1,11 +1,11 @@
 ---
-title: "Tutorial 2: Complex Spatial Priors"
+title: "Tutorial 5: Complex Spatial Priors"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: complex-spatial-priors.bib
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 2: Complex Spatial Priors"}
+  %\VignetteIndexEntry{"Tutorial 5: Complex Spatial Priors"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -86,16 +86,25 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -132,13 +141,8 @@
     <p>Plot loglikelihood 95% credible intervals of current active set</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plot_loglike</span>(
-  <span class='no'>project</span>,
-  <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>x_axis_type</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>y_axis_type</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>phase</span> <span class='kw'>=</span> <span class='st'>"sampling"</span>
-)</pre>
+    <pre class="usage"><span class='fu'>plot_loglike</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>x_axis_type</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>y_axis_type</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>phase</span> <span class='kw'>=</span> <span class='st'>"sampling"</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -146,16 +150,16 @@
     <tr>
       <th>project</th>
       <td><p>an RgeoProfile project, as produced by the function
-<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
+<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code>.</p></td>
     </tr>
     <tr>
       <th>K</th>
-      <td><p>which value of K to produce the plot for</p></td>
+      <td><p>which value of K to produce the plot for.</p></td>
     </tr>
     <tr>
       <th>x_axis_type</th>
       <td><p>how to format the x-axis. 1 = integer rungs, 2 = values of
-beta raised to the GTI power</p></td>
+beta raised to the GTI power.</p></td>
     </tr>
     <tr>
       <th>y_axis_type</th>
@@ -182,7 +186,7 @@ auto-chosen lower limit. 3 = double-log scale.</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

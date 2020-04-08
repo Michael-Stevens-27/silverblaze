@@ -11,14 +11,20 @@ navbar:
       menu:
         - text: "Installation"
           href: articles/installation.html
-        - text: "Tutorial 1: Basic Implementation"
-          href: articles/basic-implementation.html
-        - text: "Tutorial 2: Complex Spatial Priors"
-          href: articles/complex-spatial-priors.html
+        - text: "Tutorial 1: Poisson Model Basic Implementation"
+          href: articles/Poisson-basic-implementation.html
+        - text: "Tutorial 2: Binomial Model Basic Implementation"
+          href: articles/Binomial-basic-implementation.html
         - text: "Tutorial 3: Model Validation"
           href: articles/model-validation.html
-        - text: "Tutorial 4: Variable Sigma"
+        - text: "Tutorial 4: Metropolis_Hastings Coupling"
+          href: articles/MHCoupling.html  
+        - text: "Tutorial 5: Complex Spatial Priors"
+          href: articles/complex-spatial-priors.html
+        - text: "Tutorial 6: Variable Sigma"
           href: articles/Variable-sigma.html
+        - text: "Tutorial 7: Variable Expected Population"
+          href: articles/Variable-population.html  
     - text: "Functions"
       href: reference/index.html
   right:

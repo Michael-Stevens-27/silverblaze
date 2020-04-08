@@ -1,0 +1,263 @@
+---
+title: "Tutorial 4: Metropolis Hastings Coupling"
+author: "Michael Stevens"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Tutorial 4: Metropolis_Hastings Coupling"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE}
+set.seed(58)
+library(silverblaze)
+plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
+            "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
+```
+
+## Introduction
+
+The following tutorial will introduce the user to the general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:
+
+1. The data used to run the model
+2. The parameter settings for the model
+3. The output of running the model
+
+Following this, the user will learn how to plot and diagnose the output of the model.
+
+## Simulating data
+
+Before any data simulation happens, we must first define the sentinel site locations for the data.
+
+```{r}
+sentinal_lon <- seq(-0.2, 0.0, l = 12)
+sentinal_lat <- seq(51.45, 51.55, l = 12)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+names(sentinal_grid) <- c("longitude", "latitude")
+```
+
+Here we've chosen a lattice configuration but the user may define any list of longitude/latitude locations they would like. With these sentinel sites we can generate our data from a given model using `sim_data()`.
+
+```{r}
+mysim <- sim_data(sentinal_grid$longitude,
+                 sentinal_grid$latitude,
+                 sentinel_radius = 0.25,
+                 K = 3,
+                 sigma_model = "single",
+                 sigma_mean = 1,
+                 sigma_var = 0.5,
+                 expected_popsize = 300)
+```
+
+These parameters describe the underlying behaviour of the data in question:
+
+* `sentinal_radius` describes the overall reach of our sentinel sites.
+* `K` is the number of sources with which individuals are spatially based.
+* `sigma_model` defines homogeneity or independence of dispersal across sources.
+* `sigma_mean` and `sigma_var` govern the dispersal associated with each source. Set `sigma_var = 0` to set an explicit dispersal via `sigma_mean`.
+* `expected_popsize` tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.
+
+From the simulation we can extract two key objects: the true sources and a record of which individuals were captured and where.
+
+```{r}
+true_source <- mysim$record$true_source
+data_all <- mysim$record$data_all
+```
+
+We will require these objects for plotting later on.
+
+```{r}
+head(mysim$data)
+```
+
+Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.
+
+## Creating a project
+
+We initialise a blank project `p` using the `rgeoprofile_project()` function.
+
+```{r}
+p <- rgeoprofile_project()
+```
+
+We then add in our simulated data using `bind_data()`.
+
+```{r}
+p <- bind_data(p,
+               df = mysim$data,
+               data_type = "counts")
+```
+
+## Simple spatial prior
+
+We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our sentinel sites plus some "guardRail." We can produce a uniform spatial prior with `raster_grid()`.
+
+```{r}
+uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
+                             cells_lon = 100, cells_lat = 100, guard_rail = 0.1)
+```
+
+```{r, echo = FALSE}
+spatialProject <- rgeoprofile_project()
+spatialProject <- new_set(project = spatialProject,
+                          spatial_prior = uniform_prior)
+
+plot_spatial <- plot_map()
+plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, col = "red", opacity = 0.2)
+plot_spatial
+```
+
+## Parameter sets
+
+Next we define the various priors on the variables we wish to estimate when running the model. We define these parameters via `new_set()`. Notice the project `p` is one of the function's arguments. This is such that the parameter set we define is added into our project.
+
+```{r}
+p <- new_set(project = p,
+             spatial_prior = uniform_prior,
+             sentinel_radius = 0.25,
+             sigma_model = "single",
+             sigma_prior_mean = 1,
+             sigma_prior_sd = 1,
+             expected_popsize_prior_mean = 200,
+             expected_popsize_prior_sd = 30,
+             name = "Tutorial Parameters")
+p
+```
+
+The project `p` is now taking shape as we have defined the data and parameters for the model. Each time the `new_set()` function is run it will add a new set of parameters to `p$parameters_sets` and will regard this new set as the `active_set`. To delete an old parameter set, we use `delete_set()`. The `"output"` object within `p` is empty right now, but will be populated once the model has run.
+
+## Running the model
+
+We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:5` as our data was generated with three sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.
+
+```{r, eval = FALSE}
+p <- run_mcmc(project = p,
+              K = 1:5,
+              burnin = 1e4,
+              samples = 5e4,
+              converge_test = 5e3,
+              auto_converge = TRUE,
+              pb_markdown = TRUE)
+```
+
+```{r, echo = FALSE}
+p <- rgeoprofile_file("tutorial1_project.rds")
+```
+
+Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
+
+## Diagnosing the model
+
+Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of `K` to ensure the algorithm is behaving properly.
+
+```{r}
+plot_loglike_diagnostic(p, K = 3)
+```
+
+Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
+
+```{r}
+get_ESS(p, K = 3)
+```
+
+## Results
+### Mapping
+
+Now the model has run, we can start to visualise different aspects of the project. Plotting objects in silverblaze follow a similar structure to [Leaflet](https://rstudio.github.io/leaflet/) and [ggplot2](https://ggplot2.tidyverse.org/). We start with a base layer
+
+```{r}
+plot1 <- plot_map()
+```
+
+and overlay different parts of our project using the set of overlay functions. Lets start with the underlying locations of individuals and their sources.
+
+```{r}
+plot2 <- overlay_points(plot1, data_all$longitude, data_all$latitude, size = 2)
+plot2 <- overlay_sources(plot2, true_source$longitude, true_source$latitude)
+plot2
+```
+
+This isn't too interesting yet, so let's add to this the spatial prior and the sentinel site locations.
+
+```{r}
+plot2 <- overlay_spatial_prior(plot2, p, col = "red", opacity = 0.2)
+plot2 <- overlay_sentinels(plot2, p, fill_opacity = 0.9,
+                            fill = TRUE, fill_colour = c(grey(0.7), "red"),
+                            border = c(FALSE, TRUE), border_colour = "black", border_weight = 0.5)
+plot2
+
+```
+Finally, we add in the geoprofile produced by running the MCMC.
+
+```{r}
+plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, 
+                            K = 3, col = plasma, legend = TRUE)
+plot2
+```
+
+### Other Parameter Estimation
+
+We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
+
+```{r}
+plot_sigma(p, K = 3)
+```
+
+Similarly the same can be done for the expected population size.
+
+```{r}
+plot_expected_popsize(p, K = 3)
+```
+
+With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.
+
+```{r}
+plot_structure(p, divide_ind_on = TRUE)
+```
+
+When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. On to `K = 3` and the model starts to get a little confused as to if it should allocate points to group 1 or group 3. If you scroll back up to the map you can see that two clusters are spatially overlapping, this is the most likely reason for the uncertainty. If a sentinel site is right in the centre of two overlapping clusters there will be some uncertainty in which source individuals at that sentinel site came from. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
+
+```{r}
+# TODO fix plot structure for "rgeoprofile_qmatrix" class
+plot(mysim$record$true_qmatrix)
+```
+
+It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.
+
+```{r}
+piePlot <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
+piePlot <- overlay_geoprofile(piePlot, p, threshold = 0.1, opacity = 0.8, 
+                            K = 3, col = plasma, legend = TRUE)
+piePlot <- overlay_piecharts(piePlot, project = p, K = 3, min_size = 10, max_size = 30)
+piePlot
+```
+
+The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.
+
+```{r}
+hs <- get_hitscores(p, true_source$longitude, true_source$latitude)
+hs
+```
+
+Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.
+
+```{r}
+plot3 <- plot_lorenz(hs)
+plot3
+```
+
+This `plot_lorenz()` function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.
+
+```{r}
+gini(hs)
+```
+
+Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to.
+
+```{r, echo=FALSE, eval = FALSE}
+# secretly save/load data from file so output is consistent between tutorials
+# saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
+# saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
+# saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
+```

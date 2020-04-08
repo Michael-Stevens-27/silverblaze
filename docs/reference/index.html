@@ -67,7 +67,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -84,16 +84,25 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -257,6 +266,12 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="overlay_risk_map.html">overlay_risk_map()</a></code> </p>
+        </td>
+        <td><p>Add risk surface to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="overlay_sentinels.html">overlay_sentinels()</a></code> </p>
         </td>
         <td><p>Add sentinel sites to dynamic map</p></td>
@@ -281,6 +296,12 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="overlay_trial_sites.html">overlay_trial_sites()</a></code> </p>
+        </td>
+        <td><p>Add trial sites to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="plot_DIC_gelman.html">plot_DIC_gelman()</a></code> </p>
         </td>
         <td><p>Plot DIC over all K</p></td>
@@ -293,6 +314,12 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="plot_coupling.html">plot_coupling()</a></code> </p>
+        </td>
+        <td><p>Plot acceptance rate between rungs</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="plot_density.html">plot_density()</a></code> </p>
         </td>
         <td><p>Produce MCMC density plot</p></td>
@@ -301,7 +328,7 @@
         <td>
           <p><code><a href="plot_expected_popsize.html">plot_expected_popsize()</a></code> </p>
         </td>
-        <td><p>Plot COI 95% credible intervals</p></td>
+        <td><p>Plot expected population size 95% credible intervals</p></td>
       </tr><tr>
         
         <td>
@@ -331,7 +358,7 @@
         <td>
           <p><code><a href="plot_sigma.html">plot_sigma()</a></code> </p>
         </td>
-        <td><p>Plot COI 95% credible intervals</p></td>
+        <td><p>Plot sigma 95% credible intervals</p></td>
       </tr><tr>
         
         <td>
@@ -344,12 +371,6 @@
           <p><code><a href="plot_trace.html">plot_trace()</a></code> </p>
         </td>
         <td><p>Produce MCMC trace plot</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="print.rgeoprofile_project.html">print(<i>&lt;rgeoprofile_project&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Custom print function for class rgeoprofile_project</p></td>
       </tr><tr>
         
         <td>
@@ -403,19 +424,13 @@
         <td>
           <p><code><a href="silverblaze.html">silverblaze</a></code> </p>
         </td>
-        <td><p>silverblaze</p></td>
+        <td><p>Bayesian Geographic Profiling from Presence-Absence Data</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="sim_data.html">sim_data()</a></code> </p>
         </td>
         <td><p>Simulate data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="summary.rgeoprofile_project.html">summary(<i>&lt;rgeoprofile_project&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Print summary for class rgeoprofile_project</p></td>
       </tr>
     </tbody>
     </table>
@@ -432,7 +447,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

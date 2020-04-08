@@ -70,7 +70,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -87,16 +87,25 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -134,17 +143,10 @@
   parameter set becomes the active set once created.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>new_set</span>(
-  <span class='no'>project</span>,
-  <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
-  <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
-  <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>10</span>,
-  <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>
-)</pre>
+    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
+  <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>, <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>, <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>100</span>,
+  <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -152,48 +154,53 @@
     <tr>
       <th>project</th>
       <td><p>an rgeoprofile_project, as produced by the function
-<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
+<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code>.</p></td>
     </tr>
     <tr>
       <th>spatial_prior</th>
       <td><p>a raster file defining the spatial prior. Precision
-values are taken from this raster if it is defined</p></td>
+values are taken from this raster if it is defined.</p></td>
     </tr>
     <tr>
       <th>sentinel_radius</th>
-      <td><p>the observation radius of sentinel sites</p></td>
+      <td><p>the observation radius of sentinel sites.</p></td>
     </tr>
     <tr>
       <th>sigma_model</th>
       <td><p>set as <code>"single"</code> to assume the same dispersal
 distance for all sources, or <code>"independent"</code> to assume an
-independently drawn dispersal distance for each source</p></td>
+independently drawn dispersal distance for each source.</p></td>
     </tr>
     <tr>
       <th>sigma_prior_mean</th>
-      <td><p>the prior mean of the parameter sigma (km)</p></td>
+      <td><p>the prior mean of the parameter sigma (km).</p></td>
     </tr>
     <tr>
       <th>sigma_prior_sd</th>
       <td><p>the prior standard deviation of the parameter sigma
 (km). Set to 0 to use a fixed value for sigma (fixed at
-<code>sigma_prior_mean</code>)</p></td>
+<code>sigma_prior_mean</code>).</p></td>
+    </tr>
+    <tr>
+      <th>expected_popsize_model</th>
+      <td><p>set as <code>"single"</code> to assume the same
+number of events for all sources, or <code>"independent"</code> to assume an
+independently drawn number of events for each source.</p></td>
     </tr>
     <tr>
       <th>expected_popsize_prior_mean</th>
       <td><p>the prior mean of the expected total
-population size</p></td>
+population size.</p></td>
     </tr>
     <tr>
       <th>expected_popsize_prior_sd</th>
       <td><p>the prior standard deviation of the expected
 total population size. Set to 0 to use a fixed value (fixed at
-<code>expected_popsize_prior_mean</code>), or set to -1 to use an improper,
-infinitely diffuse prior</p></td>
+<code>expected_popsize_prior_mean</code>).</p></td>
     </tr>
     <tr>
       <th>name</th>
-      <td><p>an optional name for the parameter set</p></td>
+      <td><p>an optional name for the parameter set.</p></td>
     </tr>
     </table>
 
@@ -211,7 +218,7 @@ infinitely diffuse prior</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

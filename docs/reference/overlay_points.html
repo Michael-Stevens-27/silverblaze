@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -86,16 +86,25 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -132,34 +141,31 @@
     <p>Add points to dynamic map</p>
     </div>
 
-    <pre class="usage"><span class='fu'>overlay_points</span>(<span class='no'>myplot</span>, <span class='no'>lon</span>, <span class='no'>lat</span>, <span class='kw'>col</span> <span class='kw'>=</span> <span class='st'>"black"</span>, <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>opacity</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>overlay_points</span>(<span class='no'>myplot</span>, <span class='no'>lon</span>, <span class='no'>lat</span>, <span class='kw'>col</span> <span class='kw'>=</span> <span class='st'>"black"</span>, <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>opacity</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>myplot</th>
-      <td><p>dynamic map produced by <code><a href='plot_map.html'>plot_map()</a></code> function</p></td>
+      <td><p>dynamic map produced by <code><a href='plot_map.html'>plot_map()</a></code> function.</p></td>
     </tr>
     <tr>
-      <th>lon</th>
-      <td><p>longitude of points</p></td>
-    </tr>
-    <tr>
-      <th>lat</th>
-      <td><p>latitude of points</p></td>
+      <th>lon, lat</th>
+      <td><p>longitude and latitude of points.</p></td>
     </tr>
     <tr>
       <th>col</th>
-      <td><p>colour of points</p></td>
+      <td><p>colour of points.</p></td>
     </tr>
     <tr>
       <th>size</th>
-      <td><p>size of points</p></td>
+      <td><p>size of points.</p></td>
     </tr>
     <tr>
       <th>opacity</th>
-      <td><p>opacity of points</p></td>
+      <td><p>opacity of points.</p></td>
     </tr>
     </table>
 
@@ -184,7 +190,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

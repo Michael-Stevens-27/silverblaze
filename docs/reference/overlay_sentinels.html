@@ -69,7 +69,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -86,16 +86,25 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -132,21 +141,11 @@
     <p>Add sentinel sites to dynamic map</p>
     </div>
 
-    <pre class="usage"><span class='fu'>overlay_sentinels</span>(
-  <span class='no'>myplot</span>,
-  <span class='no'>project</span>,
-  <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>fill</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>fill_colour</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fu'><a href='https://rdrr.io/r/grDevices/gray.html'>grey</a></span>(<span class='fl'>0.5</span>), <span class='st'>"red"</span>),
-  <span class='kw'>fill_opacity</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
-  <span class='kw'>border</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>border_colour</span> <span class='kw'>=</span> <span class='st'>"black"</span>,
-  <span class='kw'>border_weight</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>border_opacity</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>legend</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>label</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>label_size</span> <span class='kw'>=</span> <span class='fl'>15</span>
-)</pre>
+    <pre class="usage"><span class='fu'>overlay_sentinels</span>(<span class='no'>myplot</span>, <span class='no'>project</span>, <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fill</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>fill_colour</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fu'><a href='https://rdrr.io/r/grDevices/gray.html'>grey</a></span>(<span class='fl'>0.5</span>), <span class='st'>"red"</span>), <span class='kw'>fill_opacity</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
+  <span class='kw'>border</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>border_colour</span> <span class='kw'>=</span> <span class='st'>"black"</span>, <span class='kw'>border_weight</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>border_opacity</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>legend</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>label</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>label_size</span> <span class='kw'>=</span> <span class='fl'>15</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -158,52 +157,52 @@
     <tr>
       <th>project</th>
       <td><p>an RgeoProfile project, as produced by the function
-<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
+<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code>.</p></td>
     </tr>
     <tr>
       <th>sentinel_radius</th>
       <td><p>the radius of sentinel sites. Taken from the active
-parameter set if unspecified</p></td>
+parameter set if unspecified.</p></td>
     </tr>
     <tr>
       <th>fill</th>
-      <td><p>whether to fill circles</p></td>
+      <td><p>whether to fill circles.</p></td>
     </tr>
     <tr>
       <th>fill_colour</th>
-      <td><p>colour of circle fill</p></td>
+      <td><p>colour of circle fill.</p></td>
     </tr>
     <tr>
       <th>fill_opacity</th>
-      <td><p>fill opacity</p></td>
+      <td><p>fill opacity.</p></td>
     </tr>
     <tr>
       <th>border</th>
-      <td><p>whether to add border to circles</p></td>
+      <td><p>whether to add border to circles.</p></td>
     </tr>
     <tr>
       <th>border_colour</th>
-      <td><p>colour of circle borders</p></td>
+      <td><p>colour of circle borders.</p></td>
     </tr>
     <tr>
       <th>border_weight</th>
-      <td><p>thickness of circle borders</p></td>
+      <td><p>thickness of circle borders.</p></td>
     </tr>
     <tr>
       <th>border_opacity</th>
-      <td><p>opacity of circle borders</p></td>
+      <td><p>opacity of circle borders.</p></td>
     </tr>
     <tr>
       <th>legend</th>
-      <td><p>whether to add a legend for site count</p></td>
+      <td><p>whether to add a legend for site count.</p></td>
     </tr>
     <tr>
       <th>label</th>
-      <td><p>whether to label sentinel sites with densities</p></td>
+      <td><p>whether to label sentinel sites with densities.</p></td>
     </tr>
     <tr>
       <th>label_size</th>
-      <td><p>size of the label</p></td>
+      <td><p>size of the label.</p></td>
     </tr>
     </table>
 
@@ -228,7 +227,7 @@ parameter set if unspecified</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

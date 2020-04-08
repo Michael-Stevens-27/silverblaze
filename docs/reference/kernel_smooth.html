@@ -75,7 +75,7 @@ likelihood method." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -92,16 +92,25 @@ likelihood method." />
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
     </li>
     <li>
       <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -144,14 +153,8 @@ value of lambda is chosen automatically using the leave-one-out maximum
 likelihood method.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>kernel_smooth</span>(
-  <span class='no'>longitude</span>,
-  <span class='no'>latitude</span>,
-  <span class='no'>breaks_lon</span>,
-  <span class='no'>breaks_lat</span>,
-  <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nu</span> <span class='kw'>=</span> <span class='fl'>3</span>
-)</pre>
+    <pre class="usage"><span class='fu'>kernel_smooth</span>(<span class='no'>longitude</span>, <span class='no'>latitude</span>, <span class='no'>breaks_lon</span>, <span class='no'>breaks_lat</span>, <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>nu</span> <span class='kw'>=</span> <span class='fl'>3</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -203,7 +206,7 @@ bandwidth is chosen automatically by maximum-likelihood</p></td>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">

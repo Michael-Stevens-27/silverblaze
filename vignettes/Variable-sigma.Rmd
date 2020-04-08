@@ -1,11 +1,11 @@
 ---
-title: "Tutorial 4: Variable Sigma"
+title: "Tutorial 6: Variable Sigma"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: Variable-sigma.bib
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 4: Variable Sigma"}
+  %\VignetteIndexEntry{"Tutorial 6: Variable Sigma"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

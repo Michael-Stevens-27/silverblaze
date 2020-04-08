@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 1: Basic Implementation"
+title: "Tutorial 1: Binomial - Basic Implementation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r, echo = FALSE}
-set.seed(58)
+set.seed(27)
 library(silverblaze)
 plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
             "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
@@ -41,37 +41,34 @@ Here we've chosen a lattice configuration but the user may define any list of lo
 
 ```{r}
 mysim <- sim_data(sentinal_grid$longitude,
-                 sentinal_grid$latitude,
-                 sentinel_radius = 0.25,
-                 K = 3,
-                 sigma_model = "single",
-                 sigma_mean = 1,
-                 sigma_var = 0.5,
-                 expected_popsize = 300)
+                  sentinal_grid$latitude,
+                  K = 3,
+                  sigma_model = "single",
+                  sigma_mean = 1,
+                  sigma_var = 0.5,
+                  expected_popsize = 300, 
+                  data_type = "prevalence",
+                  test_rate = 20)
+
+true_source <- mysim$record$true_source
 ```
 
 These parameters describe the underlying behaviour of the data in question:
 
-* `sentinal_radius` describes the overall reach of our sentinel sites.
 * `K` is the number of sources with which individuals are spatially based.
 * `sigma_model` defines homogeneity or independence of dispersal across sources.
 * `sigma_mean` and `sigma_var` govern the dispersal associated with each source. Set `sigma_var = 0` to set an explicit dispersal via `sigma_mean`.
 * `expected_popsize` tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.
+* `data_type`
+* `test_rate`
 
-From the simulation we can extract two key objects: the true sources and a record of which individuals were captured and where.
-
-```{r}
-true_source <- mysim$record$true_source
-data_all <- mysim$record$data_all
-```
-
-We will require these objects for plotting later on.
+Let's view our prevalence data.
 
 ```{r}
 head(mysim$data)
 ```
 
-Here we see the general structure of the data required to run the model. That is, a collection of sentinel sites and their respective number of counts. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.
+Here we see the general structure of the data required to run the binomial model. That is, a collection of trial sites, the number of individuals tested at that location and the number testing positive. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.
 
 ## Creating a project
 
@@ -86,7 +83,7 @@ We then add in our simulated data using `bind_data()`.
 ```{r}
 p <- bind_data(p,
                df = mysim$data,
-               data_type = "counts")
+               data_type = "prevalence")
 ```
 
 ## Simple spatial prior
@@ -115,11 +112,10 @@ Next we define the various priors on the variables we wish to estimate when runn
 ```{r}
 p <- new_set(project = p,
              spatial_prior = uniform_prior,
-             sentinel_radius = 0.25,
              sigma_model = "single",
              sigma_prior_mean = 1,
              sigma_prior_sd = 1,
-             expected_popsize_prior_mean = 200,
+             expected_popsize_prior_mean = 300,
              expected_popsize_prior_sd = 30,
              name = "Tutorial Parameters")
 p
@@ -142,7 +138,7 @@ p <- run_mcmc(project = p,
 ```
 
 ```{r, echo = FALSE}
-p <- rgeoprofile_file("tutorial1_project.rds")
+p <- rgeoprofile_file("tutorial2_project.rds")
 ```
 
 Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
@@ -170,30 +166,40 @@ Now the model has run, we can start to visualise different aspects of the projec
 plot1 <- plot_map()
 ```
 
-and overlay different parts of our project using the set of overlay functions. Lets start with the underlying locations of individuals and their sources.
+and overlay different parts of our project using the set of overlay functions. Lets start with the underlying sources locations and our spatial prior.
 
 ```{r}
-plot2 <- overlay_points(plot1, data_all$longitude, data_all$latitude, size = 2)
+plot2 <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
 plot2 <- overlay_sources(plot2, true_source$longitude, true_source$latitude)
 plot2
 ```
 
-This isn't too interesting yet, so let's add to this the spatial prior and the sentinel site locations.
+This isn't too interesting yet, so let's add to this the trial site data.
 
 ```{r}
-plot2 <- overlay_spatial_prior(plot2, p, col = "red", opacity = 0.2)
-plot2 <- overlay_sentinels(plot2, p, fill_opacity = 0.9,
-                            fill = TRUE, fill_colour = c(grey(0.7), "red"),
-                            border = c(FALSE, TRUE), border_colour = "black", border_weight = 0.5)
-plot2
-
+plot3 <- overlay_trial_sites(plot2, 
+                             project = p, 
+                             fill_opacity = 0.5,
+                             fill = TRUE, 
+                             fill_colour = c(grey(0.7), "red"),
+                             border = c(FALSE, TRUE), 
+                             border_colour = "black", 
+                             border_weight = 0.5)
+plot3
 ```
-Finally, we add in the geoprofile produced by running the MCMC.
+
+
+We can see the proportions of positive and negative tests, to see the exact values, try clicking on one of the pie charts. Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, 
-                            K = 3, col = plasma, legend = TRUE)
-plot2
+plot4 <- overlay_geoprofile(plot3, 
+                            project = p, 
+                            threshold = 0.1, 
+                            opacity = 0.8, 
+                            K = 3, 
+                            col = plasma, 
+                            legend = TRUE)
+plot4
 ```
 
 ### Other Parameter Estimation
@@ -210,29 +216,6 @@ Similarly the same can be done for the expected population size.
 plot_expected_popsize(p, K = 3)
 ```
 
-With `plot_structure()` we are able to visualise the model's allocation of positive sentinel sites to sources. Each vertical bar represents a sentinel site that captured at least one individual. The proportion of each colour on that bar translates to the probability that sentinel site is associated with a specific source.
-
-```{r}
-plot_structure(p, divide_ind_on = TRUE)
-```
-
-When `K = 1` the allocation is trivial, there is only a single source for our observations to be allocated to. Shift to `K = 2` and we see a clear 40-60 split between sources. On to `K = 3` and the model starts to get a little confused as to if it should allocate points to group 1 or group 3. If you scroll back up to the map you can see that two clusters are spatially overlapping, this is the most likely reason for the uncertainty. If a sentinel site is right in the centre of two overlapping clusters there will be some uncertainty in which source individuals at that sentinel site came from. Let's take a look at how this compares to the true allocation from the simulated data (NOTE: colour mismatches may have occurred).
-
-```{r}
-# TODO fix plot structure for "rgeoprofile_qmatrix" class
-plot(mysim$record$true_qmatrix)
-```
-
-It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.
-
-```{r}
-piePlot <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
-piePlot <- overlay_geoprofile(piePlot, p, threshold = 0.1, opacity = 0.8, 
-                            K = 3, col = plasma, legend = TRUE)
-piePlot <- overlay_piecharts(piePlot, project = p, K = 3, min_size = 10, max_size = 30)
-piePlot
-```
-
 The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.
 
 ```{r}
@@ -243,8 +226,7 @@ hs
 Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.
 
 ```{r}
-plot3 <- plot_lorenz(hs)
-plot3
+plot_lorenz(hs)
 ```
 
 This `plot_lorenz()` function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.
@@ -257,7 +239,7 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 
 ```{r, echo=FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-# saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-# saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
-# saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
+# saveRDS(mysim, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_mysim.rds")
+# saveRDS(p, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_project.rds")
+# saveRDS(hs, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_hitscore.rds")
 ```
