@@ -96,28 +96,23 @@ public:
   // other functions
   void reset(double beta);
   
+  void update_sources(bool robbins_monro_on, int iteration);
+  void update_sigma(bool robbins_monro_on, int iteration);
+  void update_expected_popsize(bool robbins_monro_on, int iteration);
+  
   double calculate_hazard(double dist, double single_scale);
   
   double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
+  
   double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
+    
+  void update_sigma_pois(bool robbins_monro_on, int iteration);
+  void update_sigma_pois_ind_exp_pop(bool robbins_monro_on, int iteration);
+  void update_sigma_binom(bool robbins_monro_on, int iteration);
   
-  void update_sources(bool robbins_monro_on, int iteration);
-  
-  void update_sigma(bool robbins_monro_on, int iteration);
-  void update_sigma_single(bool robbins_monro_on, int iteration);
-  void update_sigma_single_pois(bool robbins_monro_on, int iteration);
-  void update_sigma_single_pois_ind_exp_pop(bool robbins_monro_on, int iteration);
-  
-  void update_sigma_single_binom(bool robbins_monro_on, int iteration);
-  void update_sigma_independent(bool robbins_monro_on, int iteration);
-  void update_sigma_independent_pois(bool robbins_monro_on, int iteration);
-  void update_sigma_independent_pois_ind_exp_pop(bool robbins_monro_on, int iteration);
-  void update_sigma_independent_binom(bool robbins_monro_on, int iteration);
-  
-  void update_expected_popsize(bool robbins_monro_on, int iteration);
   void update_expected_popsize_pois_single();
   void update_expected_popsize_pois_independent(bool robbins_monro_on, int iteration);
   // void update_expected_popsize_pois_independent(bool robbins_monro_on);
