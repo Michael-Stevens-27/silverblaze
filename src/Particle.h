@@ -35,6 +35,7 @@ public:
   std::vector<double> expected_popsize;
   std::vector<double> pop_size_domain;
   std::vector<double> cum_sum_density; 
+  std::vector<double> cum_sum_normalised; 
   
   // qmatrices
   std::vector<std::vector<double>> log_qmatrix;
@@ -95,6 +96,8 @@ public:
   // other functions
   void reset(double beta);
   
+  double calculate_hazard(double dist, double single_scale);
+  
   double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
@@ -117,6 +120,7 @@ public:
   void update_expected_popsize(bool robbins_monro_on, int iteration);
   void update_expected_popsize_pois_single();
   void update_expected_popsize_pois_independent(bool robbins_monro_on, int iteration);
+  // void update_expected_popsize_pois_independent(bool robbins_monro_on);
   void update_expected_popsize_binom(bool robbins_monro_on, int iteration);
   
   void update_qmatrix();
