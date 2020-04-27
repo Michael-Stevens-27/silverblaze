@@ -44,29 +44,31 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/installation.html">Installation</a>
+<li class="dropdown-header">Installation</li>
+    <li class="divider">
+    <li>
+      <a href="../articles/installation.html">Tutorials</a>
     </li>
     <li>
-      <a href="../articles/Poisson-basic-implementation.html">Tutorial 1: Poisson Model Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Poisson Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/Binomial-basic-implementation.html">Tutorial 2: Binomial Model Basic Implementation</a>
+      <a href="../articles/Binomial-basic-implementation.html">Binomial Model Basic Implementation</a>
     </li>
     <li>
-      <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
+      <a href="../articles/model-validation.html">Model Validation</a>
     </li>
     <li>
-      <a href="../articles/MHCoupling.html">Tutorial 4: Metropolis_Hastings Coupling</a>
+      <a href="../articles/MHCoupling.html">Metropolis_Hastings Coupling</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 5: Complex Spatial Priors</a>
+      <a href="../articles/complex-spatial-priors.html">Complex Spatial Priors</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 6: Variable Sigma</a>
+      <a href="../articles/Variable-sigma.html">Variable Sigma</a>
     </li>
     <li>
-      <a href="../articles/Variable-population.html">Tutorial 7: Variable Expected Population</a>
+      <a href="../articles/Variable-population.html">Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -115,7 +117,7 @@
 <p>It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_north"</span>)</code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpiKrhUu/temp_libpath34ac3c0b8a56/silverblaze/extdata/London_north", layer: "boroughs"
+## Source: "/tmp/RtmpiKrhUu/temp_libpath34ac324e51c9/silverblaze/extdata/London_north", layer: "boroughs"
 ## with 8 features
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">spatial_prior &lt;-<span class="st"> </span><span class="kw"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(s, <span class="dt">cells_lon =</span> <span class="dv">500</span>, <span class="dt">cells_lat =</span> <span class="dv">500</span>)</code></pre></div>
@@ -128,7 +130,7 @@
 <p>There are a lot more shapefiles out there that will provide more information that we might want to influence our model. For example the <a href="https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london">London Datastore</a> provides shapefiles with various spatial information.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dataStore &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_boundary/ESRI"</span>)</code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpiKrhUu/temp_libpath34ac3c0b8a56/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
+## Source: "/tmp/RtmpiKrhUu/temp_libpath34ac324e51c9/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
 ## with 983 features
 ## It has 12 fields</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/print.html">print</a></span>(dataStore)</code></pre></div>

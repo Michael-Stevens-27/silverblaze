@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: Variable-sigma.bib
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 7: Variable Expected Population"}
+  %\VignetteIndexEntry{"Variable Expected Population"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

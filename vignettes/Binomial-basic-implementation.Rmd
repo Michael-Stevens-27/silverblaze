@@ -1,10 +1,10 @@
 ---
-title: "Tutorial 1: Binomial - Basic Implementation"
+title: "Tutorial 2: Binomial - Basic Implementation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 1: Basic Implementation"}
+  %\VignetteIndexEntry{"Binomial Model Basic Implementation"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
