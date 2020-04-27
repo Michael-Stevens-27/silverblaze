@@ -144,7 +144,11 @@ sim_data <- function(sentinel_lon,
     df_all <- NULL
     for (k in 1:K) {
       if (source_N[k]>0) {
-        rand_k <- rnorm_sphere(source_N[k], source_lon[k], source_lat[k], sigma[k])
+        rand_k <- dispersal_sphere(n = source_N[k], 
+                                   source_lon[k], 
+                                   source_lat[k], 
+                                   scale = sigma[k], 
+                                   dispersal_model = "normal")
         df_all <- rbind(df_all, as.data.frame(rand_k))
       }
     }
