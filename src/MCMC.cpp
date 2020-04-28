@@ -154,21 +154,21 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     // update progress bars
     if (!p->silent) {
       if ((rep+1) == p->burnin) {
-        update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
+        update_progress(args_progress, "pb_burnin", rep + 1, p->burnin);
       } else {
         int remainder = rep % int(ceil(double(p->burnin)/100));
         if (remainder == 0 && !p->pb_markdown) {
-          update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
+          update_progress(args_progress, "pb_burnin", rep + 1, p->burnin);
         }
       }
     }
     
     // check for convergence
-    if ((p->auto_converge && ((rep+1) % p->converge_test) == 0) || (rep+1) == p->burnin) {
+    if ((p->auto_converge && ((rep + 1) % p->converge_test) == 0) || (rep + 1) == p->burnin) {
       
       // check for convergence of each chain
       for (int r = 0; r < p->rungs; ++r) {
-        rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
+        rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep + 1));
       }
       
       // break if convergence reached
@@ -182,7 +182,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
       // end if all reached convergence
       if (all_convergence_reached) {
-        convergence_iteration = rep+1;
+        convergence_iteration = rep + 1;
         if (!p->silent) {
           update_progress(args_progress, "pb_burnin", p->burnin, p->burnin);
           print("   converged within", convergence_iteration, "iterations");

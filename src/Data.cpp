@@ -19,5 +19,7 @@ Data::Data(const Rcpp::List &args) {
     n = int(counts.size());
   } else if (data_type == 2) {
     n = int(tested.size());
+  } else if (data_type == 3) {
+    n = int(sentinel_lon.size());
   }
 }

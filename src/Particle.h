@@ -108,10 +108,12 @@ public:
   double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k);
     
   void update_sigma_pois(bool robbins_monro_on, int iteration);
   void update_sigma_pois_ind_exp_pop(bool robbins_monro_on, int iteration);
   void update_sigma_binom(bool robbins_monro_on, int iteration);
+  void update_sigma_points(bool robbins_monro_on, int iteration); 
   
   void update_expected_popsize_pois_single();
   void update_expected_popsize_pois_independent(bool robbins_monro_on, int iteration);

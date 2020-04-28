@@ -171,6 +171,8 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
     }
   } else if (d->data_type == 2) { // binomial data
     ret = calculate_loglike_source_binom(source_lon_prop, source_lat_prop, k);
+  } else if(d->data_type == 3){ // point pattern data
+    ret = calculate_loglike_source_points(source_lon_prop, source_lat_prop, k);
   }
   
   return ret;
@@ -193,6 +195,8 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
     }
   } else if (d->data_type == 2) { // binomial data
     update_sigma_binom(robbins_monro_on, iteration);
+  } else if (d->data_type == 3){ // point pattern data
+    update_sigma_points(robbins_monro_on, iteration);
   }
 }
 
@@ -200,10 +204,12 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
 // update expected popsize
 void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   
+  
+  // if we're working with point pattern data skip this entirely
   // return if prior is exact
-  if (p->ep_prior_sd == 0) {
+  if (p->ep_prior_sd == 0 || d->data_type == 3) {
     return;
-  }
+  } 
   
   // update expected_popsize based on binomial or poisson model
   if (d->data_type == 1) { // Poisson 
@@ -367,6 +373,43 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
     
   }
   
+  return loglike_prop;
+}
+
+//------------------------------------------------
+// calculate log-likelihood under point pattern model given new proposed source
+double Particle::calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k){
+
+  // initialise running values
+  double loglike_prop = 0;
+
+  // loop through sentinel sites
+  for (int i = 0; i < d->n; ++i) {
+    
+    // get distance from proposed source to data point i
+    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    dist_source_data_prop[i] = dist;
+    
+    // calculate bivariate height of data point i from proposed source.
+    log_hazard_height_prop[i] = calculate_hazard(dist, sigma[k]); 
+    
+    // sum hazard over sources while remaining in log space
+    double log_hazard_sum = log_hazard_height_prop[i];
+    for (int j = 0; j < p->K; ++j) {
+      if (j == k) {
+        continue;
+      }
+      if (log_hazard_sum < log_hazard_height[i][j]) {
+        log_hazard_sum = log_hazard_height[i][j] + log(1 + exp(log_hazard_sum - log_hazard_height[i][j]));
+      } else {
+        log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
+      }
+    }
+    
+    // add necessary terms to loglikelihood
+    loglike_prop += log_hazard_sum - log_K;
+  }
+
   return loglike_prop;
 }
 
@@ -747,6 +790,102 @@ void Particle::update_sigma_binom(bool robbins_monro_on, int iteration) {
 }
 
 //------------------------------------------------
+// update sigma under a point pattern model 
+void Particle::update_sigma_points(bool robbins_monro_on, int iteration){
+  
+  // loop through sources
+  for (int k = 0; k < p->K; ++k) {
+    
+    // propose new value
+    double sigma_prop = rnorm1(sigma[k], sigma_propSD[k]);
+    sigma_prop = (sigma_prop < 0) ? -sigma_prop : sigma_prop;
+    sigma_prop = (sigma_prop < UNDERFLO) ? UNDERFLO : sigma_prop;
+    
+    // initialise running values
+    double loglike_prop = 0;
+    
+    // loop through sentinel sites
+    for (int i = 0; i < d->n; ++i) {
+      
+      // recalculate hazard given new sigma
+      double dist = dist_source_data[i][k];
+      log_hazard_height_prop[i] = calculate_hazard(dist, sigma_prop);       
+      
+      // sum hazard over sources while remaining in log space
+      double log_hazard_sum = log_hazard_height_prop[i];
+      for (int j = 0; j < p->K; ++j) {
+        if (j == k) {
+          continue;
+        }
+        if (log_hazard_sum < log_hazard_height[i][j]) {
+          log_hazard_sum = log_hazard_height[i][j] + log(1 + exp(log_hazard_sum - log_hazard_height[i][j]));
+        } else {
+          log_hazard_sum = log_hazard_sum + log(1 + exp(log_hazard_height[i][j] - log_hazard_sum));
+        }
+      }
+      
+      // add necessary terms to loglikelihood
+      loglike_prop += log_hazard_sum - log_K;
+      
+    }
+    
+    //--------------------------------------------------------------------------
+    
+    // calculate priors
+    double logprior = dlnorm1(sigma[k], p->sigma_prior_meanlog, p->sigma_prior_sdlog);
+    double logprior_prop = dlnorm1(sigma_prop, p->sigma_prior_meanlog, p->sigma_prior_sdlog);
+    
+    // Metropolis-Hastings ratio
+    double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
+    
+    // Metropolis-Hastings step
+    if (log(runif_0_1()) < MH_ratio) {
+      
+      // update sigma for this source
+      sigma[k] = sigma_prop;
+      
+      // if sigma model is single, stop looping over K and update all sigma
+      if(p->sigma_model == 1){
+        // set same sigma for all sources
+        for (int k = 1; k < p->K; ++k) {
+          sigma[k] = sigma_prop;
+        }
+      }
+      
+      // update stored hazard values
+      for (int i = 0; i < d->n; ++i) {
+        log_hazard_height[i][k] = log_hazard_height_prop[i];
+      }
+      
+      // update likelihood
+      loglike = loglike_prop;
+      
+      // Robbins-Monro positive update (on the log scale)
+      if (robbins_monro_on) {
+        sigma_propSD[k] = exp(log(sigma_propSD[k]) + sigma_rm_stepsize*(1 - 0.44)/sqrt(iteration));
+        sigma_accept_burnin[k]++;
+      } else {
+        sigma_accept_sampling[k]++;
+      }
+      
+    } else {
+      
+      // Robbins-Monro negative update (on the log scale)
+      if (robbins_monro_on) {
+        sigma_propSD[k] = exp(log(sigma_propSD[k]) - sigma_rm_stepsize*0.44/sqrt(iteration));
+      }
+      
+    }  // end Metropolis-Hastings step
+    
+    if(p->sigma_model == 1){
+      // break loop over sources
+      break;
+    }
+
+  }  // end loop over sources
+}
+
+//------------------------------------------------
 // update expected popsize under a Poisson model
 void Particle::update_expected_popsize_pois_single() {
   
@@ -929,10 +1068,9 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
 double Particle::calculate_hazard(double dist, double single_scale) {
     
   double hazard_height;  
-  int dispersal_model = 1;
   double cell_area = 1; 
   // update source based on dispersal kernel model
-  if (dispersal_model == 1) {
+  if (p->dispersal_model == 1) {
     
     // calculate bivariate NORMAL height 
     // equivalent to the univariate normal density of the euclidian distance 
@@ -941,12 +1079,12 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // in log space densities are summed not multiplied.
     hazard_height = dnorm1(dist, 0, single_scale, true) + dnorm1(0, 0, single_scale, true);  
 
-  } else if (dispersal_model == 2) {
+  } else if (p->dispersal_model == 2) {
   
     // calculate bivariate CAUCHY height 
     hazard_height = log(cell_area) - log(2*M_PI) + 0.5*log(single_scale) - 1.5*log(pow(dist, 2) + single_scale);
 
-  } else if (dispersal_model == 3) {
+  } else if (p->dispersal_model == 3) {
     
     // calculate bivariate LAPLACE height
     // An accurate version of the laplace density is obtained using the bessel 
@@ -954,7 +1092,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // hazard_height = -log(M_PI) - 2*log(single_scale) + log(bessel(sqrt(2)*dist*pow(single_scale, -1), 0));
     hazard_height = log(cell_area) - 0.5*log(M_PI) - 0.75*log(2*single_scale) - 0.5*log(dist) - dist*sqrt(2*pow(single_scale, -1));
         
-  } else if (dispersal_model == 4) {
+  } else if (p->dispersal_model == 4) {
     
     // calculate bivariate Student's t height
     // hazard_height = log(cell_area);

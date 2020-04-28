@@ -46,7 +46,8 @@ bind_data <- function(project,
   assert_custom_class(project, "rgeoprofile_project")
   assert_dataframe(df)
   assert_single_string(data_type)
-  assert_in(data_type, c("counts", "prevalence"))
+  assert_in(data_type, c("counts", "prevalence", "point-pattern"))
+  
   if (data_type == "counts") {
     assert_in(c("longitude", "latitude", "counts"), names(df))
     assert_pos_int(df$counts, zero_allowed = TRUE)
@@ -55,7 +56,10 @@ bind_data <- function(project,
     assert_pos_int(df$tested, zero_allowed = TRUE)
     assert_pos_int(df$positive, zero_allowed = TRUE)
     assert_leq(df$positive, df$tested)
+  } else if(data_type == "point-pattern"){
+    assert_in(c("longitude", "latitude"), names(df))
   }
+  
   assert_numeric(df$longitude)
   assert_numeric(df$latitude)
   if (!is.null(name)) {
@@ -174,7 +178,8 @@ raster_from_shapefile <- function (shp,
 #' @param name an optional name for the parameter set.
 #' @param spatial_prior a raster file defining the spatial prior. Precision
 #'   values are taken from this raster if it is defined.
-#' @param sentinel_radius the observation radius of sentinel sites.
+#' @param dispersal_model distribute points via a "normal", "cauchy" or 
+#'   "laplace" model
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
 #'   distance for all sources, or \code{"independent"} to assume an
 #'   independently drawn dispersal distance for each source.
@@ -190,32 +195,40 @@ raster_from_shapefile <- function (shp,
 #' @param expected_popsize_prior_sd the prior standard deviation of the expected
 #'   total population size. Set to 0 to use a fixed value (fixed at
 #'   \code{expected_popsize_prior_mean}).
+#' @param sentinel_radius the observation radius of sentinel sites.
 #'
 #' @export
 
 new_set <- function(project,
                     spatial_prior = NULL,
-                    sentinel_radius = 0.2,
+                    name = "(no name)",
                     sigma_model = "single",
+                    dispersal_model = "normal",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
-                    expected_popsize_model = "single",
-                    expected_popsize_prior_mean = 100,
-                    expected_popsize_prior_sd = 10,
-                    name = "(no name)") {
+                    expected_popsize_model = NULL,
+                    expected_popsize_prior_mean = NULL,
+                    expected_popsize_prior_sd = NULL,
+                    sentinel_radius = NULL) 
+                    {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(spatial_prior)) {
+    if (!is.null(spatial_prior)) {
     assert_custom_class(spatial_prior, "RasterLayer")
   }
-  assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+  
+  assert_in(dispersal_model, c("normal", "cauchy", "laplace"))
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
-  assert_in(expected_popsize_model, c("single", "independent"))
-  assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
-  assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
+  
+  if(project$data$data_type == "counts"| project$data$data_type == "prevalence"){
+    assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+    assert_in(expected_popsize_model, c("single", "independent"))
+    assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
+    assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
+  }
   assert_single_string(name)
   
   # make spatial_prior from data limits if unspecified
@@ -240,6 +253,7 @@ new_set <- function(project,
   project$parameter_sets[[s]] <- list(name = name,
                                       spatial_prior = spatial_prior,
                                       study_area = study_area,
+                                      dispersal_model = dispersal_model, 
                                       sentinel_radius = sentinel_radius,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
@@ -393,6 +407,7 @@ run_mcmc <- function(project,
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
   assert_single_logical(coupling_on)
   assert_single_pos(GTI_pow)
+  
   if (!is.null(beta_manual)) {
     assert_vector(beta_manual)
     assert_bounded(beta_manual)
@@ -401,6 +416,7 @@ run_mcmc <- function(project,
     assert_eq(beta_manual[length(beta_manual)], 1.0,
               message = "final value of beta_manual (i.e. cold chain) must equal 1.0")
   }
+  
   if (!is.null(cluster)) {
     assert_custom_class(cluster, "cluster")
   }
@@ -441,6 +457,13 @@ run_mcmc <- function(project,
                       tested = project$data$frame$tested,
                       positive = project$data$frame$positive,
                       data_type = 2)
+  } else if (project$data$data_type == "point-pattern") {
+    args_data <- list(longitude = project$data$frame$longitude,
+                      latitude = project$data$frame$latitude,
+                      counts = -1,
+                      tested = -1,
+                      positive = -1,
+                      data_type = 3)
   }
   
   # input arguments list
@@ -465,9 +488,15 @@ run_mcmc <- function(project,
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
-  expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
-  fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
+  if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+    expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
+    fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
+  } else if(project$data$data_type == "point-pattern"){
+    expected_popsize_model_numeric <- fixed_expected_popsize_model <- -1
+  }
   
+  dispersal_model_numeric <- match(project$parameter_sets[[s]]$dispersal_model, c("normal", "cauchy", "laplace"))
+    
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -482,7 +511,8 @@ run_mcmc <- function(project,
                           sigma_model_numeric = sigma_model_numeric,
                           fixed_sigma_model = fixed_sigma_model,
                           expected_popsize_model_numeric = expected_popsize_model_numeric,
-                          fixed_expected_popsize_model = fixed_expected_popsize_model)
+                          fixed_expected_popsize_model = fixed_expected_popsize_model,
+                          dispersal_model_numeric = dispersal_model_numeric)
   
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
@@ -567,17 +597,24 @@ run_mcmc <- function(project,
     } else {
       colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
     }
-    # get expected_popsize in coda::mcmc format
-    expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
-    expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
-    if (args_model$expected_popsize_model == "single") {
-      expected_popsize_burnin <- expected_popsize_burnin[, 1, drop = FALSE]
-      expected_popsize_sampling <- expected_popsize_sampling[, 1, drop = FALSE]
-      colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- "all_groups"
-    } else {
-      colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
-    }
     
+    if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+      # get expected_popsize in coda::mcmc format
+      expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
+      expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
+      
+      if (args_model$expected_popsize_model == "single") {
+        expected_popsize_burnin <- expected_popsize_burnin[, 1, drop = FALSE]
+        expected_popsize_sampling <- expected_popsize_sampling[, 1, drop = FALSE]
+        colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- "all_groups"
+      } else {
+        colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
+      }
+    
+    } else if(project$data$data_type == "point-pattern"){
+      expected_popsize_burnin <- expected_popsize_sampling <- NULL
+    }
+        
     # ---------- summary results ----------
     # get 95% credible intervals over sampling and burnin loglikelihoods
     loglike_intervals_burnin <- as.data.frame(t(apply(loglike_burnin, 2, quantile_95)))
@@ -586,8 +623,12 @@ run_mcmc <- function(project,
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
-    # get 95% credible intervals over expected_popsize
-    expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
+    if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+      # get 95% credible intervals over expected_popsize
+      expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
+    } else if(project$data$data_type == "point-pattern"){
+      expected_popsize_intervals <- NULL
+    }
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
@@ -595,7 +636,10 @@ run_mcmc <- function(project,
       qmatrix[project$data$frame$counts == 0,] <- rep(NA, K[i])
     } else if(project$data$data_type == "prevalence"){
       qmatrix[project$data$frame$positive == 0,] <- rep(NA, K[i])
-    }    
+    # TODO } else if(project$data$data_type == "point-pattern"){
+    # 
+    }
+    
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
@@ -699,12 +743,13 @@ run_mcmc <- function(project,
     sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
     names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     
-    expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
     
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
-    }
+    } else {
+      expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
+    } 
     
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
     coupling_accept_sampling <- output_raw[[i]]$coupling_accept_sampling/(samples)

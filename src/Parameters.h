@@ -37,6 +37,7 @@ public:
   double sigma_prior_meanlog;
   double sigma_prior_sdlog;
   int ep_model;
+  int dispersal_model;
   double ep_prior_mean;
   double ep_prior_sd;
   double ep_prior_shape;

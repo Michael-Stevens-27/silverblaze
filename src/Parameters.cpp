@@ -34,6 +34,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
   ep_model = rcpp_to_int(args["expected_popsize_model_numeric"]);
+  dispersal_model = rcpp_to_int(args["dispersal_model_numeric"]);
 
     // get sigma prior mean and sd in log space from raw inputs
   double sigma_prior_mean = rcpp_to_double(args["sigma_prior_mean"]);
