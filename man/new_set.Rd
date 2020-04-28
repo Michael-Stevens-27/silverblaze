@@ -7,8 +7,9 @@
 new_set(project, spatial_prior = NULL, name = "(no name)",
   sigma_model = "single", dispersal_model = "normal",
   sigma_prior_mean = 1, sigma_prior_sd = 1,
-  expected_popsize_model = NULL, expected_popsize_prior_mean = NULL,
-  expected_popsize_prior_sd = NULL, sentinel_radius = NULL)
+  expected_popsize_model = "single",
+  expected_popsize_prior_mean = 1000, expected_popsize_prior_sd = 20,
+  sentinel_radius = 0.2)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
