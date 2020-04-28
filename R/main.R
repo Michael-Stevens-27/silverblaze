@@ -206,10 +206,10 @@ new_set <- function(project,
                     dispersal_model = "normal",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
-                    expected_popsize_model = NULL,
-                    expected_popsize_prior_mean = NULL,
-                    expected_popsize_prior_sd = NULL,
-                    sentinel_radius = NULL) 
+                    expected_popsize_model = "single",
+                    expected_popsize_prior_mean = 1000,
+                    expected_popsize_prior_sd = 20,
+                    sentinel_radius = 0.2) 
                     {
   
   # check inputs
@@ -222,9 +222,9 @@ new_set <- function(project,
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
+  assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   
   if(project$data$data_type == "counts"| project$data$data_type == "prevalence"){
-    assert_single_pos(sentinel_radius, zero_allowed = FALSE)
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)

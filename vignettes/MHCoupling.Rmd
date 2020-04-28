@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 4: Metropolis_Hastings Coupling"
+title: "Tutorial 5: Metropolis_Hastings Coupling"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

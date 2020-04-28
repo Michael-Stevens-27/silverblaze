@@ -10,16 +10,19 @@ navbar:
     - text: "Vignettes"
       menu:
         - text: "Installation"
-        - text: -------
-        - text: "Tutorials"
           href: articles/installation.html
-        - text: "Poisson Model Basic Implementation"
+        - text: -------
+        - text: "Basic Tutorials"
+        - text: "Poisson model and count data"
           href: articles/Poisson-basic-implementation.html
-        - text: "Binomial Model Basic Implementation"
+        - text: "Binomial model and prevalence data"
           href: articles/Binomial-basic-implementation.html
+        - text: "Point pattern data"
+          href: articles/PointPattern-basic-implementation.html  
+        - text: "Other topics"
         - text: "Model Validation"
           href: articles/model-validation.html
-        - text: "Metropolis_Hastings Coupling"
+        - text: "Metropolis-Hastings Coupling"
           href: articles/MHCoupling.html  
         - text: "Complex Spatial Priors"
           href: articles/complex-spatial-priors.html

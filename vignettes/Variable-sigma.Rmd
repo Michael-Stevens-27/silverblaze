@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 6: Variable Sigma"
+title: "Tutorial 7: Variable Sigma"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

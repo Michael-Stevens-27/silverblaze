@@ -99,7 +99,7 @@ uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55)
 ```
 
 ```{r, echo = FALSE}
-spatialProject <- rgeoprofile_project()
+spatialProject <- p 
 spatialProject <- new_set(project = spatialProject,
                           spatial_prior = uniform_prior)
 
