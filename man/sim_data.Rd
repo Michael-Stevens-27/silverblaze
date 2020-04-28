@@ -9,7 +9,7 @@ sim_data(sentinel_lon, sentinel_lat, sentinel_radius = 0.1, K = 3,
   source_lat_min = 51.45, source_lat_max = 51.55, source_lon = NULL,
   source_lat = NULL, sigma_model = "single", sigma_mean = 1,
   sigma_var = 0.1, expected_popsize = 100, data_type = "counts",
-  test_rate = 5)
+  test_rate = 5, N = 150, dispersal_model = "normal")
 }
 \arguments{
 \item{sentinel_lon}{vector giving longitudes of sentinel sites.}
@@ -55,6 +55,11 @@ corresponding to "counts" or "prevalence"}
 
 \item{test_rate}{The rate of the Poisson distribution with which we draw the 
 number of individuals tested at each sentinel site}
+
+\item{N}{the number of events to distributed under a point-pattern model}
+
+\item{dispersal_model}{distribute points via a "normal", "cauchy" or 
+"laplace" model}
 }
 \description{
 Simulate data from the same presence-absence model used in the

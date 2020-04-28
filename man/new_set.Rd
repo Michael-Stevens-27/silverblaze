@@ -4,10 +4,11 @@
 \alias{new_set}
 \title{Create new parameter set}
 \usage{
-new_set(project, spatial_prior = NULL, sentinel_radius = 0.2,
-  sigma_model = "single", sigma_prior_mean = 1, sigma_prior_sd = 1,
-  expected_popsize_model = "single", expected_popsize_prior_mean = 100,
-  expected_popsize_prior_sd = 10, name = "(no name)")
+new_set(project, spatial_prior = NULL, name = "(no name)",
+  sigma_model = "single", dispersal_model = "normal",
+  sigma_prior_mean = 1, sigma_prior_sd = 1,
+  expected_popsize_model = NULL, expected_popsize_prior_mean = NULL,
+  expected_popsize_prior_sd = NULL, sentinel_radius = NULL)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -16,11 +17,14 @@ new_set(project, spatial_prior = NULL, sentinel_radius = 0.2,
 \item{spatial_prior}{a raster file defining the spatial prior. Precision
 values are taken from this raster if it is defined.}
 
-\item{sentinel_radius}{the observation radius of sentinel sites.}
+\item{name}{an optional name for the parameter set.}
 
 \item{sigma_model}{set as \code{"single"} to assume the same dispersal
 distance for all sources, or \code{"independent"} to assume an
 independently drawn dispersal distance for each source.}
+
+\item{dispersal_model}{distribute points via a "normal", "cauchy" or 
+"laplace" model}
 
 \item{sigma_prior_mean}{the prior mean of the parameter sigma (km).}
 
@@ -39,7 +43,7 @@ population size.}
 total population size. Set to 0 to use a fixed value (fixed at
 \code{expected_popsize_prior_mean}).}
 
-\item{name}{an optional name for the parameter set.}
+\item{sentinel_radius}{the observation radius of sentinel sites.}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new
