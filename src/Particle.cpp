@@ -204,8 +204,7 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
 // update expected popsize
 void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   
-  
-  // if we're working with point pattern data skip this entirely
+  // return if using point pattern data
   // return if prior is exact
   if (p->ep_prior_sd == 0 || d->data_type == 3) {
     return;

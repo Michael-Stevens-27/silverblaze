@@ -313,7 +313,11 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
     m <- unclass(qmatrix_list[[i]])
     m <- m[!is.na(m[,1]), , drop = FALSE]
     n <- nrow(m)
-    df <- rbind(df, data.frame(K = as.numeric(K[i]), ind = rep(1:n,each=K[i]), k = as.factor(rep(1:K[i],times=n)), val = as.vector(t(m))))
+    df <- rbind(df, 
+                data.frame(K = as.numeric(K[i]), 
+                           ind = rep(1:n, each = K[i]), 
+                           k = as.factor(rep(1:K[i], times = n)), 
+                           val = as.vector(t(m))))
   }
 
   # produce basic plot

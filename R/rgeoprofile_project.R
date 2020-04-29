@@ -68,14 +68,34 @@ summary.rgeoprofile_project <- function(object, ...) {
   cat("DATA:\n")
   if (is.null(object$data)) {
     cat("   (none loaded)\n")
-  } else {
+  } else if(object$data$data_type == "counts") {
     
     # extract data properties
-    n_sentinel <- nrow(object$data)
-    n_positive <- sum(object$data$counts > 0)
-    n_obs <- sum(object$data$counts)
+    n_sentinel <- nrow(object$data$frame)
+    n_positive <- sum(object$data$frame$counts > 0)
+    n_obs <- sum(object$data$frame$counts)
     
+    cat("   type: count\n")
     cat(sprintf("   sentinel sites = %s (%s positive, %s negative)\n", n_sentinel, n_positive, n_sentinel - n_positive))
+    cat(sprintf("   total observations = %s\n", n_obs))
+  } else if(object$data$data_type == "prevalence") {
+  
+    # extract data properties
+    n_trial <- nrow(object$data$frame)
+    n_tested <- sum(object$data$frame$tested)
+    n_positive <- sum(object$data$frame$positive)
+    
+    cat("   type: prevalence\n")
+    cat(sprintf("   trial sites = %s\n", n_trial))
+    cat(sprintf("   total tested = %s\n", n_tested))
+    cat(sprintf("   total testing positive = %s\n", n_positive))
+    
+  } else if(object$data$data_type == "point-pattern") {
+    
+    # extract data properties
+    n_obs <- nrow(object$data$frame)
+    
+    cat("   type: point-pattern\n")
     cat(sprintf("   total observations = %s\n", n_obs))
   }
   cat("\n")
@@ -103,7 +123,19 @@ summary.rgeoprofile_project <- function(object, ...) {
     cat("\n")
     
     # get details of active set
-    sentinel_radius <- object$parameter_sets[[s]]$sentinel_radius
+    sentinel_radius <- expected_popsize_prior_mean <- expected_popsize_prior_sd <- NA
+
+    if(object$data$data_type == "counts"){
+      sentinel_radius <- object$parameter_sets[[s]]$sentinel_radius
+    } 
+        
+    if(object$data$data_type == "counts" | object$data$data_type == "prevalence"){
+      expected_popsize_model <- object$parameter_sets[[s]]$expected_popsize_model
+      expected_popsize_prior_mean <- object$parameter_sets[[s]]$expected_popsize_prior_mean
+      expected_popsize_prior_sd <- object$parameter_sets[[s]]$expected_popsize_prior_sd
+    }
+    
+    dispersal_model <- object$parameter_sets[[s]]$dispersal_model
     spatial_prior <- object$parameter_sets[[s]]$spatial_prior
     study_area <- round(object$parameter_sets[[s]]$study_area, digits = 3)
     min_lon <- round(xmin(spatial_prior), digits = 3)
@@ -115,12 +147,15 @@ summary.rgeoprofile_project <- function(object, ...) {
     sigma_model <- object$parameter_sets[[s]]$sigma_model
     sigma_prior_mean <- object$parameter_sets[[s]]$sigma_prior_mean
     sigma_prior_sd <- object$parameter_sets[[s]]$sigma_prior_sd
-    expected_popsize_prior_mean <- object$parameter_sets[[s]]$expected_popsize_prior_mean
-    expected_popsize_prior_sd <- object$parameter_sets[[s]]$expected_popsize_prior_sd
     
     # print details of active set
     cat(sprintf("ACTIVE SET: SET%s\n", s))
-    cat(sprintf("   sentinel radius = %s\n", sentinel_radius))
+    
+    if(object$data$data_type == "counts"){
+      cat(sprintf("   sentinel radius = %s\n", sentinel_radius))
+    }    
+    
+    cat(sprintf("   dispersal/decay kernel = %s\n", dispersal_model))
     cat(sprintf("   spatial prior:\n"))
     cat(sprintf("      longitude range = [%s, %s]\n", min_lon, max_lon))
     cat(sprintf("      latitude range = [%s, %s]\n", min_lat, max_lat))
@@ -128,21 +163,26 @@ summary.rgeoprofile_project <- function(object, ...) {
     cat(sprintf("      cells = %s, %s (lon, lat)\n", cells_lon, cells_lat))
     cat(sprintf("   sigma prior:\n"))
     cat(sprintf("      model = %s\n", sigma_model))
+    
     if (sigma_prior_sd == 0) {
       cat(sprintf("      value = %s (exact prior)\n", sigma_prior_mean))
     } else {
       cat(sprintf("      prior mean = %s\n", sigma_prior_mean))
       cat(sprintf("      prior SD = %s\n", sigma_prior_sd))
     }
-    cat(sprintf("   expected population size prior:\n"))
-    if (expected_popsize_prior_sd == -1) {
-      cat(sprintf("      (improper prior)\n"))
-    } else if (expected_popsize_prior_sd == 0) {
-      cat(sprintf("      value = %s (exact prior)\n", expected_popsize_prior_mean))
-    } else {
-      cat(sprintf("      prior mean = %s\n", expected_popsize_prior_mean))
-      cat(sprintf("      prior SD = %s\n", expected_popsize_prior_sd))
-    }
+    
+    if(object$data$data_type == "counts" | object$data$data_type == "prevalence"){
+      cat(sprintf("   expected population size prior:\n"))
+      cat(sprintf("      model = %s\n", expected_popsize_model))
+    
+      if (expected_popsize_prior_sd == 0) {
+          cat(sprintf("      value = %s (exact prior)\n", expected_popsize_prior_mean))
+      } else {
+          cat(sprintf("      prior mean = %s\n", expected_popsize_prior_mean))
+          cat(sprintf("      prior SD = %s\n", expected_popsize_prior_sd))
+      }
+    } 
+     
     
   }
   cat("\n")
