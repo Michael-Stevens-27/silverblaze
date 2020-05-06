@@ -417,7 +417,7 @@ run_mcmc <- function(project,
   assert_pos_int(K, zero_allowed = FALSE)
   assert_single_pos_int(burnin, zero_allowed = FALSE)
   assert_single_pos_int(samples, zero_allowed = FALSE)
-  assert_greq(samples, 1, message = "at least 10 sampling iterations must be used")
+  assert_greq(samples, 10, message = "at least 10 sampling iterations must be used")
   assert_single_pos_int(rungs, zero_allowed = FALSE)
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)

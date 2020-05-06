@@ -88,6 +88,8 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   sigma_accept_sampling = vector<int>(p->K);
   ep_accept_burnin = vector<int>(p->K);
   ep_accept_sampling = vector<int>(p->K);
+  alpha_accept_burnin = 0;
+  alpha_accept_sampling = 0;
 }
 
 //------------------------------------------------
@@ -163,6 +165,8 @@ void Particle::reset(double beta) {
   sigma_accept_sampling = vector<int>(p->K);
   ep_accept_burnin = vector<int>(p->K);
   ep_accept_sampling = vector<int>(p->K);
+  alpha_accept_burnin = 0;
+  alpha_accept_sampling = 0;
 }
 
 //------------------------------------------------
@@ -244,7 +248,7 @@ void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
 }
 
 //------------------------------------------------
-// update expected popsize
+// update alpha
 void Particle::update_alpha(bool robbins_monro_on, int iteration) {
   
   // update 
