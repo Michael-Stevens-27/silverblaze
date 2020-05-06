@@ -36,12 +36,14 @@ public:
   std::vector<std::vector<double>> source_lat_burnin;
   std::vector<std::vector<double>> sigma_burnin;
   std::vector<std::vector<double>> ep_burnin;
+  std::vector<double> alpha_burnin;
   
   std::vector<std::vector<double>> loglike_sampling;
   std::vector<std::vector<double>> source_lon_sampling;
   std::vector<std::vector<double>> source_lat_sampling;
   std::vector<std::vector<double>> sigma_sampling;
   std::vector<std::vector<double>> ep_sampling;
+  std::vector<double> alpha_sampling;
   
   // objects for storing acceptance rates
   std::vector<int> source_accept_burnin;
@@ -50,13 +52,14 @@ public:
   std::vector<int> sigma_accept_sampling;
   std::vector<int> ep_accept_burnin;
   std::vector<int> ep_accept_sampling;
+  int alpha_accept_burnin;
+  int alpha_accept_sampling;
   std::vector<int> coupling_accept_burnin;
   std::vector<int> coupling_accept_sampling;
   
   // store convergence
   std::vector<bool> rung_converged;
-  int convergence_iteration;
-  
+  int convergence_iteration;  
   
   // PUBLIC FUNCTIONS
   

@@ -99,7 +99,11 @@ int rnbinom1(double lambda, double gamma);
 //------------------------------------------------
 // probability mass of negative binomial distribution with mean lambda and
 // variance gamma*lambda (gamma must be >1)
-double dnbinom1(int n, double lambda, double gamma, bool returnLog=true);
+double dnbinom1(int n, double lambda, double gamma, bool returnLog= TRUE);
+
+//------------------------------------------------
+// probability mass of negative binomial distribution with mean and variance 
+double dnbinom_mu1(int n, double size, double mean, bool returnLog = TRUE);
 
 //------------------------------------------------
 // draw a value from a distribution with any density using its cumulative sum

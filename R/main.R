@@ -196,6 +196,10 @@ raster_from_shapefile <- function (shp,
 #'   total population size. Set to 0 to use a fixed value (fixed at
 #'   \code{expected_popsize_prior_mean}).
 #' @param sentinel_radius the observation radius of sentinel sites.
+#' @param nbinom set to true or false, decide if a negative binomial model should
+#'   be run for a set of count data.
+#' @param alpha_prior_mean the prior mean alpha.
+#' @param alpha_prior_sd the prior standard deviation of alpha.
 #'
 #' @export
 
@@ -209,7 +213,10 @@ new_set <- function(project,
                     expected_popsize_model = "single",
                     expected_popsize_prior_mean = 1000,
                     expected_popsize_prior_sd = 20,
-                    sentinel_radius = 0.2) 
+                    sentinel_radius = 0.2,
+                    nbinom = FALSE,
+                    alpha_prior_mean = 1, 
+                    alpha_prior_sd = 100) 
                     {
   
   # check inputs
@@ -228,6 +235,12 @@ new_set <- function(project,
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
+    assert_single_logical(nbinom)
+    
+    if(nbinom == TRUE){
+      assert_single_pos(alpha_prior_mean, zero_allowed = FALSE)
+      assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
+    }
   }
   assert_single_string(name)
   
@@ -260,7 +273,10 @@ new_set <- function(project,
                                       sigma_prior_sd = sigma_prior_sd,
                                       expected_popsize_model = expected_popsize_model,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
-                                      expected_popsize_prior_sd = expected_popsize_prior_sd)
+                                      expected_popsize_prior_sd = expected_popsize_prior_sd,
+                                      nbinom = nbinom,
+                                      alpha_prior_mean = alpha_prior_mean,
+                                      alpha_prior_sd = alpha_prior_sd)
   
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
@@ -401,7 +417,7 @@ run_mcmc <- function(project,
   assert_pos_int(K, zero_allowed = FALSE)
   assert_single_pos_int(burnin, zero_allowed = FALSE)
   assert_single_pos_int(samples, zero_allowed = FALSE)
-  assert_greq(samples, 10, message = "at least 10 sampling iterations must be used")
+  assert_greq(samples, 1, message = "at least 10 sampling iterations must be used")
   assert_single_pos_int(rungs, zero_allowed = FALSE)
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
@@ -496,7 +512,8 @@ run_mcmc <- function(project,
   }
   
   dispersal_model_numeric <- match(project$parameter_sets[[s]]$dispersal_model, c("normal", "cauchy", "laplace"))
-    
+  count_type_numeric <- match(project$parameter_sets[[s]]$nbinom, c(T, F))
+
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -512,7 +529,8 @@ run_mcmc <- function(project,
                           fixed_sigma_model = fixed_sigma_model,
                           expected_popsize_model_numeric = expected_popsize_model_numeric,
                           fixed_expected_popsize_model = fixed_expected_popsize_model,
-                          dispersal_model_numeric = dispersal_model_numeric)
+                          dispersal_model_numeric = dispersal_model_numeric,
+                          count_type_numeric = count_type_numeric)
   
   # combine parameters, inputs and properties into single list
   args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
@@ -610,9 +628,18 @@ run_mcmc <- function(project,
       } else {
         colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
       }
+      
+      if(args_model$nbinom == TRUE){
+        # get alpha in coda::mcmc format
+        alpha_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_burnin)[1:convergence_iteration, ,drop = FALSE])
+        alpha_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_sampling))
+      } else{
+        alpha_burnin <- alpha_sampling <- NULL
+      }
     
     } else if(project$data$data_type == "point-pattern"){
       expected_popsize_burnin <- expected_popsize_sampling <- NULL
+      alpha_burnin <- alpha_sampling <- NULL
     }
         
     # ---------- summary results ----------
@@ -624,10 +651,20 @@ run_mcmc <- function(project,
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
     if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+      
       # get 95% credible intervals over expected_popsize
       expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
+      
+      if(args_model$nbinom == TRUE){
+        # get 95% credible intervals over expected_popsize
+        alpha_intervals <- as.data.frame(t(quantile_95(alpha_sampling)))
+      } else{
+        alpha_intervals <- NULL
+      }
+    
     } else if(project$data$data_type == "point-pattern"){
       expected_popsize_intervals <- NULL
+      alpha_intervals <- NULL
     }
     
     # process Q-matrix
@@ -743,12 +780,22 @@ run_mcmc <- function(project,
     sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
     names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     
-    
+    # if prevelance or independent expected popsize model return acceptance rates
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
+      
+       if(args_model$nbinom == TRUE){
+         alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
+         alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
+       } else{
+         alpha_accept_burnin <- alpha_accept_sampling <- NULL
+       }
+      
     } else {
       expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
+      alpha_accept_burnin <- alpha_accept_sampling <- NULL
+
     } 
     
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
@@ -779,6 +826,7 @@ run_mcmc <- function(project,
                                                                     qmatrix = qmatrix,
                                                                     sigma_intervals = sigma_intervals, 
                                                                     expected_popsize_intervals = expected_popsize_intervals,
+                                                                    alpha_intervals = alpha_intervals, 
                                                                     ESS = ESS,
                                                                     DIC_gelman = DIC_gelman,
                                                                     converged = converged,
@@ -788,6 +836,8 @@ run_mcmc <- function(project,
                                                                     sigma_accept_sampling = sigma_accept_sampling,
                                                                     expected_popsize_accept_burnin = expected_popsize_accept_burnin,
                                                                     expected_popsize_accept_sampling = expected_popsize_accept_sampling,
+                                                                    alpha_accept_burnin = alpha_accept_burnin,
+                                                                    alpha_accept_sampling = alpha_accept_sampling,
                                                                     coupling_accept_burnin = coupling_accept_burnin,
                                                                     coupling_accept_sampling = coupling_accept_sampling,
                                                                     beta_vec = beta_vec,
@@ -799,11 +849,13 @@ run_mcmc <- function(project,
                                                                   source_lat_burnin = source_lat_burnin,
                                                                   sigma_burnin = sigma_burnin,
                                                                   expected_popsize_burnin = expected_popsize_burnin,
+                                                                  alpha_burnin = alpha_burnin,
                                                                   loglike_sampling = loglike_sampling,
                                                                   source_lon_sampling = source_lon_sampling,
                                                                   source_lat_sampling = source_lat_sampling,
                                                                   sigma_sampling = sigma_sampling,
-                                                                  expected_popsize_sampling = expected_popsize_sampling)
+                                                                  expected_popsize_sampling = expected_popsize_sampling,
+                                                                  alpha_sampling = alpha_sampling)
     }
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,

@@ -225,6 +225,12 @@ double dnbinom1(int n, double lambda, double gamma, bool returnLog) {
   return R::dnbinom(n, lambda/(gamma-1), 1/gamma, returnLog);
 }
 
+//------------------------------------------------
+// probability mass of negative binomial distribution with mean and variance 
+double dnbinom_mu1(int n, double size, double mean, bool returnLog) {
+  return R::dnbinom_mu(n, size, mean, returnLog);
+}
+
 // //------------------------------------------------
 // // a function to deal with drawing a value from a distribution with any density 
 // // via inverse sampling transform 

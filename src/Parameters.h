@@ -44,6 +44,9 @@ public:
   double ep_prior_rate;
   double ep_prior_meanlog;
   double ep_prior_sdlog;
+  int count_type;
+  double alpha_prior_meanlog;
+  double alpha_prior_sdlog;
   
   // constructors
   Parameters() {};

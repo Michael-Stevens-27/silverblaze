@@ -9,7 +9,8 @@ new_set(project, spatial_prior = NULL, name = "(no name)",
   sigma_prior_mean = 1, sigma_prior_sd = 1,
   expected_popsize_model = "single",
   expected_popsize_prior_mean = 1000, expected_popsize_prior_sd = 20,
-  sentinel_radius = 0.2)
+  sentinel_radius = 0.2, nbinom = FALSE, alpha_prior_mean = 1,
+  alpha_prior_sd = 100)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -45,6 +46,13 @@ total population size. Set to 0 to use a fixed value (fixed at
 \code{expected_popsize_prior_mean}).}
 
 \item{sentinel_radius}{the observation radius of sentinel sites.}
+
+\item{nbinom}{set to true or false, decide if a negative binomial model should
+be run for a set of count data.}
+
+\item{alpha_prior_mean}{the prior mean alpha.}
+
+\item{alpha_prior_sd}{the prior standard deviation of alpha.}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new
