@@ -28,9 +28,9 @@
 #' @param expected_popsize the expected total number of observations (observed
 #'   and unobserved) in the study area.
 #' @param data_type what model we wish to simulate under - a poisson or binomial
-#'  corresponding to "counts" or "prevalence"
-#' @param reg_population number of individuals present in the search area that 
-#'  fail the trial (randomly distributed)
+#'   corresponding to "counts" or "prevalence"
+#' @param test_rate The rate of the Poisson distribution with which we draw the 
+#'   number of individuals tested at each sentinel site
 #'
 #' @import stats
 #' @export
@@ -69,7 +69,7 @@ sim_data <- function(sentinel_lon,
                      sigma_var = 0.1,
                      expected_popsize = 100,
                      data_type = "counts",
-                     reg_population = 10)
+                     test_rate = 5)
                      {
 
   # check inputs
@@ -109,7 +109,7 @@ sim_data <- function(sentinel_lon,
          })
   assert_single_pos(expected_popsize, zero_allowed = FALSE)
   assert_in(data_type, c("counts", "prevalence"))
-  assert_single_pos_int(reg_population)
+  assert_single_pos_int(test_rate, zero_allowed = FALSE)
   
   # draw total number of points
   N <- rpois(1, expected_popsize)
@@ -132,70 +132,91 @@ sim_data <- function(sentinel_lon,
            sigma <- rlnorm(K, meanlog, sqrt(varlog))
          })
   
-  # draw points around sources
-  df_all <- NULL
-  for (k in 1:K) {
-    if (source_N[k]>0) {
-      rand_k <- rnorm_sphere(source_N[k], source_lon[k], source_lat[k], sigma[k])
-      df_all <- rbind(df_all, as.data.frame(rand_k))
+  #-----------------------------------------------------------------------------
+  if(data_type == "counts"){
+    df_all <- NULL
+    for (k in 1:K) {
+      if (source_N[k]>0) {
+        rand_k <- rnorm_sphere(source_N[k], source_lon[k], source_lat[k], sigma[k])
+        df_all <- rbind(df_all, as.data.frame(rand_k))
+      }
     }
+    
+    # draw points around sources
+    # get distance between all points and sentinel sites
+    gc_dist <- mapply(function(x, y) {
+      lonlat_to_bearing(x, y, df_all$longitude, df_all$latitude)$gc_dist
+    }, x = sentinel_lon, y = sentinel_lat)
+    
+    counts <- colSums(gc_dist < sentinel_radius)
+    
+    df_observed <- data.frame(longitude = sentinel_lon,
+                              latitude = sentinel_lat,
+                              counts = counts)
+                          
+    # add record of whether data point is observed or unobserved to df_all
+    df_all$observed <- rowSums(gc_dist < sentinel_radius)
+    observed_by <- as.list(apply(gc_dist, 1, function(x) which(x < sentinel_radius)))
+    if (length(observed_by) == 0) {
+      observed_by <- replicate(nrow(df_all), integer())
+    }
+    df_all$observed_by <- observed_by
+    
+    # create true q-matrix as proportion of points belonging to each group per sentinel site
+    true_qmatrix <- t(apply(gc_dist, 2, function(x) {
+      ret <- tabulate(group[x < sentinel_radius], nbins = K)
+      ret <- ret/sum(ret)
+      ret[is.na(ret)] <- NA
+      ret
+    }))
+    class(true_qmatrix) <- "rgeoprofile_qmatrix"
+    
+    # return simulated data and true parameter values
+    ret_data <- df_observed
+    ret_record <- list()
+    ret_record$sentinel_radius <- sentinel_radius
+    ret_record$true_group <- group
+    ret_record$true_qmatrix <- true_qmatrix
+    ret_record$data_all <- df_all
+    
+    } else if (data_type == "prevalence"){
+    
+    # get distances from source locations to sentinel sites
+    gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, source_lon, source_lat)$gc_dist},
+                                      x = sentinel_lon, y = sentinel_lat)
+    
+    # calculate mean height of each sentinel site on the mixture of bivariate normals
+    heights <- dnorm(gc_dist, 0, sigma)*dnorm(0, 0, sigma)
+    if(is.vector(heights)){
+      av_heights <- heights       
+    } else{
+      av_heights <- apply(heights, 2, mean)
+    }
+    rate <- expected_popsize*av_heights
+    
+    # transform the rate to a trial success probability
+    binom_prob <- rate/(1 + rate)
+    
+    # pick how many individuals are tested at each site and use the binom_prob to draw 
+    # the number of positive individuals    
+    tested <- rpois(length(sentinel_lon), lambda = test_rate)
+    tested[tested == 0] <- 1
+    positive <- rbinom(length(sentinel_lon), tested, binom_prob)
+    
+    df_observed <- data.frame(longitude = sentinel_lon,
+                              latitude = sentinel_lat,
+                              positive = positive,
+                              tested = tested)
+                                  
+    # return simulated data and true parameter values
+    ret_data <- df_observed
+    ret_record <- list()
+    ret_record$binomial_probability <- binom_prob 
   }
-  df_all <- cbind(df_all, outcome = 1)
-  
-  # generate remaining population location - distributing randomly
-  buffer <- 0.00001
-  remaining_population_lon <- runif(reg_population, min(sentinel_lon) - buffer, max(sentinel_lon) + buffer)
-  remaining_population_lat <- runif(reg_population, min(sentinel_lat) - buffer, max(sentinel_lat) + buffer)
-  df_all <- rbind(df_all, data.frame(longitude = remaining_population_lon, latitude = remaining_population_lat, outcome = 0))
-
-  # get distance between all points and sentinel sites
-  gc_dist <- mapply(function(x, y) {
-    lonlat_to_bearing(x, y, df_all$longitude, df_all$latitude)$gc_dist
-  }, x = sentinel_lon, y = sentinel_lat)
-  
-  # assign points as observed or unobserved based on distance to sentinel sites
-  pos_counts <- colSums(gc_dist[df_all$outcome == 1,] < sentinel_radius)
-  neg_counts <- colSums(gc_dist[df_all$outcome == 0,] < sentinel_radius)
-  sentinel_total <- pos_counts + neg_counts
-  
-  df_observed <- data.frame(longitude = sentinel_lon,
-                            latitude = sentinel_lat,
-                            counts = pos_counts,
-                            total_counts = sentinel_total)
-  
-  # add record of whether data point is observed or unobserved to df_all
-  df_all$observed <- rowSums(gc_dist < sentinel_radius)
-  observed_by <- as.list(apply(gc_dist, 1, function(x) which(x < sentinel_radius)))
-  if (length(observed_by) == 0) {
-    observed_by <- replicate(nrow(df_all), integer())
-  }
-  df_all$observed_by <- observed_by
-  
-  # create true q-matrix as proportion of points belonging to each group per sentinel site
-  true_qmatrix <- t(apply(gc_dist, 2, function(x) {
-    ret <- tabulate(group[x < sentinel_radius], nbins = K)
-    ret <- ret/sum(ret)
-    ret[is.na(ret)] <- NA
-    ret
-  }))
-  class(true_qmatrix) <- "rgeoprofile_qmatrix"
-  
-  # return simulated data and true parameter values
-  ret_data <- df_observed
-  ret_record <- list()
-  if(data_type == "counts")
-  {
-    ret_data <- df_observed[,1:3]
-    df_all <- subset(df_all, df_all$outcome == 1)
-  }
-  
-  ret_record$sentinel_radius <- sentinel_radius
+    
   ret_record$true_source <- data.frame(longitude = source_lon, latitude = source_lat)
   ret_record$true_source_N <- source_N
-  ret_record$true_group <- group
   ret_record$true_sigma <- sigma
-  ret_record$true_qmatrix <- true_qmatrix
-  ret_record$data_all <- df_all
   
   ret <- list(data = ret_data,
               record = ret_record)

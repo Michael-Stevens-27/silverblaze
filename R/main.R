@@ -575,7 +575,11 @@ run_mcmc <- function(project,
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
-    qmatrix[project$data$frame$counts == 0,] <- rep(NA, K[i])
+    if(project$data$data_type == "counts"){
+      qmatrix[project$data$frame$counts == 0,] <- rep(NA, K[i])
+    } else if(project$data$data_type == "prevalence"){
+      qmatrix[project$data$frame$positive == 0,] <- rep(NA, K[i])
+    }    
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
@@ -754,12 +758,12 @@ run_mcmc <- function(project,
   
   # reorder qmatrices
   project <- align_qmatrix(project)
-  
+
   # run ring-search prior to MCMC
-  if (sum(project$data$frame$counts) > 0) {
+  if (sum(project$data$frame$counts) > 0 | sum(project$data$frame$positive) > 0) {
     ringsearch <- ring_search(project, spatial_prior)
     project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
-  }
+  }  
   
   # get DIC over all K
   DIC_gelman <- mapply(function(x) {
@@ -915,7 +919,7 @@ align_qmatrix <- function(project) {
 ring_search <- function(project, r) {
   
   # check that there is at least one positive observation
-  if (sum(project$data$frame$counts) == 0) {
+  if (sum(project$data$frame$counts) == 0 & sum(project$data$frame$positive) == 0) {
     stop("ring search not possible: no positive counts")
   }
   
@@ -923,7 +927,12 @@ ring_search <- function(project, r) {
   counts <- NULL
   
   # extract sentinel locations with at least one observation
-  data <- subset(project$data$frame, counts > 0)
+  if(project$data$data_type == "counts"){
+    data <- subset(project$data$frame, counts > 0)
+  } else if(project$data$data_type == "prevalence"){
+    data <- subset(project$data$frame, positive > 0)
+  }
+    
   sentinel_lon <- data$longitude
   sentinel_lat <- data$latitude
 

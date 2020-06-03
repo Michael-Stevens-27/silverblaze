@@ -979,6 +979,130 @@ overlay_sentinels <- function(myplot,
   return(myplot)
 }
 
+
+#------------------------------------------------
+#' @title Add trial sites to dynamic map
+#'
+#' @description Add trial sites to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function
+#'   \code{rgeoprofile_project()}.
+#' @param fill whether to fill circles.
+#' @param fill_colour colour of circle fill.
+#' @param fill_opacity fill opacity.
+#' @param border whether to add border to circles.
+#' @param border_colour colour of circle borders.
+#' @param border_weight thickness of circle borders.
+#' @param border_opacity opacity of circle borders.
+#' @param legend whether to add a legend for site count.
+#' @param label whether to label sentinel sites with densities.
+#' @param label_size size of the label.
+#'
+#' @import leaflet
+#' @importFrom grDevices grey
+#' @export
+#' 
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <- overlay_trial_sites(plot1, project = p, fill_opacity = 0.9, fill = TRUE,
+#'                            fill_colour = c(grey(0.7), "red"), border = c(FALSE, TRUE),
+#'                            border_colour = "black",border_weight = 0.5)
+#' plot1
+
+overlay_trial_sites <- function(myplot,
+                                project,
+                                fill = TRUE,
+                                fill_colour = c(grey(0.5), "red"),
+                                fill_opacity = 0.5,
+                                border = FALSE,
+                                border_colour = "black",
+                                border_weight = 1,
+                                border_opacity = 1.0,
+                                legend = FALSE,
+                                label = FALSE,
+                                label_size = 15) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_logical(fill)
+  assert_vector(fill)
+  assert_in(length(fill), c(1,2))
+  if (length(fill) == 1) {
+    fill <- rep(fill, 2)
+  }
+  assert_string(fill_colour)
+  assert_vector(fill_colour)
+  # assert_in(length(fill_colour), c(1,2))
+  if (length(fill_colour) == 1) {
+    fill_colour <- rep(fill_colour, 2)
+  }
+  assert_single_pos(fill_opacity)
+  assert_bounded(fill_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_logical(border)
+  assert_vector(border)
+  assert_in(length(border), c(1,2))
+  if (length(border) == 1) {
+    border <- rep(border, 2)
+  }
+  assert_string(border_colour)
+  assert_vector(border_colour)
+  # assert_in(length(border_colour), c(1,2))
+  if (length(border_colour) == 1) {
+    border_colour <- rep(border_colour, 2)
+  }
+  assert_single_pos(border_opacity)
+  assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_logical(legend)
+  assert_logical(label)
+  assert_single_pos(label_size)
+  
+  # check for data
+  df <- project$data$frame
+  if (is.null(df)) {
+    stop("no data loaded")
+  }
+  
+  # make circle attributes depend on counts
+  n <- nrow(df)
+  fill_vec <- rep(fill[1], n)
+  
+  fill_vec[df$positive > 0] <- fill[2]
+  fill_colour_vec <- rep(fill_colour[1], n)
+  fill_colour_vec[df$positive > 0] <- fill_colour[2]
+  border_vec <- rep(border[1], n)
+  
+  border_vec[df$positive > 0] <- border[2]
+  border_colour_vec <- rep(border_colour[1], n)
+  border_colour_vec[df$positive > 0] <- border_colour[2]
+  
+  # call in house icon                    
+  house_icon <- makeIcon(iconUrl = "https://image.flaticon.com/icons/svg/25/25694.svg", 
+  iconWidth = 5, iconHeight = 5,
+  iconAnchorX = 1, iconAnchorY = 1)
+  
+  # add icon as markers
+  myplot <- addMarkers(myplot, 
+    lng = df$longitude, lat = df$latitude, 
+    label = paste(df$positive, " out of ", df$tested, " tested", sep = ""),
+    icon = house_icon,
+    labelOptions = labelOptions(noHide = F, textsize = "15px"))      
+      
+  # overlay circles
+  myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
+                      radius = 250,
+                      fill = fill_vec, fillColor = fill_colour_vec, fillOpacity = fill_opacity,
+                      stroke = border_vec, color = border_colour_vec,
+                      opacity = border_opacity, weight = border_weight)
+  
+
+  # return plot object
+  return(myplot)
+}
+
+
 #------------------------------------------------
 #' @title Add points to dynamic map
 #'

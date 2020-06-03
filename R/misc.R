@@ -692,14 +692,11 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   if (s == 0) {
     stop("  no active parameter set")
   }
-
-  # set default K to all values with output
-  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no output for active parameter set")
-  }
-  K <- which(!null_output)
-
+  
+  # get values of K with output
+  empty_output_logical <- !is.na(p$output$single_set[[s]]$all_K$DIC_gelman$DIC_gelman)
+  K <- which(empty_output_logical == TRUE)
+  
   # initialise hitscore dataframe
   df <- data.frame(longitude = source_lon, latitude = source_lat)
 
