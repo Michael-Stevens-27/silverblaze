@@ -462,6 +462,48 @@ plot_expected_popsize <- function(project, K = NULL) {
 }
 
 #------------------------------------------------
+#' @title Plot alpha 95\% credible intervals
+#'
+#' @description Plot the over dispersion parameter alpha, in accordance with 
+#'              a negative binomial model
+#'
+#' @details TODO
+#'
+#' @param project an RgeoProfile project, as produced by the function
+#'                \code{rgeoprofile_project()}.
+#' @param K which value of K to produce the plot for.
+#'
+#' @import ggplot2
+#' @export
+#' 
+#' @examples TODO
+#' # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' # plot_alpha(project = p)
+
+plot_alpha <- function(project, K = NULL) {
+
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  
+  # single or independent expected population size?
+  s <- project$active_set
+      
+  # get output
+  alpha_intervals <- get_output(project, "alpha_intervals", K)
+  
+  # produce plot
+  plot1 <- ggplot(alpha_intervals) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = "", y = ~Q50))
+  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(alpha_intervals$Q97.5)*1.1), expand = c(0,0))
+  plot1 <- plot1 + xlab("") + ylab("alpha") + ggtitle("Alpha - 95% confidence interval")
+
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
 #' @title Produce MCMC trace plot
 #'
 #' @description Produce MCMC trace plot of the log-likelihood at each iteration.
