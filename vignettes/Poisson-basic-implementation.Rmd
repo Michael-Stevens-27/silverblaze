@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 1: Poisson Model Basic Implementation"
+title: "Poisson model and count data"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -94,8 +94,11 @@ p <- bind_data(p,
 We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our sentinel sites plus some "guardRail." We can produce a uniform spatial prior with `raster_grid()`.
 
 ```{r}
-uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
-                             cells_lon = 100, cells_lat = 100, guard_rail = 0.1)
+uniform_prior <- raster_grid(range_lon = c(-0.2, 0), 
+                             range_lat = c(51.45, 51.55),
+                             cells_lon = 100, 
+                             cells_lat = 100, 
+                             guard_rail = 0.1)
 ```
 
 ```{r, echo = FALSE}
@@ -182,17 +185,27 @@ This isn't too interesting yet, so let's add to this the spatial prior and the s
 
 ```{r}
 plot2 <- overlay_spatial_prior(plot2, p, col = "red", opacity = 0.2)
-plot2 <- overlay_sentinels(plot2, p, fill_opacity = 0.9,
-                            fill = TRUE, fill_colour = c(grey(0.7), "red"),
-                            border = c(FALSE, TRUE), border_colour = "black", border_weight = 0.5)
+plot2 <- overlay_sentinels(plot2, 
+                           p, 
+                           fill_opacity = 0.9,
+                           fill = TRUE, 
+                           fill_colour = c(grey(0.7), "red"),
+                           border = c(FALSE, TRUE), 
+                           border_colour = "black", 
+                           border_weight = 0.5)
 plot2
 
 ```
 Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
-plot2 <- overlay_geoprofile(plot2, p, threshold = 0.1, opacity = 0.8, 
-                            K = 3, col = plasma, legend = TRUE)
+plot2 <- overlay_geoprofile(plot2, 
+                            project = p, 
+                            threshold = 0.1, 
+                            opacity = 0.8, 
+                            K = 3, 
+                            col = plasma, 
+                            legend = TRUE)
 plot2
 ```
 
@@ -220,15 +233,25 @@ When `K = 1` the allocation is trivial, there is only a single source for our ob
 
 ```{r}
 # TODO fix plot structure for "rgeoprofile_qmatrix" class
-plot(mysim$record$true_qmatrix)
+# plot(mysim$record$true_qmatrix)
 ```
 
 It is also possible to map these structural plots using the `overlay_piecharts()` function. Pie charts ore overlain on the positive sentinel sites. The size of the chart represents the number of individuals caught at that location. The fill of the chart then represents the probability this site has been allocated to a particular source synonymously to the structural plots.
 
 ```{r}
-piePlot <- overlay_spatial_prior(plot1, p, col = "red", opacity = 0.2)
-piePlot <- overlay_geoprofile(piePlot, p, threshold = 0.1, opacity = 0.8, 
-                            K = 3, col = plasma, legend = TRUE)
+piePlot <- overlay_spatial_prior(plot1, 
+                                 p, 
+                                 col = "red", 
+                                 opacity = 0.2)
+
+piePlot <- overlay_geoprofile(piePlot, 
+                              project = p, 
+                              threshold = 0.1, 
+                              opacity = 0.8, 
+                              K = 3, 
+                              col = plasma, 
+                              legend = TRUE)
+
 piePlot <- overlay_piecharts(piePlot, project = p, K = 3, min_size = 10, max_size = 30)
 piePlot
 ```
@@ -258,6 +281,6 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 ```{r, echo=FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
 # saveRDS(mysim, file = "../inst/extdata/tutorial1_mysim.rds")
-# saveRDS(p, file = "../inst/extdata/tutorial1_project.rds")
+# saveRDS(p, file = "inst/extdata/tutorial1_project.rds")
 # saveRDS(hs, file = "../inst/extdata/tutorial1_hitscore.rds")
 ```

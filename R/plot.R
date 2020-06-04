@@ -427,7 +427,7 @@ plot_sigma <- function(project, K = NULL) {
 #' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' plot_expected_popsize(project = p)
+#' plot_expected_popsize(project = p, K = 1)
 
 plot_expected_popsize <- function(project, K = NULL) {
 

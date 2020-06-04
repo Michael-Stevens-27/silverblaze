@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 4: Model Validation"
+title: "Model Validation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

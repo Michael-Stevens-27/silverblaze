@@ -9,7 +9,7 @@ new_set(project, spatial_prior = NULL, name = "(no name)",
   sigma_prior_mean = 1, sigma_prior_sd = 1,
   expected_popsize_model = "single",
   expected_popsize_prior_mean = 1000, expected_popsize_prior_sd = 20,
-  sentinel_radius = 0.2, nbinom = FALSE, alpha_prior_mean = 1,
+  sentinel_radius = 0.2, n_binom = FALSE, alpha_prior_mean = 1,
   alpha_prior_sd = 100)
 }
 \arguments{
@@ -47,7 +47,7 @@ total population size. Set to 0 to use a fixed value (fixed at
 
 \item{sentinel_radius}{the observation radius of sentinel sites.}
 
-\item{nbinom}{set to true or false, decide if a negative binomial model should
+\item{n_binom}{set to true or false, decide if a negative binomial model should
 be run for a set of count data.}
 
 \item{alpha_prior_mean}{the prior mean alpha.}

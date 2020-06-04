@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 8: Variable Expected Population Size"
+title: "Variable Expected Population"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

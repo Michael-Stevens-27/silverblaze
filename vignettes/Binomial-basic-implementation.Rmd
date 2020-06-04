@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 2: Binomial - Basic Implementation"
+title: "Binomial model and prevalence data"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

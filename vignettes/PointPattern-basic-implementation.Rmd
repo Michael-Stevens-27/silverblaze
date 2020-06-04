@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 3: Point Pattern Data - Basic Implementation"
+title: "Point pattern data"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

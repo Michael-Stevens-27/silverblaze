@@ -1,5 +1,5 @@
 ---
-title: "Tutorial 6: Complex Spatial Priors"
+title: "Complex Spatial Priors"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -112,7 +112,7 @@ Plot the data with the prior:
 
 ```{r}
 # uniform
-plot1 <- plot_map()
+plot1 <- plot_map(map_type = 110)
 plot1 <- overlay_sentinels(plot1, pPopDen, sentinel_radius = 1)
 plot1 <- overlay_sources(plot1, lon = true_sources$longitude, lat = true_sources$latitude)
 plot1 <- overlay_points(plot1, lon = dataPoints$longitude, lat = dataPoints$latitude)

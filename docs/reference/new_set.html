@@ -155,8 +155,10 @@
     <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>,
   <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>, <span class='kw'>dispersal_model</span> <span class='kw'>=</span> <span class='st'>"normal"</span>,
   <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+  <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
+  <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>20</span>,
+  <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>n_binom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>alpha_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>alpha_prior_sd</span> <span class='kw'>=</span> <span class='fl'>100</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -216,6 +218,19 @@ total population size. Set to 0 to use a fixed value (fixed at
     <tr>
       <th>sentinel_radius</th>
       <td><p>the observation radius of sentinel sites.</p></td>
+    </tr>
+    <tr>
+      <th>n_binom</th>
+      <td><p>set to true or false, decide if a negative binomial model should
+be run for a set of count data.</p></td>
+    </tr>
+    <tr>
+      <th>alpha_prior_mean</th>
+      <td><p>the prior mean alpha.</p></td>
+    </tr>
+    <tr>
+      <th>alpha_prior_sd</th>
+      <td><p>the prior standard deviation of alpha.</p></td>
     </tr>
     </table>
 

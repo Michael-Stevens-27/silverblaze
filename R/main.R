@@ -196,7 +196,7 @@ raster_from_shapefile <- function (shp,
 #'   total population size. Set to 0 to use a fixed value (fixed at
 #'   \code{expected_popsize_prior_mean}).
 #' @param sentinel_radius the observation radius of sentinel sites.
-#' @param nbinom set to true or false, decide if a negative binomial model should
+#' @param n_binom set to true or false, decide if a negative binomial model should
 #'   be run for a set of count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
@@ -214,7 +214,7 @@ new_set <- function(project,
                     expected_popsize_prior_mean = 1000,
                     expected_popsize_prior_sd = 20,
                     sentinel_radius = 0.2,
-                    nbinom = FALSE,
+                    n_binom = FALSE,
                     alpha_prior_mean = 1, 
                     alpha_prior_sd = 100) 
                     {
@@ -235,9 +235,9 @@ new_set <- function(project,
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
-    assert_single_logical(nbinom)
+    assert_single_logical(n_binom)
     
-    if(nbinom == TRUE){
+    if(n_binom == TRUE){
       assert_single_pos(alpha_prior_mean, zero_allowed = FALSE)
       assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
     }
@@ -274,7 +274,7 @@ new_set <- function(project,
                                       expected_popsize_model = expected_popsize_model,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd,
-                                      nbinom = nbinom,
+                                      n_binom = n_binom,
                                       alpha_prior_mean = alpha_prior_mean,
                                       alpha_prior_sd = alpha_prior_sd)
   
@@ -512,7 +512,7 @@ run_mcmc <- function(project,
   }
   
   dispersal_model_numeric <- match(project$parameter_sets[[s]]$dispersal_model, c("normal", "cauchy", "laplace"))
-  count_type_numeric <- match(project$parameter_sets[[s]]$nbinom, c(T, F))
+  count_type_numeric <- match(project$parameter_sets[[s]]$n_binom, c(T, F))
 
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
@@ -629,7 +629,7 @@ run_mcmc <- function(project,
         colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
       }
       
-      if(args_model$nbinom == TRUE){
+      if(args_model$n_binom == TRUE){
         # get alpha in coda::mcmc format
         alpha_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_burnin)[1:convergence_iteration, ,drop = FALSE])
         alpha_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_sampling))
@@ -655,7 +655,7 @@ run_mcmc <- function(project,
       # get 95% credible intervals over expected_popsize
       expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
       
-      if(args_model$nbinom == TRUE){
+      if(args_model$n_binom == TRUE){
         # get 95% credible intervals over expected_popsize
         alpha_intervals <- as.data.frame(t(quantile_95(alpha_sampling)))
       } else{
@@ -785,7 +785,7 @@ run_mcmc <- function(project,
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
-       if(args_model$nbinom == TRUE){
+       if(args_model$n_binom == TRUE){
          alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
          alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
        } else{
