@@ -20,7 +20,6 @@ Plot the over dispersion parameter alpha, in accordance with
 TODO
 }
 \examples{
-TODO
 # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 # plot_alpha(project = p)
 }

@@ -476,7 +476,7 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' @import ggplot2
 #' @export
 #' 
-#' @examples TODO
+#' @examples 
 #' # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' # plot_alpha(project = p)
 
