@@ -420,7 +420,7 @@ plot_sigma <- function(project, K = NULL) {
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.
-#' @param K which value of K to plot.
+#' @param K which value of K to produce the plot for.
 #'
 #' @import ggplot2
 #' @export
@@ -433,19 +433,29 @@ plot_expected_popsize <- function(project, K = NULL) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  
+  # single or independent expected population size?
+  s <- project$active_set
+  expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_model
+      
   # get output
   expected_popsize_intervals <- get_output(project, "expected_popsize_intervals", K)
-
+  
+  # set plotting params
+  if(expected_popsize_model == "single"){
+    K <- 1
+    xlabel <- ""
+  } else if(expected_popsize_model == "independent"){   
+    xlabel <- as.character(1:K)
+  }  
+  
   # produce plot
   plot1 <- ggplot(expected_popsize_intervals) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
-  plot1 <- plot1 + geom_point(aes_(x = 1, y = ~Q50))
+  plot1 <- plot1 + geom_segment(aes_(x = 1:K, y = ~Q2.5, xend = 1:K, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = 1:K, y = ~Q50))
   plot1 <- plot1 + scale_y_continuous(limits = c(0, max(expected_popsize_intervals$Q97.5)*1.1), expand = c(0,0))
-  plot1 <- plot1 + xlab("") + ylab("expected population size")
+  plot1 <- plot1 + xlab(xlabel) + ylab("expected population size")
 
   # return plot object
   return(plot1)
@@ -983,7 +993,6 @@ overlay_sentinels <- function(myplot,
   return(myplot)
 }
 
-
 #------------------------------------------------
 #' @title Add trial sites to dynamic map
 #'
@@ -1312,7 +1321,7 @@ overlay_geoprofile <- function(myplot,
   if(legend == TRUE) {
   hitscore_sequence <- seq(0, threshold, threshold/(length(col) - 1))
   pal <- colorNumeric(palette = col, domain = hitscore_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hitscore", opacity = 1)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
   }
   # return plot object
   return(myplot)
@@ -1403,9 +1412,9 @@ overlay_surface <- function(myplot,
   
   # add legend
   if(legend == TRUE) {
-  prob_sequence <- seq(0, threshold, threshold/(length(col) - 1))
+  prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
   pal <- colorNumeric(palette = col, domain = prob_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nProbability", opacity = 1)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
   }                        
 
   # return plot object

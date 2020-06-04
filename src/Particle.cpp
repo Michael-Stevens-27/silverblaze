@@ -234,7 +234,7 @@ void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   if (d->data_type == 1) { // Poisson
     if(p->count_type == 1) { // negative binomial count data
       update_expected_popsize_negative_binomial_independent(robbins_monro_on, iteration);
-    } else{
+    } else {
       if(p->ep_model == 1){ 
         update_expected_popsize_pois_single();
       } else if(p->ep_model == 2){
@@ -254,7 +254,9 @@ void Particle::update_alpha(bool robbins_monro_on, int iteration) {
   // update 
   if (d->data_type == 1 && p->count_type == 1) { // Poisson and negative binomial count data 
     update_alpha_negative_binomial(robbins_monro_on, iteration);
-  } 
+  } else{
+    return;
+  }
 }
 
 //------------------------------------------------
@@ -571,7 +573,8 @@ void Particle::update_sigma_pois(bool robbins_monro_on, int iteration) {
       double gamma_shape = p->ep_prior_shape;
       double gamma_rate = p->ep_prior_rate;
       
-      loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
+      loglike_prop += gamma_shape*log(gamma_rate) - (gamma_shape + counts_total)*log(gamma_rate + theta_sum) 
+                      + lgamma(gamma_shape + counts_total) - lgamma(gamma_shape);
     }
     //-----------------------------------------------------------------------------------------------------------------------
     
@@ -1194,7 +1197,6 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
   
   // initialise running values
   double loglike_prop = 0;
-  log_theta_vals = vector<double>(d->n);
   
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
@@ -1221,17 +1223,10 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    log_theta_vals[i] = log_theta_i;
-  }
-  
-  // loop through sentinel sites
-  for (int i = 0; i < d->n; ++i) {
-    // loglike_prop += dnbinom_mu1(d->counts[i], alpha, exp(log_theta_vals[i]), TRUE);
-    // 
     loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-    lgamma(alpha) + alpha*log(alpha) + 
-    d->counts[i]*log_theta_vals[i] - 
-    (alpha + d->counts[i])*log(alpha + exp(log_theta_vals[i]));
+                    lgamma(alpha) + alpha*log(alpha) + 
+                    d->counts[i]*log_theta_i - 
+                    (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
   }
   
   return loglike_prop;
@@ -1251,7 +1246,6 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
     
     // initialise new likelihood
     double loglike_prop = 0;
-    log_theta_vals = vector<double>(d->n);
     
     // loop through sentinel sites
     for (int i = 0; i < d->n; ++i) {
@@ -1275,17 +1269,10 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      log_theta_vals[i] = log_theta_i;
-    }
-    
-    // loop through sentinel sites
-    for (int i = 0; i < d->n; ++i) {
-      // loglike_prop += dnbinom_mu1(d->counts[i], alpha, exp(log_theta_vals[i]), TRUE);
-      //
       loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-      lgamma(alpha) + alpha*log(alpha) + 
-      d->counts[i]*log_theta_vals[i] - 
-      (alpha + d->counts[i])*log(alpha + exp(log_theta_vals[i]));
+                      lgamma(alpha) + alpha*log(alpha) + 
+                      d->counts[i]*log_theta_i - 
+                      (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1356,7 +1343,6 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
     
     // initialise new likelihood
     double loglike_prop = 0;
-    log_theta_vals = vector<double>(d->n);
     
     // loop through sentinel sites
     for (int i = 0; i < d->n; ++i) {
@@ -1380,17 +1366,10 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      log_theta_vals[i] = log_theta_i;
-    }
-    
-    // loop through sentinel sites
-    for (int i = 0; i < d->n; ++i) {
-      // loglike_prop += dnbinom_mu1(d->counts[i], alpha, exp(log_theta_vals[i]), TRUE);
-      //
       loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-      lgamma(alpha) + alpha*log(alpha) + 
-      d->counts[i]*log_theta_vals[i] - 
-      (alpha + d->counts[i])*log(alpha + exp(log_theta_vals[i]));
+                      lgamma(alpha) + alpha*log(alpha) + 
+                      d->counts[i]*log_theta_i - 
+                      (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1446,7 +1425,6 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
   
   // initialise new likelihood
   double loglike_prop = 0;
-  log_theta_vals = vector<double>(d->n);
   
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
@@ -1464,17 +1442,10 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    log_theta_vals[i] = log_theta_i;
-  }
-  
-  // loop through sentinel sites
-  for (int i = 0; i < d->n; ++i) {
-    // loglike_prop += dnbinom_mu1(d->counts[i], alpha_prop, exp(log_theta_vals[i]), TRUE);
-    //
     loglike_prop += lgamma(alpha_prop + d->counts[i]) - lgamma(d->counts[i] + 1) -
-    lgamma(alpha_prop) + alpha_prop*log(alpha_prop) + 
-    d->counts[i]*log_theta_vals[i] - 
-    (alpha_prop + d->counts[i])*log(alpha_prop + exp(log_theta_vals[i]));
+                    lgamma(alpha_prop) + alpha_prop*log(alpha_prop) + 
+                    d->counts[i]*log_theta_i - 
+                    (alpha_prop + d->counts[i])*log(alpha_prop + exp(log_theta_i));
   }
   
   //-----------------------------------------------------------------------------------------------------------------------

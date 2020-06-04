@@ -68,7 +68,6 @@ public:
   std::vector<std::vector<double>> log_hazard_height;
   std::vector<double> log_hazard_height_prop;
   std::vector<std::vector<double>> log_hazard_height_prop2;
-  std::vector<double> log_theta_vals;
   double logprior;
   double loglike;
   
