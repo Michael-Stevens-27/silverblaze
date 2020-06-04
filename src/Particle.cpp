@@ -426,7 +426,7 @@ double Particle::calculate_loglike_source_points(double source_lon_prop, double 
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
-    log_hazard_height_prop[i] = calculate_hazard(dist, sigma[k]); 
+    log_hazard_height_prop[i] = log(p->cell_area) + calculate_hazard(dist, sigma[k]); 
     
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop[i];
@@ -845,7 +845,7 @@ void Particle::update_sigma_points(bool robbins_monro_on, int iteration){
       
       // recalculate hazard given new sigma
       double dist = dist_source_data[i][k];
-      log_hazard_height_prop[i] = calculate_hazard(dist, sigma_prop);       
+      log_hazard_height_prop[i] = log(p->cell_area) + calculate_hazard(dist, sigma_prop);       
       
       // sum hazard over sources while remaining in log space
       double log_hazard_sum = log_hazard_height_prop[i];
@@ -1498,7 +1498,7 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
 double Particle::calculate_hazard(double dist, double single_scale) {
   
   double hazard_height;  
-  double cell_area = 1; 
+  
   // update source based on dispersal kernel model
   if (p->dispersal_model == 1) {
     
@@ -1512,7 +1512,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
   } else if (p->dispersal_model == 2) {
     
     // calculate bivariate CAUCHY height 
-    hazard_height = log(cell_area) - log(2*M_PI) + 0.5*log(single_scale) - 1.5*log(pow(dist, 2) + single_scale);
+    hazard_height = - log(2*M_PI) + 0.5*log(single_scale) - 1.5*log(pow(dist, 2) + single_scale);
     
   } else if (p->dispersal_model == 3) {
     
@@ -1520,7 +1520,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // An accurate version of the laplace density is obtained using the bessel 
     // function below - it comes with underflow issues
     // hazard_height = -log(M_PI) - 2*log(single_scale) + log(bessel(sqrt(2)*dist*pow(single_scale, -1), 0));
-    hazard_height = log(cell_area) - 0.5*log(M_PI) - 0.75*log(2*single_scale) - 0.5*log(dist) - dist*sqrt(2*pow(single_scale, -1));
+    hazard_height = - 0.5*log(M_PI) - 0.75*log(2*single_scale) - 0.5*log(dist) - dist*sqrt(2*pow(single_scale, -1));
     
   } else if (p->dispersal_model == 4) {
     

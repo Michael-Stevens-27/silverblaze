@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r, echo = FALSE}
-set.seed(27)
+set.seed(10)
 library(silverblaze)
 plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
             "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
@@ -18,7 +18,7 @@ plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
 
 ## Introduction
 
-The following tutorial will introduce the user to the general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:
+The following tutorial will introduce the user to the general structure required to run silverblaze when analysing point pattern data. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:
 
 1. The data used to run the model
 2. The parameter settings for the model
@@ -28,47 +28,47 @@ Following this, the user will learn how to plot and diagnose the output of the m
 
 ## Simulating data
 
-Before any data simulation happens, we must first define the sentinel site locations for the data.
+We start by defining area over which we are simulating our data.
 
 ```{r}
-sentinal_lon <- seq(-0.2, 0.0, l = 12)
-sentinal_lat <- seq(51.45, 51.55, l = 12)
-sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
-names(sentinal_grid) <- c("longitude", "latitude")
+lon_range <- c(-0.2,0)
+lat_range <- c(51.45, 51.55)
 ```
 
-Here we've chosen a lattice configuration but the user may define any list of longitude/latitude locations they would like. With these sentinel sites we can generate our data from a given model using `sim_data()`.
+We can generate our data from a given model using `sim_data()`.
 
 ```{r}
-mysim <- sim_data(sentinal_grid$longitude,
-                  sentinal_grid$latitude,
+mysim <- sim_data(data_type = "point-pattern",
                   K = 3,
+                  dispersal_model = "normal", 
                   sigma_model = "single",
-                  sigma_mean = 1,
-                  sigma_var = 0.5,
-                  expected_popsize = 300, 
-                  data_type = "prevalence",
-                  test_rate = 20)
+                  sigma_mean = 0.5,
+                  sigma_var = 0,
+                  N = 150,      
+                  source_lon_min = lon_range[1],
+                  source_lon_max = lon_range[2],
+                  source_lat_min = lat_range[1],
+                  source_lat_max = lat_range[2])
 
 true_source <- mysim$record$true_source
 ```
 
 These parameters describe the underlying behaviour of the data in question:
 
+* `data_type` is the data we wish to generate, in this case, point-pattern.
 * `K` is the number of sources with which individuals are spatially based.
+* `dispersal_model` tells us which dispersal kernel to use to generate the data.
 * `sigma_model` defines homogeneity or independence of dispersal across sources.
 * `sigma_mean` and `sigma_var` govern the dispersal associated with each source. Set `sigma_var = 0` to set an explicit dispersal via `sigma_mean`.
-* `expected_popsize` tells us how many individuals we expect to see over our search area. The true value is drawn from a Poisson distribution with this expectation.
-* `data_type`
-* `test_rate`
+* `N` tells us how many individuals we there are over our search area. 
 
-Let's view our prevalence data.
+Let's view our point-pattern data.
 
 ```{r}
 head(mysim$data)
 ```
 
-Here we see the general structure of the data required to run the binomial model. That is, a collection of trial sites, the number of individuals tested at that location and the number testing positive. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.
+Here we see the general structure of the data required to run the finite mixture model. That is, a collection of points in decimal longitude and latitude formate. This `mysim$data` object is the only piece of information required for the user to run the model. All other output from `mysim$data` is merely a consequence of simulating the data in the first place.
 
 ## Creating a project
 
@@ -83,16 +83,19 @@ We then add in our simulated data using `bind_data()`.
 ```{r}
 p <- bind_data(p,
                df = mysim$data,
-               data_type = "prevalence")
+               data_type = "point-pattern")
 ```
 
 ## Simple spatial prior
 
-We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our sentinel sites plus some "guardRail." We can produce a uniform spatial prior with `raster_grid()`.
+We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our points plus some `guard_rail`. We can produce a uniform spatial prior with `raster_grid()`.
 
 ```{r}
-uniform_prior <- raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
-                             cells_lon = 100, cells_lat = 100, guard_rail = 0.1)
+uniform_prior <- raster_grid(range_lon = c(-0.2, 0), 
+                             range_lat = c(51.45, 51.55),
+                             cells_lon = 100, 
+                             cells_lat = 100, 
+                             guard_rail = 0.1)
 ```
 
 ```{r, echo = FALSE}
@@ -112,11 +115,10 @@ Next we define the various priors on the variables we wish to estimate when runn
 ```{r}
 p <- new_set(project = p,
              spatial_prior = uniform_prior,
+             dispersal_model = "normal",
              sigma_model = "single",
-             sigma_prior_mean = 1,
-             sigma_prior_sd = 1,
-             expected_popsize_prior_mean = 300,
-             expected_popsize_prior_sd = 30,
+             sigma_prior_mean = 0.5,
+             sigma_prior_sd = 2,
              name = "Tutorial Parameters")
 p
 ```
@@ -128,17 +130,61 @@ The project `p` is now taking shape as we have defined the data and parameters f
 We are now ready to run the MCMC algorithm on our data. The arguments in `run_mcmc()` are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each `convergence_test` iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument `K` governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence `K` can take a single value or a sequence of values. We choose `1:5` as our data was generated with three sources. The `pb_markdown = TRUE` argument ensures a neater version of the console output is printed below, this should be removed when run by you.
 
 ```{r, eval = FALSE}
+K_model <- 1:5
+beta_list <- list()
+n_rungs <- rep(NA, length(K_model))
+
+for(i in K_model){
+  beta_k <- silverblaze::: optimise_beta(proj = p, 
+                                         K = i, 
+                                         create_maps = FALSE,
+                                         target_acceptance = 0.5, 
+                                         max_iterations = 20,
+                                         beta_init = seq(0, 1, l = 5), 
+                                         silent = FALSE,
+                                         burnin = 1e1,
+                                         samples = 10,
+                                         converge_test = 1e1,
+                                         coupling_on = TRUE, 
+                                         pb_markdown = FALSE)
+  
+  beta_list[[i]] <- beta_k$beta_vec[length(beta_k$beta_vec)]
+  n_rungs[i] <- length(unlist(beta_list[[i]]))
+}
+
+#------------------------------------------------------------------
+
+# RUN MCMC
+for(i in K_model){
+
+  beta_vals <- unlist(beta_list[[i]])
+
+  p <- run_mcmc(project = p,
+                K = i,
+                rungs = length(beta_list[[i]]),
+                coupling_on = TRUE,
+                burnin = 5e3,
+                samples = 5e3,
+                converge_test = 1000,
+                auto_converge = TRUE,
+                beta_manual = beta_vals,
+                pb_markdown = FALSE)
+
+}
+
+
+
 p <- run_mcmc(project = p,
               K = 1:5,
-              burnin = 1e4,
-              samples = 5e4,
-              converge_test = 5e3,
+              burnin = 4e4,
+              samples = 1e4,
+              converge_test = 1e4,
               auto_converge = TRUE,
               pb_markdown = TRUE)
 ```
 
 ```{r, echo = FALSE}
-p <- rgeoprofile_file("tutorial2_project.rds")
+p <- rgeoprofile_file("point_pattern_project.rds")
 ```
 
 Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.
@@ -174,22 +220,17 @@ plot2 <- overlay_sources(plot2, true_source$longitude, true_source$latitude)
 plot2
 ```
 
-This isn't too interesting yet, so let's add to this the trial site data.
+This isn't too interesting yet, so let's add to this the point-pattern data.
 
 ```{r}
-plot3 <- overlay_trial_sites(plot2, 
-                             project = p, 
-                             fill_opacity = 0.5,
-                             fill = TRUE, 
-                             fill_colour = c(grey(0.7), "red"),
-                             border = c(FALSE, TRUE), 
-                             border_colour = "black", 
-                             border_weight = 0.5)
+plot3 <- overlay_points(plot2, 
+                        lon = mysim$data$longitude,
+                        lat = mysim$data$latitude,
+                        col = "purple")
 plot3
 ```
 
-
-We can see the proportions of positive and negative tests, to see the exact values, try clicking on one of the pie charts. Finally, we add in the geoprofile produced by running the MCMC.
+Finally, we add in the geoprofile produced by running the MCMC.
 
 ```{r}
 plot4 <- overlay_geoprofile(plot3, 
@@ -204,22 +245,17 @@ plot4
 
 ### Other Parameter Estimation
 
-We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce intervals for each source, this requires updating (TODO).
+We can also plot the posterior 95% credible intervals of each sigma. The `"single"` model will produce a sinle interval. Note the true value of 0.5 km.
 
 ```{r}
 plot_sigma(p, K = 3)
 ```
 
-Similarly the same can be done for the expected population size.
-
-```{r}
-plot_expected_popsize(p, K = 3)
-```
 
 The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use `get_hitscores` to produce these.
 
 ```{r}
-hs <- get_hitscores(p, true_source$longitude, true_source$latitude)
+hs <- get_hitscores(p, true_source$longitude, true_source$latitude, ring_search = FALSE)
 hs
 ```
 
@@ -240,6 +276,6 @@ Both the `gini()` and `get_hitscores()` functions refer to a "ringsearch" strate
 ```{r, echo=FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
 # saveRDS(mysim, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_mysim.rds")
-# saveRDS(p, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_project.rds")
+saveRDS(p, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/point_pattern_project.rds")
 # saveRDS(hs, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/tutorial2_hitscore.rds")
 ```

@@ -253,8 +253,9 @@ new_set <- function(project,
     spatial_prior <- raster_grid(range_lon, range_lat)
   }
   
-  # get total study area in km^2
+  # get average single cell area and total study area in km^2
   study_area <- sum(raster::area(spatial_prior)[])
+  cell_area <- mean(raster::area(spatial_prior)[])
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -266,6 +267,7 @@ new_set <- function(project,
   project$parameter_sets[[s]] <- list(name = name,
                                       spatial_prior = spatial_prior,
                                       study_area = study_area,
+                                      cell_area = cell_area, 
                                       dispersal_model = dispersal_model, 
                                       sentinel_radius = sentinel_radius,
                                       sigma_model = sigma_model,
