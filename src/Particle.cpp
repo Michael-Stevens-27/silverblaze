@@ -1223,10 +1223,10 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(alpha) + alpha*log(alpha) + 
+    loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
                     d->counts[i]*log_theta_i - 
-                    (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
+                    (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
   }
   
   return loglike_prop;
@@ -1269,10 +1269,10 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(alpha) + alpha*log(alpha) + 
+      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
                       d->counts[i]*log_theta_i - 
-                      (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
+                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1366,10 +1366,10 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(alpha) + alpha*log(alpha) + 
+      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
                       d->counts[i]*log_theta_i - 
-                      (alpha + d->counts[i])*log(alpha + exp(log_theta_i));
+                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1442,10 +1442,10 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(alpha_prop + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(alpha_prop) + alpha_prop*log(alpha_prop) + 
+    loglike_prop += lgamma(1/alpha_prop + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/alpha_prop) + (1/alpha_prop)*log(1/alpha_prop) + 
                     d->counts[i]*log_theta_i - 
-                    (alpha_prop + d->counts[i])*log(alpha_prop + exp(log_theta_i));
+                    (1/alpha_prop + d->counts[i])*log(1/alpha_prop + exp(log_theta_i));
   }
   
   //-----------------------------------------------------------------------------------------------------------------------
