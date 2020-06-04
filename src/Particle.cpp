@@ -1386,6 +1386,13 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       // update ep for this source
       expected_popsize[k] = ep_prop;
       
+      if(p->ep_model == 1){
+        // update sigma for all sources
+        for (int k = 0; k < p->K; ++k) {
+          expected_popsize[k] = ep_prop;
+        }
+      }
+      
       // update stored hazard values
       for (int i = 0; i < d->n; ++i) {
         log_hazard_height[i][k] = log_hazard_height_prop[i];
@@ -1410,6 +1417,9 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       
     }  // end Metropolis-Hastings step
     
+    if(p->ep_model == 1){
+      break;
+    }
   }  // end loop over sources
   
 }
