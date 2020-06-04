@@ -36,12 +36,17 @@ public:
   int sigma_model;
   double sigma_prior_meanlog;
   double sigma_prior_sdlog;
+  int ep_model;
+  int dispersal_model;
   double ep_prior_mean;
   double ep_prior_sd;
   double ep_prior_shape;
   double ep_prior_rate;
   double ep_prior_meanlog;
   double ep_prior_sdlog;
+  int count_type;
+  double alpha_prior_meanlog;
+  double alpha_prior_sdlog;
   
   // constructors
   Parameters() {};

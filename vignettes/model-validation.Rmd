@@ -1,11 +1,11 @@
 ---
-title: "Tutorial 3: Model Validation"
+title: "Model Validation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: model-validation.bib
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 3: Model Validation"}
+  %\VignetteIndexEntry{"Model Validation"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -4,7 +4,8 @@
 \alias{bind_data}
 \title{Bind data to project}
 \usage{
-bind_data(project, df, data_type, name = NULL, check_delete_output = TRUE)
+bind_data(project, df, data_type, name = NULL,
+  check_delete_output = TRUE)
 }
 \arguments{
 \item{project}{an \code{rgeoprofile_project}, as produced by the function

@@ -33,8 +33,11 @@ Parameters::Parameters(const Rcpp::List &args) {
   search_area = rcpp_to_double(args["study_area"]);
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
-  
-  // get sigma prior mean and sd in log space from raw inputs
+  ep_model = rcpp_to_int(args["expected_popsize_model_numeric"]);
+  dispersal_model = rcpp_to_int(args["dispersal_model_numeric"]);
+  count_type = rcpp_to_int(args["count_type_numeric"]);
+
+    // get sigma prior mean and sd in log space from raw inputs
   double sigma_prior_mean = rcpp_to_double(args["sigma_prior_mean"]);
   double sigma_prior_sd = rcpp_to_double(args["sigma_prior_sd"]);
   double sigma_prior_varlog = log(pow(sigma_prior_sd,2)/pow(sigma_prior_mean,2) + 1);
@@ -49,5 +52,12 @@ Parameters::Parameters(const Rcpp::List &args) {
   double ep_prior_varlog = log(pow(ep_prior_sd,2)/pow(ep_prior_mean,2) + 1);
   ep_prior_sdlog = sqrt(ep_prior_varlog);
   ep_prior_meanlog = log(ep_prior_mean) - ep_prior_varlog/2.0;
+  
+  // get alpha prior mean and sd in log space from raw inputs
+  double alpha_prior_mean = rcpp_to_double(args["alpha_prior_mean"]);
+  double alpha_prior_sd = rcpp_to_double(args["alpha_prior_sd"]);
+  double alpha_prior_varlog = log(pow(alpha_prior_sd,2)/pow(alpha_prior_mean,2) + 1);
+  alpha_prior_sdlog = sqrt(alpha_prior_varlog);
+  alpha_prior_meanlog = log(alpha_prior_mean) - alpha_prior_varlog/2.0;
   
 }

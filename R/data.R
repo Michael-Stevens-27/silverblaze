@@ -9,6 +9,7 @@
 #' @param sentinel_lat vector giving latitudes of sentinel sites.
 #' @param sentinel_radius observation radius of the sentinel site (km).
 #' @param K the number of sources.
+#' @param source_weights the proportion of events coming from each source
 #' @param source_lon_min minimum limit on source longitudes.
 #' @param source_lon_max maximum limit on source longitudes.
 #' @param source_lat_min minimum limit on source latitudes.
@@ -31,6 +32,9 @@
 #'   corresponding to "counts" or "prevalence"
 #' @param test_rate The rate of the Poisson distribution with which we draw the 
 #'   number of individuals tested at each sentinel site
+#' @param N the number of events to distributed under a point-pattern model
+#' @param dispersal_model distribute points via a "normal", "cauchy" or 
+#' "laplace" model
 #'
 #' @import stats
 #' @export
@@ -58,6 +62,7 @@ sim_data <- function(sentinel_lon,
                      sentinel_lat,
                      sentinel_radius = 0.1,
                      K = 3,
+                     source_weights = NULL, 
                      source_lon_min = -0.2,
                      source_lon_max = 0.0,
                      source_lat_min = 51.45,
@@ -69,14 +74,32 @@ sim_data <- function(sentinel_lon,
                      sigma_var = 0.1,
                      expected_popsize = 100,
                      data_type = "counts",
-                     test_rate = 5)
+                     test_rate = 5,
+                     N = 150,
+                     dispersal_model = "normal")
                      {
 
   # check inputs
-  assert_numeric(sentinel_lon)
-  assert_numeric(sentinel_lat)
-  assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+  assert_in(data_type, c("counts", "prevalence", "point-pattern"))
+  assert_in(dispersal_model, c("normal", "cauchy", "laplace"))
+  
+  if(data_type == "counts" | data_type == "prevalence"){
+    assert_numeric(sentinel_lon)
+    assert_numeric(sentinel_lat)
+    assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+    assert_same_length(sentinel_lon, sentinel_lat)
+    
+    assert_single_pos(expected_popsize, zero_allowed = FALSE)
+    assert_single_pos_int(test_rate, zero_allowed = FALSE)
+  }
+  
   assert_single_pos_int(K, zero_allowed = FALSE)
+  if(is.null(source_weights)){
+    source_weights <- rep(1/K, K)
+  }
+  assert_length(source_weights, K)
+  assert_bounded(source_weights)
+  
   assert_single_numeric(source_lon_min)
   assert_single_numeric(source_lon_max)
   assert_single_numeric(source_lat_min)
@@ -93,9 +116,10 @@ sim_data <- function(sentinel_lon,
   assert_numeric(source_lat)
   assert_same_length(source_lon, source_lat)
   assert_length(source_lon, K)
-  assert_same_length(sentinel_lon, sentinel_lat)
+  
   assert_single_string(sigma_model)
   assert_in(sigma_model, c("single", "independent"))
+  
   switch(sigma_model,
          "single" = {
           assert_single_pos(sigma_var, zero_allowed = TRUE)
@@ -107,18 +131,19 @@ sim_data <- function(sentinel_lon,
            assert_pos(sigma_mean, zero_allowed = FALSE)
            assert_pos(sigma_var, zero_allowed = TRUE)
          })
-  assert_single_pos(expected_popsize, zero_allowed = FALSE)
-  assert_in(data_type, c("counts", "prevalence"))
-  assert_single_pos_int(test_rate, zero_allowed = FALSE)
+  
+  assert_single_pos_int(N, zero_allowed = FALSE)
   
   # draw total number of points
-  N <- rpois(1, expected_popsize)
-  if (N == 0) {
-    stop("N=0 events generated")
+  if(data_type == "counts" | data_type == "prevalence"){
+    N <- rpois(1, expected_popsize)
+    if (N == 0) {
+      stop("N = 0 events generated")
+    }
   }
-  
+    
   # draw true allocation of all points to sources
-  group <- sort(sample(K, N, replace = TRUE))
+  group <- sort(sample(K, N, replace = TRUE, prob = source_weights))
   source_N <- tabulate(group)
   
   # draw sigma
@@ -137,7 +162,11 @@ sim_data <- function(sentinel_lon,
     df_all <- NULL
     for (k in 1:K) {
       if (source_N[k]>0) {
-        rand_k <- rnorm_sphere(source_N[k], source_lon[k], source_lat[k], sigma[k])
+        rand_k <- dispersal_sphere(n = source_N[k], 
+                                   source_lon[k], 
+                                   source_lat[k], 
+                                   scale = sigma[k], 
+                                   dispersal_model = "normal")
         df_all <- rbind(df_all, as.data.frame(rand_k))
       }
     }
@@ -185,14 +214,14 @@ sim_data <- function(sentinel_lon,
     gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, source_lon, source_lat)$gc_dist},
                                       x = sentinel_lon, y = sentinel_lat)
     
-    # calculate mean height of each sentinel site on the mixture of bivariate normals
+    # calculate height of each sentinel site on the mixture of bivariate normals
     heights <- dnorm(gc_dist, 0, sigma)*dnorm(0, 0, sigma)
     if(is.vector(heights)){
-      av_heights <- heights       
+      heights <- heights       
     } else{
-      av_heights <- apply(heights, 2, mean)
+      heights <- apply(heights*source_weights, 2, sum)
     }
-    rate <- expected_popsize*av_heights
+    rate <- expected_popsize*heights
     
     # transform the rate to a trial success probability
     binom_prob <- rate/(1 + rate)
@@ -212,6 +241,36 @@ sim_data <- function(sentinel_lon,
     ret_data <- df_observed
     ret_record <- list()
     ret_record$binomial_probability <- binom_prob 
+    
+  } else if(data_type == "point-pattern"){
+    
+    # draw points around sources
+    df_all <- NULL
+    for (k in 1:K) {
+      if (source_N[k] > 0) {
+        rand_k <- dispersal_sphere(n = source_N[k], 
+                                   source_lon[k], 
+                                   source_lat[k], 
+                                   scale = sigma[k], 
+                                   dispersal_model = dispersal_model)
+        df_all <- rbind(df_all, as.data.frame(rand_k))
+      }
+    }
+
+    # TODO create true q-matrix as proportion of points belonging to each group per sentinel site
+    # true_qmatrix <- t(apply(gc_dist, 2, function(x) {
+    #   ret <- tabulate(group[x < sentinel_radius], nbins = K)
+    #   ret <- ret/sum(ret)
+    #   ret[is.na(ret)] <- NA
+    #   ret
+    # }))
+    # class(true_qmatrix) <- "rgeoprofile_qmatrix"
+    
+    # return simulated data and true parameter values
+    ret_record <- list()
+    ret_record$true_group <- group
+    # ret_record$true_qmatrix <- true_qmatrix
+    ret_record$data_all <- ret_data <- df_all
   }
     
   ret_record$true_source <- data.frame(longitude = source_lon, latitude = source_lat)

@@ -1,11 +1,11 @@
 # silverblaze
-### Version 0.0.1 (pre-release)
+### Version 0.2.0 (pre-release)
 [![Travis build status](https://travis-ci.org/Michael-Stevens-27/silverblaze.svg?branch=master)](https://travis-ci.org/Michael-Stevens-27/silverblaze)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/Michael-Stevens-27/silverblaze?branch=master&svg=true)](https://ci.appveyor.com/project/Michael-Stevens-27/silverblaze)
 
 --------------------------------------------------------------------------------------------------------------------------------
 
-The R package silverblaze builds on the foundations of the geographic profiling methododlogy by implementing information drawn from absence data. Using the locations of sentinel sites, each associated with a capture density, the model infers:
+The R package silverblaze builds on the foundations of the geographic profiling methodology by implementing information drawn from absence data. Using the locations of sentinel sites, each associated with a capture density, the model infers:
 
 1. The most likely areas that contain a pre-specified number of sources.
 2. The dispersal paramter sigma.

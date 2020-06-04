@@ -1,0 +1,26 @@
+---
+title: "Metropolis-Hastings Coupling"
+author: "Michael Stevens"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: model-validation.bib
+vignette: >
+  %\VignetteIndexEntry{"Metropolis_Hastings Coupling"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE}
+library(silverblaze)
+p <- rgeoprofile_file("tutorial1_project.rds")
+```
+The majority of the following methodology on Bayesian model validation is adopted from @Spiegelhalter2014.
+There are many functions silverblaze has to offer for checking the ability of the model but we've done very little to compare the difference between models fitting different values of `K`. Hence we introduce the `plot_DIC_gelman()` function to calculate the deviance information criterion (DIC) for each model. Let's have a look at the DIC values for our models from [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/basic-implementation.html).
+
+```{r}
+plot_DIC_gelman(p)
+```
+
+As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where `K = 3`. 
+
+### References

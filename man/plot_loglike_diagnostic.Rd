@@ -4,7 +4,8 @@
 \alias{plot_loglike_diagnostic}
 \title{Produce diagnostic plots of log-likelihood}
 \usage{
-plot_loglike_diagnostic(project, K = NULL, rung = NULL, col = "black")
+plot_loglike_diagnostic(project, K = NULL, rung = NULL,
+  col = "black")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function

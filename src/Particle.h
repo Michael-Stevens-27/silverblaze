@@ -32,8 +32,13 @@ public:
   std::vector<double> sigma;
   
   // scaling factor on hazard surface
-  double expected_popsize;
-  double log_expected_popsize;
+  std::vector<double> expected_popsize;
+  std::vector<double> pop_size_domain;
+  std::vector<double> cum_sum_density; 
+  std::vector<double> cum_sum_normalised;
+  
+  // parameter controlling the nbinom variance = mean + alpha*mean^2 
+  double alpha; 
   
   // qmatrices
   std::vector<std::vector<double>> log_qmatrix;
@@ -42,13 +47,15 @@ public:
   // proposal standard deviations
   std::vector<double> source_propSD;
   std::vector<double> sigma_propSD;
-  double ep_propSD;
-  
+  std::vector<double> ep_propSD;
+  double alpha_propSD;  
+    
   // Robbins-Monro stepsize
   double source_rm_stepsize;
   double sigma_rm_stepsize;
   double ep_rm_stepsize;
-
+  double alpha_rm_stepsize;
+  
   // misc constants
   double log_sentinel_area;
   int counts_total;
@@ -82,8 +89,10 @@ public:
   std::vector<int> source_accept_sampling;
   std::vector<int> sigma_accept_burnin;
   std::vector<int> sigma_accept_sampling;
-  int ep_accept_burnin;
-  int ep_accept_sampling;
+  std::vector<int> ep_accept_burnin;
+  std::vector<int> ep_accept_sampling;
+  int alpha_accept_burnin;
+  int alpha_accept_sampling;
     
   // PUBLIC FUNCTIONS
   
@@ -94,25 +103,45 @@ public:
   // other functions
   void reset(double beta);
   
-  double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
-  double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
-  
+  // main update switches
   void update_sources(bool robbins_monro_on, int iteration);
-  
   void update_sigma(bool robbins_monro_on, int iteration);
-  void update_sigma_single(bool robbins_monro_on, int iteration);
-  void update_sigma_single_pois(bool robbins_monro_on, int iteration);
-  void update_sigma_single_binom(bool robbins_monro_on, int iteration);
-  void update_sigma_independent(bool robbins_monro_on, int iteration);
-  void update_sigma_independent_pois(bool robbins_monro_on, int iteration);
-  void update_sigma_independent_binom(bool robbins_monro_on, int iteration);
-  
   void update_expected_popsize(bool robbins_monro_on, int iteration);
-  void update_expected_popsize_pois();
-  void update_expected_popsize_binom(bool robbins_monro_on, int iteration);
+  void update_alpha(bool robbins_monro_on, int iteration);
   
+  // calculate hazrad based on dispersal kernel
+  double calculate_hazard(double dist, double single_scale);
+  
+  // switch for sources
+  double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
+  
+  // loglikelihood functions for sources
+  double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_negative_binomial_indpendent_lambda(double source_lon_prop, double source_lat_prop, int k);
+  
+  double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
+    
+  // loglikelihood and update functions for sigmas  
+  void update_sigma_pois(bool robbins_monro_on, int iteration);
+  void update_sigma_pois_ind_exp_pop(bool robbins_monro_on, int iteration);
+  void update_sigma_binom(bool robbins_monro_on, int iteration);
+  void update_sigma_points(bool robbins_monro_on, int iteration); 
+  void update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on, int iteration);
+
+  // loglikelihood and update functions for expected population size
+  void update_expected_popsize_pois_single();
+  void update_expected_popsize_pois_independent(bool robbins_monro_on, int iteration);
+  // void update_expected_popsize_pois_independent(bool robbins_monro_on);
+  void update_expected_popsize_binom(bool robbins_monro_on, int iteration);
+  void update_expected_popsize_negative_binomial_independent(bool robbins_monro_on, int iteration);
+  
+  // loglikelihood and update for alpha parameter controlling the nbinom variance
+  void update_alpha_negative_binomial(bool robbins_monro_on, int iteration);
+
+  // misc  
   void update_qmatrix();
   void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   

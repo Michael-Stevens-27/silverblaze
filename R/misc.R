@@ -183,32 +183,45 @@ update_progress <- function(pb_list, name, i, max_i) {
 }
 
 #------------------------------------------------
-#' @title Draw from spherical normal distribution
+#' @title Draw from spherical distribution
 #'
-#' @description Draw from normal distribution converted to spherical coordinate
+#' @description Draw from distribution converted to spherical coordinate
 #'   system. Points are first drawn from an ordinary cartesian 2D normal
 #'   distribution. The distances to points are then assumed to be great circle
 #'   distances, and are combined with a random bearing from the point
 #'   {centre_lat, centre_lon} to produce a final set of lat/lon points.
 #'
 #' @param n The number of points to draw
-#' @param centre_lon The mean longitude of the normal distribution
-#' @param centre_lat The mean latitude of the normal distribution
-#' @param sigma The standard deviation of the normal distribution
+#' @param centre_lon The mean longitude of the distribution
+#' @param centre_lat The mean latitude of the distribution
+#' @param dispersal_model The model we draw points from (normal or cauchy)
+#' @param scale The scale parameter of the dispersal distribution defined by 
+#'              the parameter "dispersal_model"
 #'
-#' @importFrom stats rnorm
+#' @importFrom LaplacesDemon rmvc rmvl
 #' @export
-#' 
 #' @examples
-#' points <-rnorm_sphere(n = 500, centre_lat = 0, centre_lon = 0, sigma = 1)
-#' plot(points$longitude, points$latitude) 
+#' dispersal_sphere(n = 100, centre_lat = 0, centre_lon = 0, dispersal_model = "normal", scale = 1)
 
-rnorm_sphere <- function(n, centre_lon, centre_lat, sigma = 1) {
-
+dispersal_sphere <- function(n, centre_lon, centre_lat, dispersal_model = "normal", scale = 1) {
+  
   # draw points centred at zero
-  x <- rnorm(n, sd = sigma)
-  y <- rnorm(n, sd = sigma)
-
+  switch(dispersal_model,
+         "normal" = {
+           x <- rnorm(n, sd = scale)
+           y <- rnorm(n, sd = scale)
+         },
+         "cauchy" = {
+           pts <- rmvc(n = n, mu = c(0,0), S = matrix(c(scale, 0, 0, scale), 2, 2))
+           x <- pts[,1]
+           y <- pts[,2]
+         }, 
+         "laplace" = {
+           pts <- rmvl(n = n, mu = c(0,0), Sigma = matrix(c(scale, 0, 0, scale), 2, 2))
+           x <- pts[,1]
+           y <- pts[,2]
+         })
+           
   # calculate angle and euclidian distance of all points from origin. Angles are
   # in degrees relative to due north
   d <- sqrt(x^2 + y^2)
@@ -694,7 +707,7 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   }
   
   # get values of K with output
-  empty_output_logical <- !is.na(p$output$single_set[[s]]$all_K$DIC_gelman$DIC_gelman)
+  empty_output_logical <- !is.na(project$output$single_set[[s]]$all_K$DIC_gelman$DIC_gelman)
   K <- which(empty_output_logical == TRUE)
   
   # initialise hitscore dataframe

@@ -4,16 +4,9 @@
 \alias{overlay_surface}
 \title{Add posterior probability surface to dynamic map}
 \usage{
-overlay_surface(
-  myplot,
-  project,
-  K = NULL,
-  source = NULL,
-  threshold = 0.1,
-  col = rev(col_hotcold()),
-  opacity = 0.8,
-  smoothing = 1
-)
+overlay_surface(myplot, project, K = NULL, source = NULL,
+  threshold = 0.1, col = rev(col_hotcold()), opacity = 0.8,
+  smoothing = 1, legend = FALSE)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}
@@ -35,6 +28,8 @@ invisible due to being below threshold).}
 \item{smoothing}{what level of smoothing to apply to posterior probability
 surface. Smoothing is applied using the \code{raster} function
 \code{disaggregate}, with \code{method = "bilinear"}.}
+
+\item{legend}{whether or not a legend is plotted}
 }
 \description{
 Add posterior probability surface to dynamic map
