@@ -14,7 +14,9 @@ vignette: >
 library(silverblaze)
 library(raster)
 library(rgdal)
-set.seed(6)
+plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
+            "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
+set.seed(2)
 ```
 
 ## Using shapefiles
@@ -22,7 +24,7 @@ It is also possible to import a shapefile that restricts our search area. The ex
 
 ```{r, message = FALSE, warning = FALSE, error = FALSE}
 s <- rgeoprofile_shapefile("London_north")
-spatial_prior <- raster_from_shapefile(s, cells_lon = 500, cells_lat = 500)
+spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
 plot(spatial_prior, xlab = "Longitude", ylab = "Latitude")
 ```
 
@@ -71,14 +73,14 @@ Extent <- extent(PopDenRaster)
 sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 10), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 10))
 data <- sim_data(sentinel_lon = sentGrid[,1],
                  sentinel_lat = sentGrid[,2],
-                 sentinel_radius = 1, 
-                 K = 5,
+                 sentinel_radius = 0.3, 
+                 K = 2,
                  source_lon_min = Extent[1] + 0.1, 
                  source_lon_max = Extent[2] - 0.1, 
                  source_lat_min = Extent[3] + 0.05,
                  source_lat_max = Extent[4] - 0.05, 
                  sigma_model = "single", 
-                 sigma_mean = 3, 
+                 sigma_mean = 2, 
                  sigma_var = 0,
                  expected_popsize = 1000)
 df_all <- data$data
@@ -100,12 +102,12 @@ Create parameter sets:
 ```{r}
 # add parameter set to project
 pPopDen <- new_set(project = pPopDen,
-             spatial_prior = PopDenRaster,
-             sentinel_radius = 1,
-             sigma_model = "single",
-             sigma_prior_mean = 3,
-             sigma_prior_sd = 2,
-             expected_popsize_prior_sd = 1e3)
+                   spatial_prior = PopDenRaster,
+                   sentinel_radius = 0.3,
+                   sigma_model = "single",
+                   sigma_prior_mean = 2,
+                   sigma_prior_sd = 1,
+                   expected_popsize_prior_sd = 1e3)
 ```
 
 Plot the data with the prior:
@@ -124,7 +126,7 @@ Run the MCMC:
 
 ```{r, eval = FALSE}
 pPopDen <- run_mcmc(project = pPopDen,
-              K = 1:10,
+              K = 1:5,
               burnin = 2e4,
               samples = 2e4,
               pb_markdown = TRUE,
@@ -140,9 +142,19 @@ Plot the prior and the geoprofile:
 ```{r}
 # uniform
 plot3 <- plot_map()
-plot3 <- overlay_geoprofile(plot3, pPopDen, K = 4, smoothing = 2, threshold = 1)
-plot3 <- overlay_sources(plot3, lon = true_sources$longitude, lat = true_sources$latitude)
-plot_loglike_diagnostic(pPopDen, K = 4)
+plot3 <- overlay_sources(plot3, 
+                         lon = true_sources$longitude, 
+                         lat = true_sources$latitude)
+                         
+plot3 <- overlay_geoprofile(plot3, 
+                            pPopDen, 
+                            K = 2, 
+                            smoothing = 2, 
+                            threshold = 1,
+                            col = plasma,
+                            legend = TRUE)
+                            
+plot_loglike_diagnostic(pPopDen, K = 2)
 plot3
 ```
 
