@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Model Validation • silverblaze</title>
+<title>Model Choice and Validation • silverblaze</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Model Validation">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Model Choice and Validation">
 <meta property="og:description" content="silverblaze">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -100,10 +100,10 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Model Validation</h1>
+      <h1 data-toc-skip>Model Choice and Validation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-06-05</h4>
+            <h4 class="date">2020-06-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/model-validation.Rmd"><code>vignettes/model-validation.Rmd</code></a></small>
       <div class="hidden name"><code>model-validation.Rmd</code></div>
@@ -112,14 +112,61 @@
 
     
     
-<p>The majority of the following methodology on Bayesian model validation is adopted from <span class="citation">Spiegelhalter et al. (2014)</span>. There are many functions silverblaze has to offer for checking the ability of the model but we’ve done very little to compare the difference between models fitting different values of <code>K</code>. Hence we introduce the <code><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman()</a></code> function to calculate the deviance information criterion (DIC) for each model. Let’s have a look at the DIC values for our models from <a href="https://michael-stevens-27.github.io/silverblaze/articles/basic-implementation.html">tutorial 1</a>.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman</a></span>(<span class="no">p</span>)</pre></body></html></div>
+<div id="introduction" class="section level2">
+<h2 class="hasAnchor">
+<a href="#introduction" class="anchor"></a>Introduction</h2>
+<p>If you have followed any of the basic tutorials for Silverblaze you would have already seen a few ways to validate the model that has been used. In this tutorial we will walk through an extensive list of ways that ensure the model is behaving as it should be. We are responsible for simulating the data in the basic tutorials, so a good way to know if the model is successful is if it returns the correct parameter values that were used to generate the data. Of course, this will not be the case in a real-world data set. So here we will be focussing on methods of model validity that are independent of parameter estimation. In addition to this, we shall also briefly discuss model choice. Silverblaze offers a finite mixture model for geographic profiling and we require a method for choosing the number of mixture components that best describe the data.</p>
+<p>This tutorial will cover model validty:</p>
+<ul>
+<li>A healthy MCMC trace</li>
+<li>Auto-correlation</li>
+<li>Effective sample sizes</li>
+<li>Acceptance rates for proposed Metropolis-Hastings steps</li>
+</ul>
+<p>and model choice:</p>
+<ul>
+<li>Deviance information criterion</li>
+</ul>
+</div>
+<div id="model-validity" class="section level2">
+<h2 class="hasAnchor">
+<a href="#model-validity" class="anchor"></a>Model Validity</h2>
+<p>Let’s start with the MCMC log-likelihood trace.</p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_acf.html">plot_acf</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
+<p><img src="model-validation_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_density.html">plot_density</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
+<p><img src="model-validation_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
+<p><img src="model-validation_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/get_ESS.html">get_ESS</a></span>(<span class="no">p</span>)</pre></body></html></div>
+<pre><code>## using K = 1 by default</code></pre>
+<pre><code>##    rung1 
+## 5808.843</code></pre>
+<p>We can also check that acceptance rates within our Metropolis-Hastings steps are at appropriate values. In this case, we are aiming for an acceptance rate of 23% for sources and 44% for sigma (see <span class="citation">Garthwaite, Fan, and Sisson (2016)</span> for more information).</p>
+<div class="sourceCode"><html><body><pre class="r"><span class="no">acceptanceSource</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span>(<span class="no">p</span>, <span class="st">"source_accept_sampling"</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>, <span class="kw">type</span> <span class="kw">=</span> <span class="st">"summary"</span>)
+
+<span class="no">acceptanceSigma</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span>(<span class="no">p</span>, <span class="st">"sigma_accept_sampling"</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>, <span class="kw">type</span> <span class="kw">=</span> <span class="st">"summary"</span>)
+<span class="no">acceptanceSigma</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span>(<span class="no">acceptanceSigma</span>)
+<span class="no">acceptanceSigma</span> <span class="kw">&lt;-</span> <span class="no">acceptanceSigma</span>[<span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span>(<span class="no">acceptanceSigma</span> <span class="kw">&gt;</span> <span class="fl">0</span>)]</pre></body></html></div>
+</div>
+<div id="model-choice" class="section level2">
+<h2 class="hasAnchor">
+<a href="#model-choice" class="anchor"></a>Model choice</h2>
+<p>As we have seen above, there are many ways of checking the ability of the model but we’ve done very little to compare the difference between models. Given we adopt a finite mixture model, we must decide on which value of <code>K</code> best describes the data. <span class="citation">Spiegelhalter et al. (2014)</span> offers a metric for model comparison when estimating parameters via MCMC methods. The deviance information criterion (DIC) is calculated in two steps. Firstly we calculate the model deviance, which is the mean of the log-likelihood multiplied by -2. We then add to this a penalty term for the complexity of the model. The complexity is calculated as the variance in the log-likelihood multiplied by 4.</p>
+<p>This DIC can be visualised using the <code><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman()</a></code> function. Let’s have a look at the DIC values for our models from <a href="https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html">tutorial 1</a>.</p>
+<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman</a></span>(<span class="no">p</span>)</pre></body></html></div>
+<p><img src="model-validation_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where <code>K = 3</code>.</p>
-<div id="references" class="section level3 unnumbered">
-<h3 class="hasAnchor">
-<a href="#references" class="anchor"></a>References</h3>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="hasAnchor">
+<a href="#references" class="anchor"></a>References</h2>
 <div id="refs" class="references">
+<div id="ref-Garthwaite2016">
+<p>Garthwaite, P. H., Y. Fan, and S. A. Sisson. 2016. “Adaptive optimal scaling of Metropolis–Hastings algorithms using the Robbins–Monro process.” <em>Communications in Statistics - Theory and Methods</em> 45 (17). Taylor &amp; Francis: 5098–5111.</p>
+</div>
 <div id="ref-Spiegelhalter2014">
 <p>Spiegelhalter, D J, N G Best, B P Carlin, and A Van Der Linde. 2014. “The deviance information criterion: 12 years on.” <em>Journal of the Royal Statistical Society: Series B</em> 76: 485–93.</p>
 </div>
@@ -129,7 +176,9 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 

@@ -1,5 +1,5 @@
 ---
-title: "Model Validation"
+title: "Model Choice and Validation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -14,8 +14,65 @@ vignette: >
 library(silverblaze)
 p <- rgeoprofile_file("tutorial1_project.rds")
 ```
-The majority of the following methodology on Bayesian model validation is adopted from @Spiegelhalter2014.
-There are many functions silverblaze has to offer for checking the ability of the model but we've done very little to compare the difference between models fitting different values of `K`. Hence we introduce the `plot_DIC_gelman()` function to calculate the deviance information criterion (DIC) for each model. Let's have a look at the DIC values for our models from [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/basic-implementation.html).
+
+## Introduction
+
+If you have followed any of the basic tutorials for Silverblaze you would have already seen a few ways to validate the model that has been used. In this tutorial we will walk through an extensive list of ways that ensure the model is behaving as it should be. We are responsible for simulating the data in the basic tutorials, so a good way to know if the model is successful is if it returns the correct parameter values that were used to generate the data. Of course, this will not be the case in a real-world data set. So here we will be focussing on methods of model validity that are independent of parameter estimation. In addition to this, we shall also briefly discuss model choice. Silverblaze offers a finite mixture model for geographic profiling and we require a method for choosing the number of mixture components that best describe the data. 
+
+This tutorial will cover model validty:
+
+* A healthy MCMC trace
+* Auto-correlation
+* Effective sample sizes
+* Acceptance rates for proposed Metropolis-Hastings steps
+
+and model choice:
+
+* Deviance information criterion
+
+## Model Validity
+
+Let's start with the MCMC log-likelihood trace. 
+
+```{r}
+plot_trace(p, K = 3)
+```
+
+```{r}
+plot_acf(p, K = 3)
+```
+
+```{r}
+plot_density(p, K = 3)
+```
+
+```{r}
+plot_loglike_diagnostic(p, K = 3)
+```
+
+```{r}
+get_ESS(p)
+```
+
+We can also check that acceptance rates within our Metropolis-Hastings steps are at appropriate values. In this case, we are aiming for an acceptance rate of 23% for sources and 44% for sigma (see @Garthwaite2016 for more information). 
+
+```{r}
+acceptance_source <- get_output(p, "source_accept_sampling", K = 3, type = "summary")
+print(acceptance_source)
+```
+
+```{r}
+acceptance_sigma <- get_output(p, "sigma_accept_sampling", K = 3, type = "summary")
+acceptance_sigma <- unlist(acceptanceSigma)
+acceptance_sigma <- acceptanceSigma[which(acceptanceSigma > 0)]
+print(acceptance_sigma)
+```
+
+## Model choice
+
+As we have seen above, there are many ways of checking the ability of the model but we've done very little to compare the difference between models. Given we adopt a finite mixture model, we must decide on which value of `K` best describes the data. @Spiegelhalter2014 offers a metric for model comparison when estimating parameters via MCMC methods. The deviance information criterion (DIC) is calculated in two steps. Firstly we calculate the model deviance, which is the mean of the log-likelihood multiplied by -2. We then add to this a penalty term for the complexity of the model. The complexity is calculated as the variance in the log-likelihood multiplied by 4. 
+
+This DIC can be visualised using the `plot_DIC_gelman()` function. Let's have a look at the DIC values for our models from [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html).
 
 ```{r}
 plot_DIC_gelman(p)
@@ -23,4 +80,4 @@ plot_DIC_gelman(p)
 
 As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where `K = 3`. 
 
-### References
+## References

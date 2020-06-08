@@ -4,7 +4,8 @@
 \alias{plot_density}
 \title{Produce MCMC density plot}
 \usage{
-plot_density(project, K = NULL, rung = NULL, col = "black")
+plot_density(project, K = NULL, rung = NULL, col = "black",
+  phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -15,6 +16,8 @@ plot_density(project, K = NULL, rung = NULL, col = "black")
 \item{rung}{which rung to plot. Defaults to the cold chain.}
 
 \item{col}{colour of the trace.}
+
+\item{phase}{plot the acf during the burnin or sampling phase.}
 }
 \description{
 Produce MCMC density plot of the log-likelihood
