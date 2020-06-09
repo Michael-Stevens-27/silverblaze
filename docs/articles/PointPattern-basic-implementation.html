@@ -106,7 +106,7 @@
       <h1 data-toc-skip>Point pattern data</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-06-08</h4>
+            <h4 class="date">2020-06-09</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/PointPattern-basic-implementation.Rmd"><code>vignettes/PointPattern-basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>PointPattern-basic-implementation.Rmd</code></div>
@@ -235,7 +235,7 @@
 <span class="no">n_rungs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="fl">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">K_model</span>))
 
 <span class="kw">for</span>(<span class="no">i</span> <span class="kw">in</span> <span class="no">K_model</span>){
-  <span class="no">beta_k</span> <span class="kw">&lt;-</span> <span class="kw pkg">silverblaze</span><span class="kw ns">:::</span> <span class="fu">optimise_beta</span>(<span class="kw">proj</span> <span class="kw">=</span> <span class="no">p</span>,
+  <span class="no">beta_k</span> <span class="kw">&lt;-</span> <span class="kw pkg">silverblaze</span><span class="kw ns">:::</span> <span class="fu"><a href="../reference/optimise_beta.html">optimise_beta</a></span>(<span class="kw">proj</span> <span class="kw">=</span> <span class="no">p</span>,
                                          <span class="kw">K</span> <span class="kw">=</span> <span class="no">i</span>,
                                          <span class="kw">create_maps</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
                                          <span class="kw">target_acceptance</span> <span class="kw">=</span> <span class="fl">0.5</span>,
