@@ -3,7 +3,7 @@ title: "Complex Spatial Priors"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-bibliography: complex-spatial-priors.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{"Complex Spatial Priors"}
   %\VignetteEngine{knitr::rmarkdown}

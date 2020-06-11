@@ -3,7 +3,7 @@ title: "Variable Sigma"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-bibliography: Variable-sigma.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{"Variable Sigma"}
   %\VignetteEngine{knitr::rmarkdown}

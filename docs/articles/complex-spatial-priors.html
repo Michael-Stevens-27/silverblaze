@@ -106,7 +106,7 @@
       <h1 data-toc-skip>Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-06-09</h4>
+            <h4 class="date">2020-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -121,7 +121,7 @@
 <p>It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.</p>
 <div class="sourceCode"><html><body><pre class="r"><span class="no">s</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_north"</span>)</pre></body></html></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpimEQ39/temp_libpath557869106550/silverblaze/extdata/London_north", layer: "boroughs"
+## Source: "/tmp/RtmpF2rdEm/temp_libpath38ca312a2831/silverblaze/extdata/London_north", layer: "boroughs"
 ## with 8 features
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><html><body><pre class="r"><span class="no">spatial_prior</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/raster_from_shapefile.html">raster_from_shapefile</a></span>(<span class="no">s</span>, <span class="kw">cells_lon</span> <span class="kw">=</span> <span class="fl">100</span>, <span class="kw">cells_lat</span> <span class="kw">=</span> <span class="fl">100</span>)
@@ -135,7 +135,7 @@
 <p>There are a lot more shapefiles out there that will provide more information that we might want to influence our model. For example the <a href="https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london">London Datastore</a> provides shapefiles with various spatial information.</p>
 <div class="sourceCode"><html><body><pre class="r"><span class="no">dataStore</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span>(<span class="st">"London_boundary/ESRI"</span>)</pre></body></html></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpimEQ39/temp_libpath557869106550/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
+## Source: "/tmp/RtmpF2rdEm/temp_libpath38ca312a2831/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
 ## with 983 features
 ## It has 12 fields</code></pre>
 <div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span>(<span class="no">dataStore</span>)</pre></body></html></div>

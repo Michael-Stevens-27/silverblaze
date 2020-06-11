@@ -103,7 +103,7 @@
       <h1 data-toc-skip>Model Choice and Validation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-06-09</h4>
+            <h4 class="date">2020-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/model-validation.Rmd"><code>vignettes/model-validation.Rmd</code></a></small>
       <div class="hidden name"><code>model-validation.Rmd</code></div>
@@ -144,7 +144,7 @@
 <p>The density it unimodal, if we were to see a bi-modal density plot, this would indicate the MCMC chain is getting stuck somewhere in the parameter space, so a longer burnin may be needed. Conveniently we can plot all three of the above using the <code><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic()</a></code> function.</p>
 <div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<p>Although we ran our MCMC chain for 50,000 iterations, this doesn’t necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the , ESS. This is a function of the number of sampling iterations <span class="math inline">\(n\)</span>, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is <span class="math display">\[ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(k)}.\]</span> Where <span class="math inline">\(acf(l)\)</span> is the auto-correlation at lag <span class="math inline">\(l\)</span>.</p>
+<p>Although we ran our MCMC chain for 50,000 iterations, this doesn’t necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the , ESS. This is a function of the number of sampling iterations <span class="math inline">\(n\)</span>, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is <span class="math display">\[ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(l)}.\]</span> Where <span class="math inline">\(acf(l)\)</span> is the auto-correlation at lag <span class="math inline">\(l\)</span>.</p>
 <div class="sourceCode"><html><body><pre class="r"><span class="no">ESS</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_ESS.html">get_ESS</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>)</pre></body></html></div>
 <pre><code>## [1] "ESS = 4054.7 or 0.0811 independent samples per iteration (50,000 sampling iterations)"</code></pre>
 <p>So we’ve approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it’s 0.08.</p>
