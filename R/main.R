@@ -1243,10 +1243,12 @@ gini <- function(hs) {
 #'
 #' @param proj An rgeoprofile project
 #' @param n_samples how many times we sample from the qmatrix
+#' @param K the value of K to check. Note, there is no qmatrix for K = 1, all 
+#'          points are allocated to a single source 
 #'
 #' @export
 
-realised_sources <- function(proj, n_samples = 20, K = 1) {
+realised_sources <- function(proj, n_samples = 20, K = 2) {
 
   # check inputs
   assert_custom_class(proj, "rgeoprofile_project")
