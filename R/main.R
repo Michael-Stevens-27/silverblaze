@@ -253,8 +253,9 @@ new_set <- function(project,
     spatial_prior <- raster_grid(range_lon, range_lat)
   }
   
-  # get total study area in km^2
+  # get average single cell area and total study area in km^2
   study_area <- sum(raster::area(spatial_prior)[])
+  cell_area <- mean(raster::area(spatial_prior)[])
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -266,6 +267,7 @@ new_set <- function(project,
   project$parameter_sets[[s]] <- list(name = name,
                                       spatial_prior = spatial_prior,
                                       study_area = study_area,
+                                      cell_area = cell_area, 
                                       dispersal_model = dispersal_model, 
                                       sentinel_radius = sentinel_radius,
                                       sigma_model = sigma_model,
@@ -1026,6 +1028,124 @@ align_qmatrix <- function(project) {
 }
 
 #------------------------------------------------
+#' @title Optimise beta values for MCMC rungs
+#'
+#' @description repeatedly run analysis to find vector of beta values that achieves a required
+#'              coupling acceptance rate between all rungs
+#'
+#' @param proj An rgeoprofile project
+#' @param K The value or values of K to optimise beta for
+#' @param target_acceptance The minimum acceptance probability to be reached between
+#'                          MCMC chains before the process terminates 
+#' @param max_iterations Run analyses a maximum number of times before terminating
+#' @param beta_init An initial set of beta values to run - a sequence from zero
+#'                  to one
+#' @param silent print output from console
+#' @param ... extra arguments to be sent to the run_mcmc function 
+#'
+#' @export
+
+optimise_beta <- function(proj,
+                          K = 3,
+                          target_acceptance = 0.4,
+                          max_iterations = 1e2,
+                          beta_init = seq(0, 1, l = 10),
+                          silent = FALSE,
+                          ...) {
+  
+  # check inputs (only those not checked by later functions)
+  assert_single_pos(target_acceptance)
+  assert_bounded(target_acceptance)
+  assert_single_pos_int(max_iterations, zero_allowed = FALSE)
+  
+  # get arguments from ellipsis
+  args_list <- list(...)
+  
+  # check arguments not doubly defined
+  if ("beta_manual" %in% names(args_list)) {
+    stop("cannot define beta_manual in optimise_beta() function")
+  }
+  
+  # initialise beta_vec
+  beta_vec <- beta_init
+  
+  # iteratively improve beta_vec
+  ret <- list()
+  for (j in 1:max_iterations) {
+    
+    # run MCMC using beta_vec
+    proj <- run_mcmc(project = proj,
+                     K = K,
+                     beta_manual = beta_vec,
+                     silent = silent,
+                     ...)
+    
+    # get current rungs
+    rungs <- length(beta_vec)
+    
+    # get coupling rate of burnin phase
+    coupling_burnin <- get_output(proj, "coupling_accept_burnin", K)
+    
+    # store results of this iteration
+    ret$beta_vec <- c(ret$beta_vec, list(beta_vec))
+    ret$coupling <- c(ret$coupling, list(coupling_burnin))
+    
+    # count how many probabilities are below target
+    under_target <- sum(coupling_burnin < target_acceptance)
+    
+    # report progress to console
+    if (!silent) {
+      message("--------------------")
+      message(sprintf("K = %s", K))
+      message(sprintf("iteration = %s", j))
+      message(sprintf("rungs = %s", rungs))
+      message("beta values:")
+      message(paste(signif(beta_vec, digits = 3), collapse = ", "))
+      message("coupling acceptance:")
+      message(paste(coupling_burnin, collapse = ", "))
+      message("--------------------")
+      message(paste0(under_target, " out of ", rungs - 1, 
+                     " probabilities are under target (", target_acceptance, ")" )
+)
+
+    }
+    
+    # return if all coupling over target threshold
+    if (all(coupling_burnin >= target_acceptance)) {
+      return(ret)
+    }
+    
+  
+    # get index of those acceptance values less than target
+    update <- which(coupling_burnin < target_acceptance)
+    
+    # loop over index of acceptance prob less than target
+    for(i in 1:length(update)){
+      
+        # access index that needs changing
+        update_single <- update[i]
+        
+        # calculate beta value in the middle of the two that produced the low transition probability 
+        beta_increase <- 0.5*(beta_vec[update_single + 1] - beta_vec[update_single])
+        new_beta <- beta_vec[update_single] + beta_increase
+        
+        # append this new value in beta_vec
+        beta_vec <- append(x = beta_vec, values = new_beta, after = update_single)
+        
+        # update vector of indexes to account for new length of beta_vec
+        update <- update + 1
+    }
+    
+    
+  }  # end loop over iterations
+  
+  # if reached this point then not converged within max_iterations
+  warning(sprintf("optimise_beta() did not find solution within %s iterations", max_iterations))
+  return(ret)
+
+}
+
+#------------------------------------------------
 # ring-search
 #' @importFrom raster extent<- extent res<- res setValues flip
 #' @noRd
@@ -1113,133 +1233,4 @@ gini <- function(hs) {
   }
 
   return(ret)
-}
-
-#------------------------------------------------
-# repeatedly run analysis to find vector of beta values that achieves a required
-# coupling acceptance rate between all rungs
-#' @noRd
-optimise_beta <- function(proj,
-                          K = 3,
-                          target_acceptance = 0.4,
-                          max_iterations = 1e3,
-                          beta_init = seq(0, 1, l = 10),
-                          silent = FALSE,
-                          ...) {
-  
-  # check inputs (only those not checked by later functions)
-  assert_single_pos(target_acceptance)
-  assert_bounded(target_acceptance)
-  assert_single_pos_int(max_iterations, zero_allowed = FALSE)
-  
-  # get arguments from ellipsis
-  args_list <- list(...)
-  
-  # check arguments not doubly defined
-  if ("beta_manual" %in% names(args_list)) {
-    stop("cannot define beta_manual in optimise_beta() function")
-  }
-  
-  # initialise beta_vec
-  beta_vec <- beta_init
-  
-  # iteratively improve beta_vec
-  ret <- list()
-  for (j in 1:max_iterations) {
-    
-    # run MCMC using beta_vec
-    proj <- run_mcmc(project = proj,
-                     K = K,
-                     beta_manual = beta_vec,
-                     silent = silent,
-                     ...)
-    
-    # get current rungs
-    rungs <- length(beta_vec)
-    
-    # get coupling rate of burnin phase
-    coupling_burnin <- get_output(proj, "coupling_accept_burnin", K)
-    
-    # store results of this iteration
-    ret$beta_vec <- c(ret$beta_vec, list(beta_vec))
-    ret$coupling <- c(ret$coupling, list(coupling_burnin))
-    
-    # count how many probabilities are below target
-    under_target <- sum(coupling_burnin < target_acceptance)
-    
-    # report progress to console
-    if (!silent) {
-      message("--------------------")
-      message(sprintf("K = %s", K))
-      message(sprintf("iteration = %s", j))
-      message(sprintf("rungs = %s", rungs))
-      message("beta values:")
-      message(paste(signif(beta_vec, digits = 3), collapse = ", "))
-      message("coupling acceptance:")
-      message(paste(coupling_burnin, collapse = ", "))
-      message("--------------------")
-      message(paste0(under_target, " out of ", rungs - 1, 
-                     " probabilities are under target (", target_acceptance, ")" )
-)
-
-    }
-    
-    # return if all coupling over target threshold
-    if (all(coupling_burnin >= target_acceptance)) {
-      return(ret)
-    }
-    
-  
-    # get index of those acceptance values less than target
-    update <- which(coupling_burnin < target_acceptance)
-    
-    # loop over index of acceptance prob less than target
-    for(i in 1:length(update)){
-        # access index that needs changing
-        update_single <- update[i]
-        
-        # calculate beta value in the middle of the two that produced the low transition probability 
-        beta_increase <- 0.5*(beta_vec[update_single + 1] - beta_vec[update_single])
-        new_beta <- beta_vec[update_single] + beta_increase
-        
-        # append this new value in beta_vec
-        beta_vec <- append(x = beta_vec, values = new_beta, after = update_single)
-        
-        # update vector of indexes to account for new length of beta_vec
-        update <- update + 1
-    }
-    
-    
-  }  # end loop over iterations
-  
-  # if reached this point then not converged within max_iterations
-  warning(sprintf("optimise_beta() did not find solution within %s iterations", max_iterations))
-  return(ret)
-
-  # TODO Keep or remove Bob's version of the beta function 
-  # # update beta sequence
-  # for (i in 1:(rungs - 2)) {
-  #   if (coupling_burnin[i] < target_acceptance) {
-  # 
-  #     # get acceptance rate relative to target (small additions to control max
-  #     # and min possible values)
-  #     rel_accept <- (coupling_burnin[i] + 0.01)/(target_acceptance + 0.1)
-  # 
-  #     # calculate how far to adjust sequence based on rel_accept
-  #     move_left <- diff(beta_vec)[i] * (1 - rel_accept)
-  # 
-  #     # adjust sequence
-  #     beta_vec[-(1:i)] <- beta_vec[-(1:i)] - move_left
-  #   }
-  # }
-  # 
-  # # if final coupling value is less than target, add another rung
-  # if (coupling_burnin[rungs - 1] < target_acceptance) {
-  #   beta_vec <- c(beta_vec, 1)
-  #   rungs <- length(beta_vec)
-  # 
-  # 
-  # # ensure final value in sequence always equals 1
-  # beta_vec[length(beta_vec)] <- 1
-
 }

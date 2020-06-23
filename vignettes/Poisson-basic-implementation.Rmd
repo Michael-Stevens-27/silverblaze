@@ -18,7 +18,7 @@ plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
 
 ## Introduction
 
-The following tutorial will introduce the user to the general structure required to run silverblaze. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:
+The following tutorial will introduce the user to the general structure required to run silverblaze when analysing count data. The protocol of silverblaze is to create one fundamental object, referred to in these tutorials as `p`, that describes the entire project. The structure of `p` consists of:
 
 1. The data used to run the model
 2. The parameter settings for the model

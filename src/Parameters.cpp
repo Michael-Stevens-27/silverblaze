@@ -31,6 +31,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   res_lat = rcpp_to_double(args["res_lat"]);
   n_lat = rcpp_to_int(args["n_lat"]);
   search_area = rcpp_to_double(args["study_area"]);
+  cell_area = rcpp_to_double(args["cell_area"]);
   source_init = rcpp_to_vector_double(args["source_init"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
   ep_model = rcpp_to_int(args["expected_popsize_model_numeric"]);

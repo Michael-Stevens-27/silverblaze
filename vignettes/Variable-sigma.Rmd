@@ -3,7 +3,7 @@ title: "Variable Sigma"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-bibliography: Variable-sigma.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{"Variable Sigma"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -104,9 +104,9 @@ We can see a source with a wider sigma and if we zoom into the bottom left we ca
 # run MCMC under K=2 model
 p1 <- run_mcmc(project = p1,
               K = K_model,
-              burnin = 5e4,
-              samples = 5e4,
-              converge_test = 1e4)
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3)
 ```
 ```{r, echo = FALSE}
 p1 <- rgeoprofile_file("VarSigproject_no_overlap.rds")
@@ -203,9 +203,9 @@ Run the MCMC and plot the new geoprofile
 # run MCMC under K = 2 model
 p2 <- run_mcmc(project = p2,
               K = K_model,
-              burnin = 1e4,
-              samples = 1e4,
-              converge_test = 1e4)
+              burnin = 1e3,
+              samples = 1e3,
+              converge_test = 5e2)
 ```
 ```{r, echo = FALSE}
 p2 <- rgeoprofile_file("VarSigproject_overlap.rds")
@@ -250,6 +250,6 @@ true_sigma2
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-#saveRDS(p1, file = "../inst/extdata/VarSigproject_no_overlap.rds")
-#saveRDS(p2, file = "./inst/extdata/VarSigproject_overlap.rds")
+# saveRDS(p1, file = "inst/extdata/VarSigproject_no_overlap.rds")
+# saveRDS(p2, file = "inst/extdata/VarSigproject_overlap.rds")
 ```

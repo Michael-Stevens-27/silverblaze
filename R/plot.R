@@ -117,7 +117,8 @@ theme_empty <- function() {
 #' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
 #'   auto-chosen lower limit. 3 = double-log scale.
 #' @param phase which phase to plot. Must be either "burnin" or "sampling".
-#'
+#' @param legend switches the legend for thermondynamic power on or off
+#' 
 #' @import ggplot2
 #' @importFrom grDevices grey
 #' @export
@@ -126,7 +127,8 @@ plot_loglike <- function(project,
                          K = 1, 
                          x_axis_type = 1, 
                          y_axis_type = 1, 
-                         phase = "sampling") {
+                         phase = "sampling", 
+                         legend = TRUE) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -134,6 +136,7 @@ plot_loglike <- function(project,
   assert_in(x_axis_type, 1:2)
   assert_in(y_axis_type, 1:3)
   assert_in(phase, c("burnin", "sampling"))
+  assert_single_logical(legend)
   
   # get output
   beta_vec <- get_output(project, type = "summary", name = "beta_vec", K = K)
@@ -191,15 +194,18 @@ plot_loglike <- function(project,
   plot1 <- plot1 + geom_vline(aes(xintercept = x_vec), col = grey(0.9))
   plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
   plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50, color = ~col))
-  plot1 <- plot1 + xlab(x_lab) + ylab(y_lab)
-  plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
+  plot1 <- plot1 + xlab(x_lab) + ylab(y_lab) + theme(legend.position = "none")
+  
+  if(legend == TRUE){
+    plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
+  }
   
   # define y-axis
   if (y_axis_type == 2) {
     y_min <- quantile(df$Q2.5, probs = 0.5)
     y_max <- max(df$Q97.5)
     plot1 <- plot1 + coord_cartesian(ylim = c(y_min, y_max))
-  } else if (y_axis_type == 3) {
+  } else if (y_axis_type == 3 & legend == TRUE) {
     plot1 <- plot1 + scale_y_continuous(trans = "log10")
   }
   
@@ -513,7 +519,8 @@ plot_alpha <- function(project, K = NULL) {
 #' @param K which value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
-#'
+#' @param phase plot the trace during the burnin or sampling phase
+#' 
 #' @import ggplot2
 #' @export
 #' 
@@ -523,7 +530,7 @@ plot_alpha <- function(project, K = NULL) {
 #' # Similarly, plot the trace for every K value.
 #' plot_trace(project = p)
 
-plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_trace <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -533,15 +540,20 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
   
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }
   
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # get into ggplot format
   df <- data.frame(x = 1:length(loglike), y = loglike)
@@ -571,6 +583,7 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param K which value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
+#' @param phase plot the acf during the burnin or sampling phase
 #'
 #' @import ggplot2
 #' @export
@@ -579,7 +592,7 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_acf(project = p)
 
-plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_acf <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -589,15 +602,20 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
 
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
-
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }
+  
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # store variable to plot
   v <- loglike
@@ -633,6 +651,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param K value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
+#' @param phase plot the acf during the burnin or sampling phase.
 #'
 #' @import ggplot2
 #' @export
@@ -641,7 +660,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_density(project = p)
 
-plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_density <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -651,15 +670,20 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
 
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }  
 
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # get into ggplot format
   df <- data.frame(v = loglike)

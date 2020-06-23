@@ -1,9 +1,9 @@
 ---
-title: "Model Validation"
+title: "Model Choice and Validation"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-bibliography: model-validation.bib
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{"Model Validation"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,8 +14,82 @@ vignette: >
 library(silverblaze)
 p <- rgeoprofile_file("tutorial1_project.rds")
 ```
-The majority of the following methodology on Bayesian model validation is adopted from @Spiegelhalter2014.
-There are many functions silverblaze has to offer for checking the ability of the model but we've done very little to compare the difference between models fitting different values of `K`. Hence we introduce the `plot_DIC_gelman()` function to calculate the deviance information criterion (DIC) for each model. Let's have a look at the DIC values for our models from [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/basic-implementation.html).
+
+## Introduction
+
+If you have followed any of the basic tutorials for Silverblaze you would have already seen a few ways to validate the model that has been used. In this tutorial we will walk through an extensive list of ways that ensure the model is behaving as it should be. We are responsible for simulating the data in the basic tutorials, so a good way to know if the model is successful is if it returns the correct parameter values that were used to generate the data. Of course, this will not be the case in a real-world data set. So here we will be focussing on methods of model validity that are independent of parameter estimation. In addition to this, we shall also briefly discuss model choice. Silverblaze offers a finite mixture model for geographic profiling and we require a method for choosing the number of mixture components that best describe the data. 
+
+This tutorial will cover model validty:
+
+* A healthy MCMC trace
+* Geweke's metric for single chain MCMC convergence
+* Auto-correlation
+* Effective sample sizes
+* Acceptance rates for proposed Metropolis-Hastings steps
+
+and model choice:
+
+* Deviance information criterion
+
+## Model validity
+
+To check the validity of the model we shall be considering the datagenerated in [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html). Let's start by looking at the trace of the log-likelihood.  
+
+```{r}
+plot_trace(p, K = 3)
+```
+
+The trace resembles the form of a "hairy caterpillar," in that the log-likelihood appears to have converged around a particular value. Whether or not an MCMC chain has converged is decided via Geweke's convergence metric (@Cowles1996). Essentially this metric will take the first $a$ iterations in an MCMC chain and compare them with the last $b$ iterations in a similar manner to a two sample t-test. In addition to the MCMC trace we can also visualise the auto-correlation in our log-likelihood.   
+
+```{r}
+plot_acf(p, K = 3)
+```
+
+This plot is promising, the MCMC chain ran for 50,000 sampling iterations and the auto-correlation reduces to zero after a lag of about 30 iterations. Finally, we can plot the density of the log-likelihood too. 
+
+```{r}
+plot_density(p, K = 3)
+```
+
+The density it unimodal, if we were to see a bi-modal density plot, this would indicate the MCMC chain is getting stuck somewhere in the parameter space, so a longer burnin may be needed. Conveniently we can plot all three of the above using the `plot_loglike_diagnostic()` function.  
+
+```{r}
+plot_loglike_diagnostic(p, K = 3)
+```
+
+Although we ran our MCMC chain for 50,000 iterations, this doesn't necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the \emph{effective sample size}, ESS. This is a function of the number of sampling iterations $n$, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is $$ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(l)}.$$ Where $acf(l)$ is the auto-correlation at lag $l$.  
+
+```{r}
+ESS <- get_ESS(p, K = 3)
+```
+
+```{r, echo = FALSE}
+paste("ESS =", round(ESS, 1), "or", round(ESS/5e4, 4) , "independent samples per iteration (50,000 sampling iterations)")
+```
+
+So we've approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it's 0.08. 
+
+Another indicator of a healthy MCMC algorithm is the acceptance rates of proposed steps during the Metropolis-Hastings part of the process. In this case, source locations and sigma values are estimated using a Metropolis-Hastings step. We are aiming for an acceptance rate of 23% for sources and 44% for sigma (see @Garthwaite2016 for more information). 
+
+```{r}
+acceptance_source <- get_output(p, "source_accept_sampling", K = 3, type = "summary")
+print(acceptance_source)
+```
+
+```{r}
+acceptance_sigma <- get_output(p, "sigma_accept_sampling", K = 3, type = "summary")
+acceptance_sigma <- unlist(acceptance_sigma)
+acceptance_sigma <- acceptance_sigma[which(acceptance_sigma > 0)]
+print(acceptance_sigma)
+```
+
+These values aren't awful, but there is clearly room for improvement, especially in the third source and sigma.  
+
+## Model choice
+
+As we have seen above, there are many ways of checking the ability of the model but we've done very little to compare the difference between models. Given we adopt a finite mixture model, we must decide on which value of `K` best describes the data. @Spiegelhalter2014 offers a metric for model comparison when estimating parameters via MCMC methods. The deviance information criterion (DIC) is calculated in two steps. Firstly we calculate the model deviance, which is the mean of the log-likelihood multiplied by -2. We then add to this a penalty term for the complexity of the model. The complexity is calculated as the variance in the log-likelihood multiplied by 4. 
+
+This DIC can be visualised using the `plot_DIC_gelman()` function. Let's have a look at the DIC values for each model.
 
 ```{r}
 plot_DIC_gelman(p)
@@ -23,4 +97,4 @@ plot_DIC_gelman(p)
 
 As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where `K = 3`. 
 
-### References
+## References

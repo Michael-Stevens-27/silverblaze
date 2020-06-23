@@ -32,6 +32,7 @@ public:
   double res_lat;
   int n_lat;
   double search_area;
+  double cell_area;
   std::vector<double> source_init;
   int sigma_model;
   double sigma_prior_meanlog;

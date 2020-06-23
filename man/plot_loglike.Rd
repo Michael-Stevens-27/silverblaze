@@ -5,7 +5,7 @@
 \title{Plot loglikelihood 95\% credible intervals}
 \usage{
 plot_loglike(project, K = 1, x_axis_type = 1, y_axis_type = 1,
-  phase = "sampling")
+  phase = "sampling", legend = TRUE)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -20,6 +20,8 @@ beta raised to the GTI power.}
 auto-chosen lower limit. 3 = double-log scale.}
 
 \item{phase}{which phase to plot. Must be either "burnin" or "sampling".}
+
+\item{legend}{switches the legend for thermondynamic power on or off}
 }
 \description{
 Plot loglikelihood 95\% credible intervals of current active set
