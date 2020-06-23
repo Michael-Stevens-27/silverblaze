@@ -1134,9 +1134,15 @@ void Particle::update_qmatrix() {
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
     
-    // skip if no observations at this site
-    if (d->counts[i] == 0) {
-      continue;
+    // dependent on data type skip - if no observation at this site
+    if(d->data_type == 1){
+      if (d->counts[i] == 0) {
+        continue;
+      }     
+    } else if(d->data_type == 2){
+      if (d->positive[i] == 0) {
+        continue;
+      }
     }
     
     // sum hazard over sources while remaining in log space
@@ -1168,9 +1174,21 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
     for (int k2 = 0; k2 < p->K; ++k2) {
       for (int i = 0; i < d->n; ++i) {
-        if (d->counts[i] > 0) {
-          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] - log_qmatrix_running[i][k2]);
+        // update cost matrix based on data type and assuming data is positive
+        if (d->data_type == 1 && d->counts[i] > 0) { 
+          // count data
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
+        } else if(d->data_type == 2 && d->positive[i] > 0){ 
+          // prevalence data
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
+        } else if(d->data_type == 3){ 
+          // point pattern  
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
         }
+      
       }
     }
   }
