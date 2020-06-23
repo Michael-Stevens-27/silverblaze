@@ -1234,3 +1234,42 @@ gini <- function(hs) {
 
   return(ret)
 }
+
+#------------------------------------------------
+#' @title Calculate realised sources
+#'
+#' @description Produce a plot that indicates the suitable number of realised 
+#'              sources based upon sampling from the qmatrix.
+#'
+#' @param proj An rgeoprofile project
+#' @param n_samples how many times we sample from the qmatrix
+#'
+#' @export
+
+realised_sources <- function(proj, n_samples = 20, K = 1) {
+
+  # check inputs
+  assert_custom_class(proj, "rgeoprofile_project")
+  assert_single_pos_int(n_samples, zero_allowed = FALSE)
+  assert_greq(n_samples, 10, message = "at least 10 sampling iterations must be used")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+
+  # get qmatrix from project output and clean
+  qmat <- get_output(proj, "qmatrix", K = K, type = "summary")
+  qmat <- qmat[complete.cases(qmat),]
+  
+  # empty vector to store number of sources
+  realised <- rep(NA, n_samples)  
+  
+  # loop over samples, for each sample, use the qmatrix to decide which source
+  # this data point belongs to, then, make a note of the number of UNIQUE sources
+  # for this sample
+  for(i in 1:length(realised)){
+    single_sample <- unlist(lapply(FUN = function(X){sample(1:K, size = 1, replace = TRUE, prob = qmat[X,])}, X = 1:length(qmat[,1])))
+    realised[i] <- length(unique(single_sample))
+  }    
+  
+  ret <- realised
+
+  return(ret)
+}
