@@ -4,12 +4,15 @@
 \alias{realised_sources}
 \title{Calculate realised sources}
 \usage{
-realised_sources(proj, n_samples = 20, K = 1)
+realised_sources(proj, n_samples = 20, K = 2)
 }
 \arguments{
 \item{proj}{An rgeoprofile project}
 
 \item{n_samples}{how many times we sample from the qmatrix}
+
+\item{K}{the value of K to check. Note, there is no qmatrix for K = 1, all 
+points are allocated to a single source}
 }
 \description{
 Produce a plot that indicates the suitable number of realised 
