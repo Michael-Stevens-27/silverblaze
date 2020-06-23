@@ -12,18 +12,18 @@ vignette: >
 
 ```{r, echo = FALSE, message = FALSE}
 library(silverblaze)
-library(RgeoProfile)
-library(parallel)
-library(raster)
-library(coda)
-library(gridExtra)
 library(ggplot2)
+library(raster)
 set.seed(9)
 ```
 
 ## Introduction
 
+Through the previous tutorials we have shown how parameters of interest associated with geographic profiling, such as source locations and dispersal patterns, can be inferred using count, prevalence and point-pattern data. The examples were cherry picked such that the MCMC algorithm converges on the correct answer. This is not always the case though. In this tutorial we will show an example of a difficult data set that is a real challenge for the MCMC algorithm.     
+
 ## A difficult data set
+
+Firstly let's generate some count data, and then map it. We follow the standard procedure, simulating and then building a project `p`.  
 
 ```{r, message = FALSE}
 # spatial prior
@@ -91,7 +91,11 @@ plot2 <- overlay_sentinels(plot2,
 plot2             
 ```
 
+As we can see there is overlap in the clusters and sentinel sites have sparse coverage of the underlying data. 
+
 ## Poor mixing 
+
+Let's run the MCMC algorithm to see how it fairs against this count data.
 
 ```{r, eval = FALSE}
 p1 <- run_mcmc(project = p,
@@ -103,6 +107,8 @@ p1 <- run_mcmc(project = p,
                converge_test = 1e3,
                auto_converge = TRUE)
 ```
+
+ To ensure we are confident that MCMC algorithm is consitently finding the correct answer, let's run the above code five separate times and compare the output of each chain.  
 
 ```{r, echo = FALSE}
 # projects <- list(logLikes = logLikes,
@@ -170,6 +176,7 @@ p5 <- run_mcmc(project = p,
               auto_converge = TRUE)
 ```
 
+Now the MCMC has finished running let's plot a few of the outputs. Here we plot the log-likelihood, the DIC and the estimates for sigma and the expected population size. 
 
 ```{r, echo = FALSE, fig.height = 10, fig.width = 10}
 
@@ -248,28 +255,40 @@ DICPlot <- ggplot(DICSize, aes(x = source, y = DIC, col = as.character(chain))) 
               theme(text = element_text(size = 10))# +
               # ylim(c(0.4,1.8))
 
-mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+# mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+Loglikeplot
+DICPlot
+sigmaPlot
+popSizePlot
+
 ```
 
+In each case we can see the output of the MCMC chains when the mixture is composed of from one to five components. The horizontal line in sigma and expected population size plots indicate the true value. When the model is only searching for one mixture component (`K = 1`) the five MCMC chains agree with one another. However, when we switch to a `K = 2` model the chains start to disagree with one another. Parameter estimates for sigma and the expected population size are failing to reach the correct values. Following our DIC metric (minimum DIC for the appropriate `K`), some chains reach the conclusion that `K = 2` is the best model to use, whereas some conclude that it is the worst. Although we discussed metrics for model validation in the [previous tutorial](https://michael-stevens-27.github.io/silverblaze/articles/model-validation.html), MCMC chains that disagree with one another indicates that the algorithm is failing to mix properly.
 
 ## Metropolis-Hastings coupling
 
 
+
 ## Revisiting a difficult problem
 
+Now that we have a process to improve the mixing of our MCMC algorithm, let's return to the difficult data set from earlier. Metropolis-Hastings coupling can be turned on by setting the `coupling_on` argument to `TRUE` in the `run_mcmc()` function. You can set the number of heated rungs using the `rungs` argument. This produces a sequence from zero to one of length `rungs`. The "hotness" of each chain is then controlled using the `GTI_pow`. The sequences of rungs is raised to this power to control the total heat. 
+
+Let's run the model again using these arguments.   
 
 ```{r, eval = F}
 p1couple <- run_mcmc(project = p,
                K = K_model,
-               rungs = 10,
-               coupling_on = TRUE,
-               GTI_pow = 2,
                burnin = 5e3,
                samples = 5e3,
                converge_test = 1e3,
                auto_converge = TRUE,
+               coupling_on = TRUE, # turn coupling on
+               rungs = 10,         # the number of rungs used
+               GTI_pow = 2,        # the thermodynamic power
                create_maps = FALSE)
 ```
+
+Again let's repeat the above five times and compare the same outputs. 
 
 ```{r, echo = F, eval = F}
 set.seed(126)
@@ -414,11 +433,45 @@ DICPlot <- ggplot(DICSizecouple, aes(x = source, y = DIC, col = as.character(cha
               theme(text = element_text(size = 10))# +
               # ylim(c(0.4,1.8))
 
-mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+# mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+Loglikeplot
+DICPlot
+sigmaPlot
+popSizePlot
+
 ```
 
+Perfect! Our MCMC chains agree with one another. The DIC line plots are all very similar, they all correctly conclude that `K = 3` is the most suitable number of sources to describe the data (we simulated under a `K = 3` model).   
 
 ## Optimising beta values
 
+We may not always know a suitable value for `GTI_pow` or the number of rungs that we need to ensure healthy mixing. Hence, silverblaze offers the `optimise_beta()` function to do this for us. This function will run the model a maximum number of times (`max_iterations`) each time checking if the transition acceptance rate between heated rungs is above a certain threshold, `target_acceptance`. If the transition probability between two rungs is less than the target and each rung has heats $a$ and $b$ then the function will place a new rung between these two, with heat $\frac{a + b}{2}$. The `beta_init` argument allows us to specify where the heat will start. An example of is shown and executed below.  
+
+```{r, eval = TRUE}
+# beta_k <- silverblaze:::optimise_beta(proj = p, 
+#                                       K = 3, 
+#                                       target_acceptance = 0.5, 
+#                                       max_iterations = 2,
+#                                       beta_init = seq(0,1, l = 10), 
+#                                       coupling_on = TRUE,
+#                                       burnin = 5e2,
+#                                       converge_test = 1e2,
+#                                       samples = 10,
+#                                       create_maps = FALSE,
+#                                       pb_markdown = TRUE)
+```
+
+As we can see this code will output the `K_model` chosen, the iteration, the number of rungs, each rungs heat and transition probabilities with neighbouring rungs. We start with 10 rungs in the first iteration, and 2 of the probabilities are less than 0.5, hence the total rungs is bumped up by 2 in the next iteration. When running the MCMC algorithm for real, we pass these beta values over to the `run_mcmc()` function as shown here.   
+
+```{r, eval = F}
+p1couple <- run_mcmc(project = p,
+                     K = K_model,
+                     burnin = 5e3,
+                     samples = 5e3,
+                     converge_test = 1e3,
+                     auto_converge = TRUE,
+                     coupling_on = TRUE, 
+                     beta_manual = beta_k$beta_vec[[2]])
+```
 
 ## References
