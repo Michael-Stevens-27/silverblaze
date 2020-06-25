@@ -989,8 +989,8 @@ void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on, i
     //-----------------------------------------------------------------------------------------------------------------------
     
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape, p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape, p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1074,10 +1074,10 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
       loglike_prop += lgamma(d->tested[i] + 1) - lgamma(d->positive[i] + 1) - lgamma(d->tested[i] - d->positive[i]  + 1)
         + d->positive[i]*(log_theta_i) - d->tested[i]*log(1 + exp(log_theta_i));
     }
-    
+
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape, p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape, p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1393,8 +1393,8 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
     //-----------------------------------------------------------------------------------------------------------------------
     
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape, p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape, p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
