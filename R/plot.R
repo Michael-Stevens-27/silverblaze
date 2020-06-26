@@ -1275,7 +1275,6 @@ overlay_spatial_prior <- function(myplot,
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
@@ -1347,10 +1346,8 @@ overlay_geoprofile <- function(myplot,
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
@@ -1438,10 +1435,8 @@ overlay_surface <- function(myplot,
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
@@ -1535,15 +1530,14 @@ overlay_risk_map <- function(myplot,
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
+  assert_single_pos_int(iterations)
+  
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
