@@ -388,7 +388,7 @@ plot_sigma <- function(project, K = NULL) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # get sigma model
@@ -737,7 +737,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # set default K to first value with output
@@ -824,7 +824,7 @@ plot_DIC_gelman <- function(project) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get DIC values
@@ -1011,7 +1011,7 @@ overlay_sentinels <- function(myplot,
     # get active set and check non-zero
     s <- project$active_set
     if (s == 0) {
-      stop("  no active parameter set")
+      stop("no active parameter set")
     }
     
     # get sentinel radius
@@ -1282,7 +1282,7 @@ overlay_spatial_prior <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get spatial prior
@@ -1503,7 +1503,7 @@ overlay_surface <- function(myplot,
 #' @param iterations the number of random parameter sets to generate and combine
 #'   risk maps
 #'
-#' @import leaflet
+#' @import leaflet raster
 #' @importFrom grDevices grey
 #' @export
 #' 
@@ -1523,7 +1523,7 @@ overlay_risk_map <- function(myplot,
                              smoothing = 1.0,
                              legend = FALSE,
                              iterations = 50) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
@@ -1541,7 +1541,7 @@ overlay_risk_map <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # create risk map 
@@ -1556,32 +1556,32 @@ overlay_risk_map <- function(myplot,
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
   raster_dims <- dim(spatial_prior)
   
-  # create look up table
+  # get grid of raster cell locations
   grid_extent <- extent(spatial_prior)
   longrid <- seq(grid_extent[1], grid_extent[2], l = raster_dims[2])
   latgrid <- seq(grid_extent[3], grid_extent[4], l = raster_dims[1])
-  
-  # fix the second run through all the first, then shift the second and run 
-  # through all of the first again
   grid <- expand.grid(longrid, latgrid)
   grid <- data.frame(longitude = grid$Var1, latitude = grid$Var2)
   
   # how many iterations will this be done for
   samples <- length(longs[,1])
   chosen_iterations <- sample(1:samples, iterations)
-  ncells <- ncell(spatial_prior)
+  ncells <- raster::ncell(spatial_prior)
   risk_map_matrix <- matrix(NA, ncol = iterations, nrow = ncells)
   
-  for(i in 1:iterations){
+  for (i in seq_len(iterations)) {
+    
     # get distances from each source to every grid cell
-    gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist}, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
+    gc_dist <- mapply(function(x, y) {
+        lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist
+      }, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
     
     # get heights of each cell on the mixture of normals
-    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], F)*dnorm(0, 0, sigmas[chosen_iterations[i],], F)
+    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], FALSE) * dnorm(0, 0, sigmas[chosen_iterations[i],], FALSE)
     mixture_densities <- apply(densities, 1, mean)
     
     # multiply by the expected popsize and then map to binom prob
-    hazard_values <- expected_popsizes[chosen_iterations[i]]*mixture_densities
+    hazard_values <- expected_popsizes[chosen_iterations[i]] * mixture_densities
     binom_prob <- hazard_values/(hazard_values + 1)
     
     # store risk map
@@ -1799,7 +1799,7 @@ overlay_ringsearch <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # extract ringsearch output
