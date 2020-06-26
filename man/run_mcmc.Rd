@@ -4,11 +4,23 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(project, K = 3, burnin = 100, samples = 1000, rungs = 1,
-  auto_converge = TRUE, converge_test = 100, coupling_on = TRUE,
-  GTI_pow = 1, beta_manual = NULL, cluster = NULL,
-  pb_markdown = FALSE, store_raw = TRUE, create_maps = TRUE,
-  silent = !is.null(cluster))
+run_mcmc(
+  project,
+  K = 3,
+  burnin = 100,
+  samples = 1000,
+  rungs = 1,
+  auto_converge = TRUE,
+  converge_test = 100,
+  coupling_on = TRUE,
+  GTI_pow = 1,
+  beta_manual = NULL,
+  cluster = NULL,
+  pb_markdown = FALSE,
+  store_raw = TRUE,
+  create_maps = TRUE,
+  silent = !is.null(cluster)
+)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function

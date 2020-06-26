@@ -1503,8 +1503,9 @@ overlay_surface <- function(myplot,
 #' @param iterations the number of random parameter sets to generate and combine
 #'   risk maps
 #'
-#' @import leaflet raster
+#' @import leaflet
 #' @importFrom grDevices grey
+#' @importFrom raster ncell
 #' @export
 #' 
 #' @examples

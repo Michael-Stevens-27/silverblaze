@@ -4,8 +4,13 @@
 \alias{dispersal_sphere}
 \title{Draw from spherical distribution}
 \usage{
-dispersal_sphere(n, centre_lon, centre_lat, dispersal_model = "normal",
-  scale = 1)
+dispersal_sphere(
+  n,
+  centre_lon,
+  centre_lat,
+  dispersal_model = "normal",
+  scale = 1
+)
 }
 \arguments{
 \item{n}{The number of points to draw}

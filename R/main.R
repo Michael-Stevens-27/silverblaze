@@ -502,20 +502,22 @@ run_mcmc <- function(project,
   # initialise sources in a non-NA cell
   source_init <- raster::xyFromCell(spatial_prior, which(!is.na(raster::values(spatial_prior)))[1])
   
-  # convert sigma_model and expected_popsize_model to numeric
+  # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
-  if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+  # convert expected_popsize_model to numeric
+  if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
     expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
     fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
-  } else if(project$data$data_type == "point-pattern"){
+  } else if (project$data$data_type == "point-pattern") {
     expected_popsize_model_numeric <- fixed_expected_popsize_model <- -1
   }
   
+  # convert dispersal model and count type to numeric
   dispersal_model_numeric <- match(project$parameter_sets[[s]]$dispersal_model, c("normal", "cauchy", "laplace"))
-  count_type_numeric <- match(project$parameter_sets[[s]]$n_binom, c(T, F))
-
+  count_type_numeric <- match(project$parameter_sets[[s]]$n_binom, c(TRUE, FALSE))
+  
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -1151,13 +1153,13 @@ optimise_beta <- function(proj,
 #' @noRd
 ring_search <- function(project, r) {
   
+  # avoid "no visible binding" error
+  counts <- positive <- NULL
+  
   # check that there is at least one positive observation
   if (sum(project$data$frame$counts) == 0 & sum(project$data$frame$positive) == 0) {
     stop("ring search not possible: no positive counts")
   }
-  
-  # avoid "no visible binding" error
-  counts <- NULL
   
   # extract sentinel locations with at least one observation
   if(project$data$data_type == "counts"){
@@ -1258,20 +1260,16 @@ realised_sources <- function(proj, n_samples = 20, K = 2) {
 
   # get qmatrix from project output and clean
   qmat <- get_output(proj, "qmatrix", K = K, type = "summary")
-  qmat <- qmat[complete.cases(qmat),]
-  
-  # empty vector to store number of sources
-  realised <- rep(NA, n_samples)  
+  qmat <- qmat[complete.cases(qmat),,drop = FALSE]
   
   # loop over samples, for each sample, use the qmatrix to decide which source
   # this data point belongs to, then, make a note of the number of UNIQUE sources
   # for this sample
-  for(i in 1:length(realised)){
-    single_sample <- unlist(lapply(FUN = function(X){sample(1:K, size = 1, replace = TRUE, prob = qmat[X,])}, X = 1:length(qmat[,1])))
-    realised[i] <- length(unique(single_sample))
-  }    
+  ret <- mapply(function(i) {
+    group_allocation <- apply(qmat, 1, function(x) sample(length(x), 1, prob = x))
+    ret <- length(unique(group_allocation))
+    return(ret)
+  }, seq_len(n_samples))
   
-  ret <- realised
-
   return(ret)
 }

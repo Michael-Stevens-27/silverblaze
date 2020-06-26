@@ -4,8 +4,13 @@
 \alias{overlay_spatial_prior}
 \title{Add spatial prior to dynamic map}
 \usage{
-overlay_spatial_prior(myplot, project, col = col_hotcold(),
-  opacity = 0.8, smoothing = 1)
+overlay_spatial_prior(
+  myplot,
+  project,
+  col = col_hotcold(),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

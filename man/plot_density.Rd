@@ -4,8 +4,7 @@
 \alias{plot_density}
 \title{Produce MCMC density plot}
 \usage{
-plot_density(project, K = NULL, rung = NULL, col = "black",
-  phase = "sampling")
+plot_density(project, K = NULL, rung = NULL, col = "black", phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
