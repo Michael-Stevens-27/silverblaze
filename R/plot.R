@@ -1565,8 +1565,8 @@ overlay_risk_map <- function(myplot,
   grid <- data.frame(longitude = grid$Var1, latitude = grid$Var2)
   
   # how many iterations will this be done for
-  samples <- length(longs[,1])
-  chosen_iterations <- sample(1:samples, iterations)
+  samples <- nrow(longs)
+  chosen_iterations <- sample(seq_len(samples), iterations)
   ncells <- raster::ncell(spatial_prior)
   risk_map_matrix <- matrix(NA, ncol = iterations, nrow = ncells)
   
@@ -1579,10 +1579,11 @@ overlay_risk_map <- function(myplot,
     
     # get heights of each cell on the mixture of normals
     densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], FALSE) * dnorm(0, 0, sigmas[chosen_iterations[i],], FALSE)
-    mixture_densities <- apply(densities, 1, mean)
     
-    # multiply by the expected popsize and then map to binom prob
-    hazard_values <- expected_popsizes[chosen_iterations[i]] * mixture_densities
+    # multiply by expected popsizes and take weighted average over sources
+    hazard_values <- rowSums(sweep(densities, 2, expected_popsizes[chosen_iterations[i],], "*"))
+    
+    # transform to [0,1] domain
     binom_prob <- hazard_values/(hazard_values + 1)
     
     # store risk map
@@ -1591,11 +1592,11 @@ overlay_risk_map <- function(myplot,
   
   # average over all risk_map values
   risk_map <- apply(risk_map_matrix, 1, mean)
-  risk_raster <- uniform_prior
+  risk_raster <- spatial_prior # (these values will be overwritten)
   
   # manipulate the values of the risk map to conform to the form a raster 
   # receives values
-  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = T))
+  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = TRUE))
   risk_raster <- setValues(risk_raster, apply(manipulated_value,1,rev))
     
   # apply smoothing
