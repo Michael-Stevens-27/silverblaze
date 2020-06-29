@@ -231,19 +231,39 @@ double dnbinom_mu1(int n, double size, double mean, bool returnLog) {
   return R::dnbinom_mu(n, size, mean, returnLog);
 }
 
-// //------------------------------------------------
-// // a function to deal with drawing a value from a distribution with any density 
-// // via inverse sampling transform 
-// double approx(std::vector<double> &cumulative_sum_vector,std::vector<double> &domain, double random_uniform) {
-// 
-// 
-//   return R::approx(cumulative_sum_vector, domain, random_uniform);
-// 
-// }
-
+//------------------------------------------------
+// return closest value to a vector of target values
 double closest(std::vector<double> const& vec, double value) {
-    auto const it = std::lower_bound(vec.begin(), vec.end(), value);
-    if (it == vec.end()) { return -1; }
+  auto const it = std::lower_bound(vec.begin(), vec.end(), value);
+  if (it == vec.end()) {
+    return -1;
+  }
+  return *it;
+}
 
-    return *it;
+//------------------------------------------------
+// draw from binomial(N,p) distribution
+int rbinom1(int N, double p) {
+  if (p >= 1.0) {
+    return N;
+  } else if (p <= 0.0) {
+    return 0;
+  }
+  return R::rbinom(N, p);
+}
+
+//------------------------------------------------
+// draw from multinomial(N,p) distribution, where p sums to p_sum
+void rmultinom1(int N, const vector<double> &p, double p_sum, vector<int> &ret) {
+  int k = int(p.size());
+  fill(ret.begin(), ret.end(), 0);
+  for (int i = 0; i < (k-1); ++i) {
+    ret[i] = rbinom1(N, p[i] / p_sum);
+    N -= ret[i];
+    if (N == 0) {
+      break;
+    }
+    p_sum -= p[i];
+  }
+  ret[k-1] = N;
 }

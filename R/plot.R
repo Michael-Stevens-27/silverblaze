@@ -1310,6 +1310,7 @@ overlay_spatial_prior <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of geoprofile to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of geoprofile (that is not invisible due to being
@@ -1334,58 +1335,65 @@ overlay_geoprofile <- function(myplot,
                                project,
                                K = NULL,
                                source = NULL,
+                               realised = FALSE,
                                threshold = 0.1,
                                col = col_hotcold(),
                                opacity = 0.8,
                                smoothing = 1,
                                legend  = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
+  
   # extract geoprofile
-  if (is.null(source)) {
-    geoprofile <- get_output(project, "geoprofile", K = K)
+  if (realised) {
+    geoprofile <- get_output(project, "geoprofile_realised", K = K)
   } else {
-    assert_leq(source, K)
-    geoprofile_split <- get_output(project, "geoprofile_split", K = K)
-    geoprofile <- geoprofile_split[[source]]
+    if (is.null(source)) {
+      geoprofile <- get_output(project, "geoprofile", K = K)
+    } else {
+      assert_leq(source, K)
+      geoprofile_split <- get_output(project, "geoprofile_split", K = K)
+      geoprofile <- geoprofile_split[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     geoprofile <- disaggregate(geoprofile, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   geoprofile_mat <- matrix(values(geoprofile), nrow(geoprofile), byrow = TRUE)
   geoprofile_mat[geoprofile_mat > threshold*100] <- NA
   geoprofile <- setValues(geoprofile, geoprofile_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity, project = FALSE)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(geoprofile), ymin(geoprofile),
                           xmax(geoprofile), ymax(geoprofile),
                           fill = FALSE, weight = 2, color = grey(0.2))
-
+  
   # add hitscore legend
-  if(legend == TRUE) {
-  hitscore_sequence <- seq(0, threshold, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = hitscore_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
+  if (legend == TRUE) {
+    hitscore_sequence <- seq(0, threshold, threshold / (length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = hitscore_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
   }
+  
   # return plot object
   return(myplot)
 }
@@ -1400,6 +1408,7 @@ overlay_geoprofile <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of posterior probability surface to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of posterior probability surface (that is not
@@ -1423,61 +1432,67 @@ overlay_surface <- function(myplot,
                             project,
                             K = NULL,
                             source = NULL,
+                            realised = FALSE,
                             threshold = 0.1,
                             col = rev(col_hotcold()),
                             opacity = 0.8,
                             smoothing = 1.0,
                             legend = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
-
+  
+  
   # extract geoprofile
-  if (is.null(source)) {
-    prob_surface <- get_output(project, "prob_surface", K = K)
+  if (realised) {
+    prob_surface <- get_output(project, "prob_surface_realised", K = K)
   } else {
-    assert_leq(source, K)
-    prob_surface_split <- get_output(project, "prob_surface_split", K = K)
-    prob_surface <- prob_surface[[source]]
+    if (is.null(source)) {
+      prob_surface <- get_output(project, "prob_surface", K = K)
+    } else {
+      assert_leq(source, K)
+      prob_surface_split <- get_output(project, "prob_surface_split", K = K)
+      prob_surface <- prob_surface[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     prob_surface <- disaggregate(prob_surface, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   prob_surface_mat <- matrix(values(prob_surface), nrow(prob_surface), byrow = TRUE)
   threshold_final <- sort(prob_surface_mat, decreasing = TRUE)[ceiling(length(prob_surface_mat)*threshold)]
   prob_surface_mat[prob_surface_mat < threshold_final] <- NA
   prob_surface <- setValues(prob_surface, prob_surface_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = prob_surface, colors = col, opacity = opacity)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(prob_surface), ymin(prob_surface),
                           xmax(prob_surface), ymax(prob_surface),
                           fill = FALSE, weight = 2, color = grey(0.2))
   
   # add legend
-  if(legend == TRUE) {
-  prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = prob_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
+  if (legend == TRUE) {
+    prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = prob_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
   }                        
-
+  
   # return plot object
   return(myplot)
 }
