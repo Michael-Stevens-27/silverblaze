@@ -106,5 +106,13 @@ double dnbinom1(int n, double lambda, double gamma, bool returnLog= TRUE);
 double dnbinom_mu1(int n, double size, double mean, bool returnLog = TRUE);
 
 //------------------------------------------------
-// draw a value from a distribution with any density using its cumulative sum
+// return closest value to a vector of target values
 double closest(std::vector<double> const& vec, double value) ;
+
+//------------------------------------------------
+// draw from binomial(N,p) distribution
+int rbinom1(int N, double p);
+
+//------------------------------------------------
+// draw from multinomial(N,p) distribution, where p sums to p_sum
+void rmultinom1(int N, const std::vector<double> &p, double p_sum, std::vector<int> &ret);

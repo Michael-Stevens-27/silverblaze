@@ -1134,7 +1134,7 @@ void Particle::update_qmatrix() {
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
     
-    // dependent on data type skip - if no observation at this site
+    // dependent on data type - skip if no observation at this site
     if(d->data_type == 1){
       if (d->counts[i] == 0) {
         continue;
