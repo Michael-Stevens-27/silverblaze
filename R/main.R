@@ -744,7 +744,7 @@ run_mcmc <- function(project,
     
     # get probability surface over realised sources only
     prob_surface_realised_mat <- 0
-    if (create_maps) {
+    if (create_maps & i > 1) { # i > 1 logical ensures we don't store realised surface for K = 1 
       
       # get prob surface by smoothing
       prob_surface_realised_mat <- kernel_smooth(source_lon_sampling[source_realised_sampling == TRUE],
@@ -932,18 +932,22 @@ run_mcmc <- function(project,
   # reorder qmatrices
   project <- align_qmatrix(project)
   
-  # get matrix of realised K over all model K
-  realised_K_all <- mapply(function(x) {
-    ret <- rep(NA, K_all)
-    tmp <- x$summary$realised_K
-    if (!is.null(tmp)) {
-      ret[seq_along(tmp)] <- tmp
-    }
-    return(ret)
-  }, project$output$single_set[[s]]$single_K)
-  colnames(realised_K_all) <- sprintf("model_K%s", seq_len(K_all))
-  rownames(realised_K_all) <- sprintf("realised_K%s", seq_len(K_all))
-  project$output$single_set[[s]]$all_K$realised_K <- realised_K_all
+  # get matrix of realised K over all model K (assuming K > 1)
+  if (K_all > 1){
+    realised_K_all <- mapply(function(x) {
+      ret <- rep(NA, K_all)
+      tmp <- x$summary$realised_K
+      if (!is.null(tmp)) {
+        ret[seq_along(tmp)] <- tmp
+      }
+      return(ret)
+    }, project$output$single_set[[s]]$single_K)
+    colnames(realised_K_all) <- sprintf("model_K%s", seq_len(K_all))
+    rownames(realised_K_all) <- sprintf("realised_K%s", seq_len(K_all))
+    project$output$single_set[[s]]$all_K$realised_K <- realised_K_all
+  } else if (K_all == 1){
+    project$output$single_set[[s]]$all_K$realised_K <- NULL
+  }
   
   # run ring-search prior to MCMC
   if (sum(project$data$frame$counts) > 0 | sum(project$data$frame$positive) > 0) {
