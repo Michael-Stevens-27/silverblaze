@@ -46,7 +46,7 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
   source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
-  source_realised_sampling = vector<vector<bool>>(p->burnin, vector<bool>(p->K, false));
+  source_realised_sampling = vector<vector<bool>>(p->samples, vector<bool>(p->K, false));
   sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   ep_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   alpha_sampling = vector<double>(p->samples);
@@ -427,6 +427,3 @@ void MCMC::sample_realised_sources(vector<vector<double>> &qmatrix, vector<int> 
   }  // end i loop
   
 }
-
-
-
