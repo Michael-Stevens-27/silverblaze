@@ -105,7 +105,7 @@ raster_grid <- function (range_lon = c(-0.2, 0),
                          cells_lon = 1e2,
                          cells_lat = 1e2,
                          guard_rail = 0.05) {
-
+  
   # check inputs
   assert_numeric(range_lon)
   assert_vector(range_lon)
@@ -117,7 +117,7 @@ raster_grid <- function (range_lon = c(-0.2, 0),
   assert_single_pos_int(cells_lat)
   assert_numeric(guard_rail)
   assert_single_pos(guard_rail)
-
+  
   # make raster grid
   dlon <- guard_rail*diff(range(range_lon))
   dlat <- guard_rail*diff(range(range_lat))
@@ -132,7 +132,7 @@ raster_grid <- function (range_lon = c(-0.2, 0),
                       ncol = cells_lon,
                       nrow = cells_lat)
   r <- raster::setValues(r, 1/(cells_lon*cells_lat))
-
+  
   return(r)
 }
 
@@ -216,12 +216,11 @@ new_set <- function(project,
                     sentinel_radius = 0.2,
                     n_binom = FALSE,
                     alpha_prior_mean = 1, 
-                    alpha_prior_sd = 100) 
-                    {
+                    alpha_prior_sd = 100) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-    if (!is.null(spatial_prior)) {
+  if (!is.null(spatial_prior)) {
     assert_custom_class(spatial_prior, "RasterLayer")
   }
   
@@ -231,13 +230,13 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   
-  if(project$data$data_type == "counts"| project$data$data_type == "prevalence"){
+  if (project$data$data_type == "counts"| project$data$data_type == "prevalence") {
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
     assert_single_logical(n_binom)
     
-    if(n_binom == TRUE){
+    if (n_binom == TRUE) { # negative binomial model
       assert_single_pos(alpha_prior_mean, zero_allowed = FALSE)
       assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
     }
@@ -502,20 +501,22 @@ run_mcmc <- function(project,
   # initialise sources in a non-NA cell
   source_init <- raster::xyFromCell(spatial_prior, which(!is.na(raster::values(spatial_prior)))[1])
   
-  # convert sigma_model and expected_popsize_model to numeric
+  # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
   
-  if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+  # convert expected_popsize_model to numeric
+  if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
     expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
     fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
-  } else if(project$data$data_type == "point-pattern"){
+  } else if (project$data$data_type == "point-pattern") {
     expected_popsize_model_numeric <- fixed_expected_popsize_model <- -1
   }
   
+  # convert dispersal model and count type to numeric
   dispersal_model_numeric <- match(project$parameter_sets[[s]]$dispersal_model, c("normal", "cauchy", "laplace"))
-  count_type_numeric <- match(project$parameter_sets[[s]]$n_binom, c(T, F))
-
+  count_type_numeric <- match(project$parameter_sets[[s]]$n_binom, c(TRUE, FALSE))
+  
   # misc properties list
   args_properties <- list(min_lon = raster::xmin(spatial_prior),
                           max_lon = raster::xmax(spatial_prior),
@@ -577,17 +578,17 @@ run_mcmc <- function(project,
   
   # begin processing results
   if (!silent) {
-    cat("Processing results\n")
+    message("Processing results\n")
   }
   
   # loop through K
   ret <- list()
   all_converged <- TRUE
-  for (i in 1:length(K)) {
+  for (i in seq_along(K)) {
     
     # create name lists
-    group_names <- paste0("group", 1:K[i])
-    rung_names <- paste0("rung", 1:rungs)
+    group_names <- sprintf("group%s", seq_len(K[i]))
+    rung_names <- sprintf("rung%s", seq_len(rungs))
     
     # ---------- raw mcmc results ----------
     
@@ -599,13 +600,18 @@ run_mcmc <- function(project,
     loglike_sampling <- coda::mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     colnames(loglike_sampling) <- colnames(loglike_burnin) <- rung_names
     
-    # get source lon lat in coda::mcmc format
+    # get source lon and lat in coda::mcmc format
     source_lon_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_burnin)[1:convergence_iteration,,drop = FALSE])
     source_lat_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_burnin)[1:convergence_iteration,,drop = FALSE])
     colnames(source_lon_burnin) <- colnames(source_lat_burnin) <- group_names
+    
     source_lon_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lon_sampling))
     source_lat_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$source_lat_sampling))
     colnames(source_lon_sampling) <- colnames(source_lat_sampling) <- group_names
+    
+    # get matrix of realised sources
+    source_realised_burnin <- rcpp_to_mat(output_raw[[i]]$source_realised_burnin)[1:convergence_iteration,,drop = FALSE]
+    source_realised_sampling <- rcpp_to_mat(output_raw[[i]]$source_realised_sampling)
     
     # get sigma in coda::mcmc format
     sigma_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$sigma_burnin)[1:convergence_iteration,,drop = FALSE])
@@ -618,7 +624,9 @@ run_mcmc <- function(project,
       colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
     }
     
-    if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+    # split method based on data type
+    if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
+      
       # get expected_popsize in coda::mcmc format
       expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
       expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
@@ -631,20 +639,24 @@ run_mcmc <- function(project,
         colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
       }
       
-      if(args_model$n_binom == TRUE){
+      if (args_model$n_binom == TRUE) {  # negative binomial model
+        
         # get alpha in coda::mcmc format
         alpha_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_burnin)[1:convergence_iteration, ,drop = FALSE])
         alpha_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_sampling))
-      } else{
+      } else {
         alpha_burnin <- alpha_sampling <- NULL
       }
     
-    } else if(project$data$data_type == "point-pattern"){
+    } else if (project$data$data_type == "point-pattern") {
       expected_popsize_burnin <- expected_popsize_sampling <- NULL
       alpha_burnin <- alpha_sampling <- NULL
+    } else {
+      stop("invalid data type in output")
     }
-        
+    
     # ---------- summary results ----------
+    
     # get 95% credible intervals over sampling and burnin loglikelihoods
     loglike_intervals_burnin <- as.data.frame(t(apply(loglike_burnin, 2, quantile_95)))
     loglike_intervals_sampling <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
@@ -652,35 +664,38 @@ run_mcmc <- function(project,
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
-    if(project$data$data_type == "counts" | project$data$data_type == "prevalence"){
+    # split method based on data type
+    if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
       
       # get 95% credible intervals over expected_popsize
       expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
       
-      if(args_model$n_binom == TRUE){
-        # get 95% credible intervals over expected_popsize
+      # get 95% credible intervals over negative binomial parameters
+      if (args_model$n_binom == TRUE) {
         alpha_intervals <- as.data.frame(t(quantile_95(alpha_sampling)))
       } else{
         alpha_intervals <- NULL
       }
     
-    } else if(project$data$data_type == "point-pattern"){
+    } else if (project$data$data_type == "point-pattern") {
       expected_popsize_intervals <- NULL
       alpha_intervals <- NULL
     }
     
     # process Q-matrix
+    # TODO - does anything need doing in the condition else if(project$data$data_type == "point-pattern") ?
+    # TODO - should this really be class rgeoprofile_qmatrix? Are we anticipating making use of any defined special methods?
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
-    if(project$data$data_type == "counts"){
-      qmatrix[project$data$frame$counts == 0,] <- rep(NA, K[i])
-    } else if(project$data$data_type == "prevalence"){
-      qmatrix[project$data$frame$positive == 0,] <- rep(NA, K[i])
-    # TODO } else if(project$data$data_type == "point-pattern"){
-    # 
+    if (project$data$data_type == "counts") {
+      qmatrix[project$data$frame$counts == 0,] <- NA
+    } else if (project$data$data_type == "prevalence") {
+      qmatrix[project$data$frame$positive == 0,] <- NA
     }
-    
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
+    
+    # get distribution of realised K
+    realised_K <- tabulate(rowSums(source_realised_sampling), nbins = K[i])
     
     # create empty raster with correct properties
     raster_empty <- raster()
@@ -694,56 +709,94 @@ run_mcmc <- function(project,
     # produce posterior probability surface rasters
     prob_surface_split <- raster()
     prob_surface_mat <- 0
-    for (k in 1:K[i]) {
+    for (k in seq_len(K[i])) {
       
       if (create_maps) {
-        # get prob_surface for this K by smoothing
+        
+        # get prob surface for this K by smoothing
         prob_surface_split_mat <- kernel_smooth(source_lon_sampling[,k],
                                                 source_lat_sampling[,k],
                                                 breaks_lon,
                                                 breaks_lat)
+        
+        # flip and normalise
         prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
-        prob_surface_split_mat <- prob_surface_split_mat/sum(prob_surface_split_mat)
+        prob_surface_split_mat <- prob_surface_split_mat / sum(prob_surface_split_mat)
+        
       } else {
+        
+        # store dummy surface
         prob_surface_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
       }
       
-      # add raster layer
+      # add as raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
       raster::values(prob_surface_split_k)[is.na(raster::values(spatial_prior))] <- NA
       prob_surface_split <- raster::addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
-      prob_surface_mat <- prob_surface_mat + prob_surface_split_mat/K[i]
+      prob_surface_mat <- prob_surface_mat + prob_surface_split_mat / K[i]
     }
     
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
     values(prob_surface)[is.na(values(spatial_prior))] <- NA
     
+    # get probability surface over realised sources only
+    prob_surface_realised_mat <- 0
+    if (create_maps & K[i] > 1 & project$data$data_type == "prevalence") { 
+      
+      # get prob surface by smoothing
+      prob_surface_realised_mat <- kernel_smooth(source_lon_sampling[source_realised_sampling == TRUE],
+                                                 source_lat_sampling[source_realised_sampling == TRUE],
+                                                 breaks_lon,
+                                                 breaks_lat)
+      
+      # flip and normalise
+      prob_surface_realised_mat <- prob_surface_realised_mat[nrow(prob_surface_realised_mat):1,]
+      prob_surface_realised_mat <- prob_surface_realised_mat / sum(prob_surface_realised_mat)
+    } else {
+      
+      # store dummy surface
+      prob_surface_realised_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+    }
+    
+    # make raster
+    prob_surface_realised <- setValues(raster_empty, prob_surface_realised_mat)
+    
     # produce geoprofile rasters
     geoprofile_split <- raster()
     geoprofile_mat <- 0
-    for (k in 1:K[i]) {
+    for (k in seq_len(K[i])) {
       
       if (create_maps) {
+        
         # make geoprofile matrix from probability surface
         geoprofile_split_mat <- rank(values(prob_surface_split[[k]]), ties.method = "first")
         geoprofile_split_mat <- 100 * (1 - geoprofile_split_mat/max(geoprofile_split_mat, na.rm = TRUE))
+        
       } else {
+        
+        # store dummy surface
         geoprofile_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
       }
       
-      # add raster layer
+      # add as raster layer
       geoprofile_split_k <- setValues(raster_empty, geoprofile_split_mat)
       geoprofile_split <- addLayer(geoprofile_split, geoprofile_split_k)
     }
     
     # make combined raster
     geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
-    geoprofile_mat <- 100 * (1 - geoprofile_mat/max(geoprofile_mat, na.rm = TRUE))
+    geoprofile_mat <- 100 * (1 - geoprofile_mat / max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
     values(geoprofile)[is.na(values(spatial_prior))] <- NA
+    
+    # get groprofile over realised sources only
+    geoprofile_realised_mat <- rank(values(prob_surface_realised), ties.method = "first", na.last = FALSE)
+    geoprofile_realised_mat <- 100 * (1 - geoprofile_realised_mat / max(geoprofile_realised_mat, na.rm = TRUE))
+    geoprofile_realised <- setValues(raster_empty, geoprofile_realised_mat)
+    values(geoprofile_realised)[is.na(values(spatial_prior))] <- NA
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
@@ -759,7 +812,7 @@ run_mcmc <- function(project,
       if (is(tc, "error")) {
         return(NA)
       } else {
-        return(effectiveSize(x))
+        return(coda::effectiveSize(x))
       }
     })
     names(ESS) <- rung_names
@@ -787,19 +840,19 @@ run_mcmc <- function(project,
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
-       if(args_model$n_binom == TRUE){
+       if (args_model$n_binom == TRUE) {
          alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
          alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
-       } else{
+       } else {
          alpha_accept_burnin <- alpha_accept_sampling <- NULL
        }
       
     } else {
       expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
       alpha_accept_burnin <- alpha_accept_sampling <- NULL
-
     } 
     
+    # get Metropolis coupling acceptance rates
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
     coupling_accept_sampling <- output_raw[[i]]$coupling_accept_sampling/(samples)
       
@@ -823,9 +876,12 @@ run_mcmc <- function(project,
                                                                     loglike_intervals_sampling = loglike_intervals_sampling,
                                                                     prob_surface_split = prob_surface_split,
                                                                     prob_surface = prob_surface,
+                                                                    prob_surface_realised = prob_surface_realised,
                                                                     geoprofile_split = geoprofile_split,
                                                                     geoprofile = geoprofile,
+                                                                    geoprofile_realised = geoprofile_realised,
                                                                     qmatrix = qmatrix,
+                                                                    realised_K = realised_K,
                                                                     sigma_intervals = sigma_intervals, 
                                                                     expected_popsize_intervals = expected_popsize_intervals,
                                                                     alpha_intervals = alpha_intervals, 
@@ -849,12 +905,14 @@ run_mcmc <- function(project,
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
                                                                   source_lon_burnin = source_lon_burnin,
                                                                   source_lat_burnin = source_lat_burnin,
+                                                                  source_realised_burnin = source_realised_burnin,
                                                                   sigma_burnin = sigma_burnin,
                                                                   expected_popsize_burnin = expected_popsize_burnin,
                                                                   alpha_burnin = alpha_burnin,
                                                                   loglike_sampling = loglike_sampling,
                                                                   source_lon_sampling = source_lon_sampling,
                                                                   source_lat_sampling = source_lat_sampling,
+                                                                  source_realised_sampling = source_realised_sampling,
                                                                   sigma_sampling = sigma_sampling,
                                                                   expected_popsize_sampling = expected_popsize_sampling,
                                                                   alpha_sampling = alpha_sampling)
@@ -873,7 +931,24 @@ run_mcmc <- function(project,
   
   # reorder qmatrices
   project <- align_qmatrix(project)
-
+  
+  # get matrix of realised K over all model K (assuming K > 1)
+  if (K_all > 1){
+    realised_K_all <- mapply(function(x) {
+      ret <- rep(NA, K_all)
+      tmp <- x$summary$realised_K
+      if (!is.null(tmp)) {
+        ret[seq_along(tmp)] <- tmp
+      }
+      return(ret)
+    }, project$output$single_set[[s]]$single_K)
+    colnames(realised_K_all) <- sprintf("model_K%s", seq_len(K_all))
+    rownames(realised_K_all) <- sprintf("realised_K%s", seq_len(K_all))
+    project$output$single_set[[s]]$all_K$realised_K <- realised_K_all
+  } else if (K_all == 1){
+    project$output$single_set[[s]]$all_K$realised_K <- NULL
+  }
+  
   # run ring-search prior to MCMC
   if (sum(project$data$frame$counts) > 0 | sum(project$data$frame$positive) > 0) {
     ringsearch <- ring_search(project, spatial_prior)
@@ -1151,13 +1226,13 @@ optimise_beta <- function(proj,
 #' @noRd
 ring_search <- function(project, r) {
   
+  # avoid "no visible binding" error
+  counts <- positive <- NULL
+  
   # check that there is at least one positive observation
   if (sum(project$data$frame$counts) == 0 & sum(project$data$frame$positive) == 0) {
     stop("ring search not possible: no positive counts")
   }
-  
-  # avoid "no visible binding" error
-  counts <- NULL
   
   # extract sentinel locations with at least one observation
   if(project$data$data_type == "counts"){
@@ -1232,5 +1307,42 @@ gini <- function(hs) {
     message("Hitscores contain NA values (most likely due to sources outside the search area) leading to NA Gini coefficients")
   }
 
+  return(ret)
+}
+
+#------------------------------------------------
+#' @title Calculate realised sources
+#'
+#' @description Produce a plot that indicates the suitable number of realised 
+#'              sources based upon sampling from the qmatrix.
+#'
+#' @param proj An rgeoprofile project
+#' @param n_samples how many times we sample from the qmatrix
+#' @param K the value of K to check. Note, there is no qmatrix for K = 1, all 
+#'          points are allocated to a single source 
+#'
+#' @export
+
+realised_sources <- function(proj, n_samples = 20, K = 2) {
+
+  # check inputs
+  assert_custom_class(proj, "rgeoprofile_project")
+  assert_single_pos_int(n_samples, zero_allowed = FALSE)
+  assert_greq(n_samples, 10, message = "at least 10 sampling iterations must be used")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+
+  # get qmatrix from project output and clean
+  qmat <- get_output(proj, "qmatrix", K = K, type = "summary")
+  qmat <- qmat[complete.cases(qmat),,drop = FALSE]
+  
+  # loop over samples, for each sample, use the qmatrix to decide which source
+  # this data point belongs to, then, make a note of the number of UNIQUE sources
+  # for this sample
+  ret <- mapply(function(i) {
+    group_allocation <- apply(qmat, 1, function(x) sample(length(x), 1, prob = x))
+    ret <- length(unique(group_allocation))
+    return(ret)
+  }, seq_len(n_samples))
+  
   return(ret)
 }

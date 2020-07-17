@@ -4,8 +4,7 @@
 \alias{plot_trace}
 \title{Produce MCMC trace plot}
 \usage{
-plot_trace(project, K = NULL, rung = NULL, col = "black",
-  phase = "sampling")
+plot_trace(project, K = NULL, rung = NULL, col = "black", phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function

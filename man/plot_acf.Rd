@@ -4,8 +4,7 @@
 \alias{plot_acf}
 \title{Produce MCMC autocorrelation plot}
 \usage{
-plot_acf(project, K = NULL, rung = NULL, col = "black",
-  phase = "sampling")
+plot_acf(project, K = NULL, rung = NULL, col = "black", phase = "sampling")
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function

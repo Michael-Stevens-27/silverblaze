@@ -4,9 +4,15 @@
 \alias{optimise_beta}
 \title{Optimise beta values for MCMC rungs}
 \usage{
-optimise_beta(proj, K = 3, target_acceptance = 0.4,
-  max_iterations = 100, beta_init = seq(0, 1, l = 10),
-  silent = FALSE, ...)
+optimise_beta(
+  proj,
+  K = 3,
+  target_acceptance = 0.4,
+  max_iterations = 100,
+  beta_init = seq(0, 1, l = 10),
+  silent = FALSE,
+  ...
+)
 }
 \arguments{
 \item{proj}{An rgeoprofile project}

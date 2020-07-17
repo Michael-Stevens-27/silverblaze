@@ -4,9 +4,18 @@
 \alias{overlay_geoprofile}
 \title{Add geoprofile to dynamic map}
 \usage{
-overlay_geoprofile(myplot, project, K = NULL, source = NULL,
-  threshold = 0.1, col = col_hotcold(), opacity = 0.8,
-  smoothing = 1, legend = FALSE)
+overlay_geoprofile(
+  myplot,
+  project,
+  K = NULL,
+  source = NULL,
+  realised = FALSE,
+  threshold = 0.1,
+  col = col_hotcold(),
+  opacity = 0.8,
+  smoothing = 1,
+  legend = FALSE
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}
@@ -17,6 +26,8 @@ overlay_geoprofile(myplot, project, K = NULL, source = NULL,
 \item{K}{which value of K to plot.}
 
 \item{source}{which source to plot. If NULL then plot combined surface.}
+
+\item{realised}{if TRUE then plot surface for realised sources only.}
 
 \item{threshold}{what proportion of geoprofile to plot.}
 

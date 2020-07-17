@@ -38,6 +38,7 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   loglike_burnin = vector<vector<double>>(p->rungs, vector<double>(p->burnin));
   source_lon_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   source_lat_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
+  source_realised_burnin = vector<vector<bool>>(p->burnin, vector<bool>(p->K, false));
   sigma_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   ep_burnin =  vector<vector<double>>(p->burnin, vector<double>(p->K));
   alpha_burnin = vector<double>(p->burnin);
@@ -45,6 +46,7 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
   source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  source_realised_sampling = vector<vector<bool>>(p->samples, vector<bool>(p->K, false));
   sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   ep_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   alpha_sampling = vector<double>(p->samples);
@@ -132,6 +134,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
           log_qmatrix_running[i][k] = log_sum(log_qmatrix_running[i][k], particle_vec[cold_rung].log_qmatrix[i][label_order[k]]);
         }
       }
+      
+      // draw realised sources
+      sample_realised_sources(particle_vec[cold_rung].qmatrix, label_order, source_realised_burnin[rep]);
+      
     }
     
     // store loglikelihood
@@ -277,6 +283,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
         }
       }
       
+      // draw realised sources
+      sample_realised_sources(particle_vec[cold_rung].qmatrix, label_order, source_realised_sampling[rep]);
+      
     }
     
     // store loglikelihood
@@ -385,4 +394,36 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
     }
   }
 
+}
+
+//------------------------------------------------
+// draw from the posterior allocation of observations to sources
+void MCMC::sample_realised_sources(vector<vector<double>> &qmatrix, vector<int> const &label_order, vector<bool> &source_realised) {
+  
+  // currently only applies to prevalence model
+  if (d->data_type != 2) {
+    return;
+  }
+  
+  // sample allocation for each row of qmatrix
+  vector<int> rand_multinom(p->K);
+  for (int i = 0; i < d->n; ++i) {
+    
+    // skip if no observation at this site
+    if (d->positive[i] == 0) {
+      continue;
+    }
+    
+    // sample a source for each positive observation
+    rmultinom1(d->positive[i], qmatrix[i], 1.0, rand_multinom);
+    
+    // source is realised if any observation is allocated to ii
+    for (int j = 0; j < p->K; ++j) {
+      if (rand_multinom[label_order[j]] > 0) {
+        source_realised[j] = true;
+      }
+    }
+    
+  }  // end i loop
+  
 }

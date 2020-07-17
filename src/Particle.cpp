@@ -128,13 +128,16 @@ void Particle::reset(double beta) {
       } else if(p->ep_model == 2){
         for (int k = 0; k < p->K; ++k) {
           expected_popsize[k] = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
-        }  
+        }
       }
     } else if(d->data_type == 2){
-      expected_popsize = vector<double>(p->K, abs(rnorm1(p->ep_prior_mean, p->ep_prior_sd)));
+      for (int k = 0; k < p->K; ++k) {
+        expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
+      }
     }
   }
   
+  // draw alpha (negative binomial parameter) from prior
   alpha = exp(rnorm1(p->alpha_prior_meanlog, p->alpha_prior_sdlog));
   
   // initialise proposal standard deviations
@@ -185,7 +188,7 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
       ret = calculate_loglike_source_ind_exp_pop(source_lon_prop, source_lat_prop, k);
     } 
   }
-  } else if (d->data_type == 2) { // binomial data
+  } else if (d->data_type == 2) { // prevalence data
     ret = calculate_loglike_source_binom(source_lon_prop, source_lat_prop, k);
   } else if(d->data_type == 3){ // point pattern data
     ret = calculate_loglike_source_points(source_lon_prop, source_lat_prop, k);
@@ -213,7 +216,7 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
         update_sigma_pois_ind_exp_pop(robbins_monro_on, iteration);
       } 
     }    
-  } else if (d->data_type == 2) { // binomial data
+  } else if (d->data_type == 2) { // prevalence data
     update_sigma_binom(robbins_monro_on, iteration);
   } else if (d->data_type == 3){ // point pattern data
     update_sigma_points(robbins_monro_on, iteration);
@@ -224,38 +227,35 @@ void Particle::update_sigma(bool robbins_monro_on, int iteration) {
 // update expected popsize
 void Particle::update_expected_popsize(bool robbins_monro_on, int iteration) {
   
-  // return if using point pattern data
   // return if prior is exact
+  // return if using point pattern data
   if (p->ep_prior_sd == 0 || d->data_type == 3) {
     return;
   } 
   
   // update expected_popsize based on binomial or poisson model
-  if (d->data_type == 1) { // Poisson
-    if(p->count_type == 1) { // negative binomial count data
+  if (d->data_type == 1) { // count data
+    if (p->count_type == 1) { // negative binomial count data
       update_expected_popsize_negative_binomial_independent(robbins_monro_on, iteration);
     } else {
-      if(p->ep_model == 1){ 
+      if (p->ep_model == 1) { // single expected pop size
         update_expected_popsize_pois_single();
-      } else if(p->ep_model == 2){
+      } else if (p->ep_model == 2) { // independent expected pop size
         update_expected_popsize_pois_independent(robbins_monro_on, iteration);
-        // update_expected_popsize_pois_independent(robbins_monro_on);
-      } 
-    } 
-  } else if (d->data_type == 2) { // Binomial 
+      }
+    }
+  } else if (d->data_type == 2) { // prevalence data
     update_expected_popsize_binom(robbins_monro_on, iteration);
   }
 }
 
 //------------------------------------------------
-// update alpha
+// update alpha (negative binomial parameter)
 void Particle::update_alpha(bool robbins_monro_on, int iteration) {
   
-  // update 
-  if (d->data_type == 1 && p->count_type == 1) { // Poisson and negative binomial count data 
+  // update if using count data and negative binomial model
+  if (d->data_type == 1 && p->count_type == 1) {
     update_alpha_negative_binomial(robbins_monro_on, iteration);
-  } else{
-    return;
   }
 }
 
@@ -989,8 +989,8 @@ void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on, i
     //-----------------------------------------------------------------------------------------------------------------------
     
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape, p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape, p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1037,22 +1037,25 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
     
     // propose new value
     double ep_prop = rnorm1(expected_popsize[k], ep_propSD[k]);
-    ep_prop = (ep_prop < 0) ? -ep_prop : ep_prop;
-    ep_prop = (ep_prop < UNDERFLO) ? UNDERFLO : ep_prop;
+    if (ep_prop < 0) {
+      ep_prop *= -1;
+    }
+    if (ep_prop < UNDERFLO) {
+      ep_prop = UNDERFLO;
+    }
     
     // initialise running values
     double loglike_prop = 0;
     
-    // // loop through sentinel sites
+    // loop through sentinel sites
     for (int i = 0; i < d->n; ++i) {
-            
+      
       // recalculate hazard given new ep
       double dist = dist_source_data[i][k];
       log_hazard_height_prop[i] = log(ep_prop) + calculate_hazard(dist, sigma[k]);
       
-      double log_hazard_sum = log_hazard_height_prop[i];  
-      
       // sum hazard over sources while remaining in log space
+      double log_hazard_sum = log_hazard_height_prop[i];
       for (int j = 0; j < p->K; ++j) {
         
         if (j == k) {
@@ -1076,8 +1079,8 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
     }
     
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape / double(p->K), p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape / double(p->K), p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1120,9 +1123,6 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
       
     }  // end Metropolis-Hastings step
     
-    if(p->ep_model==1){
-        break;
-    }
   }  // end loop over sources
   
 }
@@ -1134,9 +1134,15 @@ void Particle::update_qmatrix() {
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
     
-    // skip if no observations at this site
-    if (d->counts[i] == 0) {
-      continue;
+    // dependent on data type - skip if no observation at this site
+    if(d->data_type == 1){
+      if (d->counts[i] == 0) {
+        continue;
+      }     
+    } else if(d->data_type == 2){
+      if (d->positive[i] == 0) {
+        continue;
+      }
     }
     
     // sum hazard over sources while remaining in log space
@@ -1168,9 +1174,21 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
     fill(cost_mat[k1].begin(), cost_mat[k1].end(), 0);
     for (int k2 = 0; k2 < p->K; ++k2) {
       for (int i = 0; i < d->n; ++i) {
-        if (d->counts[i] > 0) {
-          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] - log_qmatrix_running[i][k2]);
+        // update cost matrix based on data type and assuming data is positive
+        if (d->data_type == 1 && d->counts[i] > 0) { 
+          // count data
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
+        } else if(d->data_type == 2 && d->positive[i] > 0){ 
+          // prevalence data
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
+        } else if(d->data_type == 3){ 
+          // point pattern  
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
+                              - log_qmatrix_running[i][k2]);
         }
+      
       }
     }
   }
@@ -1330,7 +1348,7 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
 }
 
 //------------------------------------------------
-// update independent ep under a Poisson model for each source
+// update independent ep under a negative binomial model for each source
 void Particle::update_expected_popsize_negative_binomial_independent(bool robbins_monro_on, int iteration) {
   
   // loop through sources
@@ -1375,8 +1393,8 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
     //-----------------------------------------------------------------------------------------------------------------------
     
     // calculate priors
-    double logprior = dlnorm1(expected_popsize[k], p->ep_prior_meanlog, p->ep_prior_sdlog);
-    double logprior_prop = dlnorm1(ep_prop, p->ep_prior_meanlog, p->ep_prior_sdlog);
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape, p->ep_prior_rate));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape, p->ep_prior_rate));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1425,7 +1443,7 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
 }
 
 //------------------------------------------------
-// update independent ep under a Poisson model for each source
+// update independent ep under a negative binomial model for each source
 void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iteration) {
   
   // propose new value
@@ -1497,7 +1515,7 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
 // calculate the log hazard height dependent on the kernel
 double Particle::calculate_hazard(double dist, double single_scale) {
   
-  double hazard_height;  
+  double hazard_height = 0.0;  
   
   // update source based on dispersal kernel model
   if (p->dispersal_model == 1) {
@@ -1527,6 +1545,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // calculate bivariate Student's t height
     // hazard_height = log(cell_area);
   }
+  
   return hazard_height;
 }
 

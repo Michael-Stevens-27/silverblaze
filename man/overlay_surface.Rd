@@ -4,9 +4,18 @@
 \alias{overlay_surface}
 \title{Add posterior probability surface to dynamic map}
 \usage{
-overlay_surface(myplot, project, K = NULL, source = NULL,
-  threshold = 0.1, col = rev(col_hotcold()), opacity = 0.8,
-  smoothing = 1, legend = FALSE)
+overlay_surface(
+  myplot,
+  project,
+  K = NULL,
+  source = NULL,
+  realised = FALSE,
+  threshold = 0.1,
+  col = rev(col_hotcold()),
+  opacity = 0.8,
+  smoothing = 1,
+  legend = FALSE
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}
@@ -17,6 +26,8 @@ overlay_surface(myplot, project, K = NULL, source = NULL,
 \item{K}{which value of K to plot.}
 
 \item{source}{which source to plot. If NULL then plot combined surface.}
+
+\item{realised}{if TRUE then plot surface for realised sources only.}
 
 \item{threshold}{what proportion of posterior probability surface to plot.}
 

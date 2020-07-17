@@ -4,8 +4,14 @@
 \alias{overlay_ringsearch}
 \title{Add ring-search geoprofile to dynamic map}
 \usage{
-overlay_ringsearch(myplot, project, threshold = 0.1,
-  col = col_hotcold(), opacity = 0.8, smoothing = 1)
+overlay_ringsearch(
+  myplot,
+  project,
+  threshold = 0.1,
+  col = col_hotcold(),
+  opacity = 0.8,
+  smoothing = 1
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

@@ -34,6 +34,7 @@ public:
   std::vector<std::vector<double>> loglike_burnin;
   std::vector<std::vector<double>> source_lon_burnin;
   std::vector<std::vector<double>> source_lat_burnin;
+  std::vector<std::vector<bool>> source_realised_burnin;
   std::vector<std::vector<double>> sigma_burnin;
   std::vector<std::vector<double>> ep_burnin;
   std::vector<double> alpha_burnin;
@@ -41,6 +42,7 @@ public:
   std::vector<std::vector<double>> loglike_sampling;
   std::vector<std::vector<double>> source_lon_sampling;
   std::vector<std::vector<double>> source_lat_sampling;
+  std::vector<std::vector<bool>> source_realised_sampling;
   std::vector<std::vector<double>> sigma_sampling;
   std::vector<std::vector<double>> ep_sampling;
   std::vector<double> alpha_sampling;
@@ -71,5 +73,6 @@ public:
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void metropolis_coupling(bool burnin_phase);
+  void sample_realised_sources(std::vector<std::vector<double>> &qmatrix, std::vector<int> const &label_order, std::vector<bool> &source_realised);
   
 };

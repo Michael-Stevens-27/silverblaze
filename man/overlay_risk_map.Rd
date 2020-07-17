@@ -4,9 +4,18 @@
 \alias{overlay_risk_map}
 \title{Add risk surface to dynamic map}
 \usage{
-overlay_risk_map(myplot, project, K = NULL, source = NULL,
-  threshold = 0.1, col = rev(col_hotcold()), opacity = 0.8,
-  smoothing = 1, legend = FALSE, iterations = 50)
+overlay_risk_map(
+  myplot,
+  project,
+  K = NULL,
+  source = NULL,
+  threshold = 0.1,
+  col = rev(col_hotcold()),
+  opacity = 0.8,
+  smoothing = 1,
+  legend = FALSE,
+  iterations = 50
+)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function.}

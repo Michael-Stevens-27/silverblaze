@@ -388,7 +388,7 @@ plot_sigma <- function(project, K = NULL) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # get sigma model
@@ -737,7 +737,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # set default K to first value with output
@@ -824,7 +824,7 @@ plot_DIC_gelman <- function(project) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get DIC values
@@ -1011,7 +1011,7 @@ overlay_sentinels <- function(myplot,
     # get active set and check non-zero
     s <- project$active_set
     if (s == 0) {
-      stop("  no active parameter set")
+      stop("no active parameter set")
     }
     
     # get sentinel radius
@@ -1275,7 +1275,6 @@ overlay_spatial_prior <- function(myplot,
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
@@ -1283,7 +1282,7 @@ overlay_spatial_prior <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get spatial prior
@@ -1311,6 +1310,7 @@ overlay_spatial_prior <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of geoprofile to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of geoprofile (that is not invisible due to being
@@ -1335,60 +1335,65 @@ overlay_geoprofile <- function(myplot,
                                project,
                                K = NULL,
                                source = NULL,
+                               realised = FALSE,
                                threshold = 0.1,
                                col = col_hotcold(),
                                opacity = 0.8,
                                smoothing = 1,
                                legend  = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
+  
   # extract geoprofile
-  if (is.null(source)) {
-    geoprofile <- get_output(project, "geoprofile", K = K)
+  if (realised) {
+    geoprofile <- get_output(project, "geoprofile_realised", K = K)
   } else {
-    assert_leq(source, K)
-    geoprofile_split <- get_output(project, "geoprofile_split", K = K)
-    geoprofile <- geoprofile_split[[source]]
+    if (is.null(source)) {
+      geoprofile <- get_output(project, "geoprofile", K = K)
+    } else {
+      assert_leq(source, K)
+      geoprofile_split <- get_output(project, "geoprofile_split", K = K)
+      geoprofile <- geoprofile_split[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     geoprofile <- disaggregate(geoprofile, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   geoprofile_mat <- matrix(values(geoprofile), nrow(geoprofile), byrow = TRUE)
   geoprofile_mat[geoprofile_mat > threshold*100] <- NA
   geoprofile <- setValues(geoprofile, geoprofile_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity, project = FALSE)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(geoprofile), ymin(geoprofile),
                           xmax(geoprofile), ymax(geoprofile),
                           fill = FALSE, weight = 2, color = grey(0.2))
-
+  
   # add hitscore legend
-  if(legend == TRUE) {
-  hitscore_sequence <- seq(0, threshold, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = hitscore_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
+  if (legend == TRUE) {
+    hitscore_sequence <- seq(0, threshold, threshold / (length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = hitscore_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
   }
+  
   # return plot object
   return(myplot)
 }
@@ -1403,6 +1408,7 @@ overlay_geoprofile <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of posterior probability surface to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of posterior probability surface (that is not
@@ -1426,63 +1432,67 @@ overlay_surface <- function(myplot,
                             project,
                             K = NULL,
                             source = NULL,
+                            realised = FALSE,
                             threshold = 0.1,
                             col = rev(col_hotcold()),
                             opacity = 0.8,
                             smoothing = 1.0,
                             legend = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
-
+  
+  
   # extract geoprofile
-  if (is.null(source)) {
-    prob_surface <- get_output(project, "prob_surface", K = K)
+  if (realised) {
+    prob_surface <- get_output(project, "prob_surface_realised", K = K)
   } else {
-    assert_leq(source, K)
-    prob_surface_split <- get_output(project, "prob_surface_split", K = K)
-    prob_surface <- prob_surface[[source]]
+    if (is.null(source)) {
+      prob_surface <- get_output(project, "prob_surface", K = K)
+    } else {
+      assert_leq(source, K)
+      prob_surface_split <- get_output(project, "prob_surface_split", K = K)
+      prob_surface <- prob_surface[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     prob_surface <- disaggregate(prob_surface, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   prob_surface_mat <- matrix(values(prob_surface), nrow(prob_surface), byrow = TRUE)
   threshold_final <- sort(prob_surface_mat, decreasing = TRUE)[ceiling(length(prob_surface_mat)*threshold)]
   prob_surface_mat[prob_surface_mat < threshold_final] <- NA
   prob_surface <- setValues(prob_surface, prob_surface_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = prob_surface, colors = col, opacity = opacity)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(prob_surface), ymin(prob_surface),
                           xmax(prob_surface), ymax(prob_surface),
                           fill = FALSE, weight = 2, color = grey(0.2))
   
   # add legend
-  if(legend == TRUE) {
-  prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = prob_sequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
+  if (legend == TRUE) {
+    prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = prob_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
   }                        
-
+  
   # return plot object
   return(myplot)
 }
@@ -1510,6 +1520,7 @@ overlay_surface <- function(myplot,
 #'
 #' @import leaflet
 #' @importFrom grDevices grey
+#' @importFrom raster ncell
 #' @export
 #' 
 #' @examples
@@ -1528,26 +1539,25 @@ overlay_risk_map <- function(myplot,
                              smoothing = 1.0,
                              legend = FALSE,
                              iterations = 50) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
+  assert_single_pos_int(iterations)
+  
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # create risk map 
@@ -1562,32 +1572,33 @@ overlay_risk_map <- function(myplot,
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
   raster_dims <- dim(spatial_prior)
   
-  # create look up table
+  # get grid of raster cell locations
   grid_extent <- extent(spatial_prior)
   longrid <- seq(grid_extent[1], grid_extent[2], l = raster_dims[2])
   latgrid <- seq(grid_extent[3], grid_extent[4], l = raster_dims[1])
-  
-  # fix the second run through all the first, then shift the second and run 
-  # through all of the first again
   grid <- expand.grid(longrid, latgrid)
   grid <- data.frame(longitude = grid$Var1, latitude = grid$Var2)
   
   # how many iterations will this be done for
-  samples <- length(longs[,1])
-  chosen_iterations <- sample(1:samples, iterations)
-  ncells <- ncell(spatial_prior)
+  samples <- nrow(longs)
+  chosen_iterations <- sample(seq_len(samples), iterations)
+  ncells <- raster::ncell(spatial_prior)
   risk_map_matrix <- matrix(NA, ncol = iterations, nrow = ncells)
   
-  for(i in 1:iterations){
+  for (i in seq_len(iterations)) {
+    
     # get distances from each source to every grid cell
-    gc_dist <- mapply(function(x, y) {lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist}, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
+    gc_dist <- mapply(function(x, y) {
+        lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist
+      }, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
     
     # get heights of each cell on the mixture of normals
-    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], F)*dnorm(0, 0, sigmas[chosen_iterations[i],], F)
-    mixture_densities <- apply(densities, 1, mean)
+    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], FALSE) * dnorm(0, 0, sigmas[chosen_iterations[i],], FALSE)
     
-    # multiply by the expected popsize and then map to binom prob
-    hazard_values <- expected_popsizes[chosen_iterations[i]]*mixture_densities
+    # multiply by expected popsizes and take weighted average over sources
+    hazard_values <- rowSums(sweep(densities, 2, expected_popsizes[chosen_iterations[i],], "*"))
+    
+    # transform to [0,1] domain
     binom_prob <- hazard_values/(hazard_values + 1)
     
     # store risk map
@@ -1596,11 +1607,11 @@ overlay_risk_map <- function(myplot,
   
   # average over all risk_map values
   risk_map <- apply(risk_map_matrix, 1, mean)
-  risk_raster <- uniform_prior
+  risk_raster <- spatial_prior # (these values will be overwritten)
   
   # manipulate the values of the risk map to conform to the form a raster 
   # receives values
-  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = T))
+  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = TRUE))
   risk_raster <- setValues(risk_raster, apply(manipulated_value,1,rev))
     
   # apply smoothing
@@ -1805,7 +1816,7 @@ overlay_ringsearch <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # extract ringsearch output
