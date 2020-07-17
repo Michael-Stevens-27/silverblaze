@@ -1,14 +1,14 @@
 # silverblaze
-### Version 0.0.1 (pre-release)
+### Version 0.2.0 (pre-release)
 [![Travis build status](https://travis-ci.org/Michael-Stevens-27/silverblaze.svg?branch=master)](https://travis-ci.org/Michael-Stevens-27/silverblaze)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/Michael-Stevens-27/silverblaze?branch=master&svg=true)](https://ci.appveyor.com/project/Michael-Stevens-27/silverblaze)
 
 --------------------------------------------------------------------------------------------------------------------------------
 
-The R package silverblaze builds on the foundations of the geographic profiling methododlogy by implementing information drawn from absence data. Using the locations of sentinel sites, each associated with a capture density, the model infers:
+Silverblaze offers a finite mixture model for Geographic Profiling. Through the package a user can 
 
-1. The most likely areas that contain a pre-specified number of sources.
-2. The dispersal paramter sigma.
-3. The underlying population density.
+* infer source locations and dispersal patterns - common desirable parameters in geographic profiling
+* make inferences via count,  prevalence and point pattern data   
+* specify a spatial prior in source locations via shape files
 
-This presence-absence model utilises MCMC algorithms (Metropolis-Hastings and Gibbs sampling) to infer these parameters. As stated silverblaze builds on an existing methododlogy. The package [RgeoProfile](https://github.com/bobverity/Rgeoprofile) uses a Dirchlet Process Mixture model (DPM) to solve the issue of multiple sources.           
+Silverblaze is a toolbox for geographic profiling that utilises different MCMC algorithms (Metropolis-Hastings coupling and Gibbs sampling) to infer the above parameters. The package [RgeoProfile](https://github.com/bobverity/Rgeoprofile) uses a Dirchlet Process Mixture model (DPM) to solve the issue of multiple sources.           

@@ -9,6 +9,7 @@ overlay_geoprofile(
   project,
   K = NULL,
   source = NULL,
+  realised = FALSE,
   threshold = 0.1,
   col = col_hotcold(),
   opacity = 0.8,
@@ -25,6 +26,8 @@ overlay_geoprofile(
 \item{K}{which value of K to plot.}
 
 \item{source}{which source to plot. If NULL then plot combined surface.}
+
+\item{realised}{if TRUE then plot surface for realised sources only.}
 
 \item{threshold}{what proportion of geoprofile to plot.}
 

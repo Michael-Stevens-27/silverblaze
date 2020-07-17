@@ -1,0 +1,477 @@
+---
+title: "Metropolis-Hastings Coupling"
+author: "Michael Stevens"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{"Metropolis-Hastings Coupling"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(silverblaze)
+library(ggplot2)
+library(raster)
+set.seed(9)
+```
+
+## Introduction
+
+Through the previous tutorials we have shown how parameters of interest associated with geographic profiling, such as source locations and dispersal patterns, can be inferred using count, prevalence and point-pattern data. The examples were cherry picked such that the MCMC algorithm converges on the correct answer. This is not always the case though. In this tutorial we will show an example of a difficult data set that is a real challenge for the MCMC algorithm.     
+
+## A difficult data set
+
+Firstly let's generate some count data, and then map it. We follow the standard procedure, simulating and then building a project `p`.  
+
+```{r, message = FALSE}
+# spatial prior
+sentinal_lon <- seq(-0.2, 0.0, l = 5)
+sentinal_lat <- seq(51.45, 51.55, l = 5)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+
+uniform_prior <- raster_grid(cells_lon = 100, cells_lat = 100,
+                             range_lat = range(sentinal_lat),
+                             range_lon = range(sentinal_lon), 
+                             guard_rail = 0.5)
+
+areaExtent <- extent(uniform_prior)
+
+sim1 <- sim_data(sentinel_lon = sentinal_grid$Var1,
+                 sentinel_lat = sentinal_grid$Var2,
+                 sigma_model = "single",
+                 sigma_mean = 1.5,
+                 sigma_var = 0,
+                 sentinel_radius = 0.3,
+                 K = 3,
+                 source_weights = NULL,
+                 expected_popsize = 1500,
+                 data_type = "counts")
+
+data_all <- sim1$record$data_all
+true_source <- sim1$record$true_source
+K_model <- 1:5
+
+# ------------------------------------------------------------------
+# create project and bind data
+p <- rgeoprofile_project()
+p <- bind_data(p, sim1$data, data_type = "counts")
+
+p <- new_set(project = p,
+             spatial_prior = uniform_prior,
+             sentinel_radius = 0.3,
+             sigma_model = "single",
+             sigma_prior_mean = 1.5,
+             sigma_prior_sd = 2,
+             expected_popsize_prior_mean = 1500, 
+             expected_popsize_prior_sd = 500,
+             expected_popsize_model = "single")
+             
+# plot data             
+plot1 <- plot_map()
+
+plot2 <- overlay_points(plot1, 
+                        data_all$longitude, 
+                        data_all$latitude, 
+                        size = 2,
+                        col = "purple")
+
+plot2 <- overlay_sources(plot2, true_source$longitude, true_source$latitude)
+
+plot2 <- overlay_spatial_prior(plot2, p, col = "red", opacity = 0.1)
+plot2 <- overlay_sentinels(plot2, 
+                          p, 
+                          fill_opacity = 0.9,
+                          fill = TRUE, 
+                          fill_colour = c(grey(0.7), "red"),
+                          border = c(FALSE, TRUE), 
+                          border_colour = "black", 
+                          border_weight = 0.5)
+plot2             
+```
+
+As we can see there is overlap in the clusters and sentinel sites have sparse coverage of the underlying data. 
+
+## Poor mixing 
+
+Let's run the MCMC algorithm to see how it fairs against this count data.
+
+```{r, eval = FALSE}
+p1 <- run_mcmc(project = p,
+               K = K_model,
+               rungs = 1,
+               create_maps = FALSE,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE)
+```
+
+ To ensure we are confident that MCMC algorithm is consitently finding the correct answer, let's run the above code five separate times and compare the output of each chain.  
+
+```{r, echo = FALSE}
+# projects <- list(logLikes = logLikes,
+#                   populationSize = populationSize,
+#                   sigmaSize = sigmaSize,
+#                   DICSize = DICSize,
+#                   logLikescouple = logLikescouple,
+#                   populationSizecouple = populationSizecouple,
+#                   sigmaSizecouple = sigmaSizecouple,
+#                   DICSizecouple = DICSizecouple)
+# saveRDS(projects, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/coupling_project.rds")
+projects <- rgeoprofile_file("coupling_project.rds")
+attach(projects)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+set.seed(126)
+p1 <- run_mcmc(project = p,
+               K = K_model,
+               rungs = 1,
+               create_maps = FALSE,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE)
+
+set.seed(360)
+p2 <- run_mcmc(project = p,
+               K = K_model,
+               rungs = 1,
+               create_maps = FALSE,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE)
+#
+set.seed(520)
+p3 <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 1,
+              create_maps = FALSE,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE)
+#
+set.seed(19)
+p4 <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 1,
+              create_maps = FALSE,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE)
+#
+set.seed(129)
+p5 <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 1,
+              create_maps = FALSE,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE)
+```
+
+Now the MCMC has finished running let's plot a few of the outputs. Here we plot the log-likelihood, the DIC and the estimates for sigma and the expected population size. 
+
+```{r, echo = FALSE, fig.height = 10, fig.width = 10}
+
+# HS1 <- do.call(rbind, lapply(FUN =function(X){get_output(p1, "loglike_intervals_sampling", X)}, X = K_model))
+# HS2 <- do.call(rbind, lapply(FUN =function(X){get_output(p2, "loglike_intervals_sampling", X)}, X = K_model))
+# HS3 <- do.call(rbind, lapply(FUN =function(X){get_output(p3, "loglike_intervals_sampling", X)}, X = K_model))
+# HS4 <- do.call(rbind, lapply(FUN =function(X){get_output(p4, "loglike_intervals_sampling", X)}, X = K_model))
+# HS5 <- do.call(rbind, lapply(FUN =function(X){get_output(p5, "loglike_intervals_sampling", X)}, X = K_model))
+# 
+# logLikes <- data.frame(rbind(HS1, HS2, HS3, HS4, HS5), chain = rep(1:5, each = 5), source = rep(1:5,5))
+# 
+# # process population size intervals
+# populationSize1 <- do.call(rbind, lapply(FUN =function(X){get_output(p1, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize2 <- do.call(rbind, lapply(FUN =function(X){get_output(p2, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize3 <- do.call(rbind, lapply(FUN =function(X){get_output(p3, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize4 <- do.call(rbind, lapply(FUN =function(X){get_output(p4, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize5 <- do.call(rbind, lapply(FUN =function(X){get_output(p5, "expected_popsize_intervals", X)}, X = K_model))
+# 
+# populationSize <- rbind(populationSize1, populationSize2, populationSize3, populationSize4, populationSize5)/1e3
+# populationSize <- data.frame(populationSize, chain = rep(1:5, each = 5), source = rep(1:5,5))
+# 
+# # process sigma size intervals
+# sigma1 <- do.call(rbind, lapply(FUN =function(X){get_output(p1, "sigma_intervals", X)}, X = K_model))
+# sigma2 <- do.call(rbind, lapply(FUN =function(X){get_output(p2, "sigma_intervals", X)}, X = K_model))
+# sigma3 <- do.call(rbind, lapply(FUN =function(X){get_output(p3, "sigma_intervals", X)}, X = K_model))
+# sigma4 <- do.call(rbind, lapply(FUN =function(X){get_output(p4, "sigma_intervals", X)}, X = K_model))
+# sigma5 <- do.call(rbind, lapply(FUN =function(X){get_output(p5, "sigma_intervals", X)}, X = K_model))
+# 
+# sigmaSize <- rbind(sigma1, sigma2, sigma3, sigma4, sigma5)
+# sigmaSize <- sigmaSize[complete.cases(sigmaSize),]
+# sigmaSize <- data.frame(sigmaSize, chain = rep(1:5, each = 5), source = rep(1:5,5))
+# # process sigma size intervals
+# 
+# DIC1 <- do.call(rbind, lapply(FUN =function(X){get_output(p1, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC2 <- do.call(rbind, lapply(FUN =function(X){get_output(p2, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC3 <- do.call(rbind, lapply(FUN =function(X){get_output(p3, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC4 <- do.call(rbind, lapply(FUN =function(X){get_output(p4, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC5 <- do.call(rbind, lapply(FUN =function(X){get_output(p5, "DIC_gelman", X, type = "summary")}, X = K_model))
+# 
+# DICSize <- rbind(DIC1, DIC2, DIC3, DIC4, DIC5)
+# DICSize <- DICSize[complete.cases(DICSize),]
+# DICSize <- data.frame(DIC = DICSize, chain = rep(1:5, each = 5), source = rep(1:5,5))
+
+jittering <- rep(c( -0.2, -0.1, 0, 0.1, 0.2), each = 5)
+
+Loglikeplot <- ggplot(logLikes, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+                ylab("Loglikelihood") +
+                xlab("Source") +
+                theme(legend.position = "none") +
+                theme(text = element_text(size = 10))
+
+popSizePlot <- ggplot(populationSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+                geom_abline(slope = 0, intercept = 1.5, col = "red") + 
+                ylab("Expected population size (thousands)") +
+                xlab("Source") + 
+                theme(legend.position = "none") +
+                theme(text = element_text(size = 10)) #+ 
+                # ylim(c(9,23))
+
+sigmaPlot <- ggplot(sigmaSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+              geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+              geom_abline(slope = 0, intercept = 1.5, col = "red") +
+              ylab("Sigma") +
+              xlab("Source") +
+              theme(legend.position = "none") +
+              theme(text = element_text(size = 10))# +
+              # ylim(c(0.4,1.8))
+
+DICPlot <- ggplot(DICSize, aes(x = source, y = DIC, col = as.character(chain))) + theme_bw() +  
+              geom_line(size = 1) +
+              ylab("DIC") +
+              xlab("Source") +
+              theme(legend.position = "none") +
+              theme(text = element_text(size = 10))# +
+              # ylim(c(0.4,1.8))
+
+# mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+Loglikeplot
+DICPlot
+sigmaPlot
+popSizePlot
+
+```
+
+In each case we can see the output of the MCMC chains when the mixture is composed of from one to five components. The horizontal line in sigma and expected population size plots indicate the true value. When the model is only searching for one mixture component (`K = 1`) the five MCMC chains agree with one another. However, when we switch to a `K = 2` model the chains start to disagree with one another. Parameter estimates for sigma and the expected population size are failing to reach the correct values. Following our DIC metric (minimum DIC for the appropriate `K`), some chains reach the conclusion that `K = 2` is the best model to use, whereas some conclude that it is the worst. Although we discussed metrics for model validation in the [previous tutorial](https://michael-stevens-27.github.io/silverblaze/articles/model-validation.html), MCMC chains that disagree with one another indicates that the algorithm is failing to mix properly.
+
+## Metropolis-Hastings coupling
+
+
+
+## Revisiting a difficult problem
+
+Now that we have a process to improve the mixing of our MCMC algorithm, let's return to the difficult data set from earlier. Metropolis-Hastings coupling can be turned on by setting the `coupling_on` argument to `TRUE` in the `run_mcmc()` function. You can set the number of heated rungs using the `rungs` argument. This produces a sequence from zero to one of length `rungs`. The "hotness" of each chain is then controlled using the `GTI_pow`. The sequences of rungs is raised to this power to control the total heat. 
+
+Let's run the model again using these arguments.   
+
+```{r, eval = F}
+p1couple <- run_mcmc(project = p,
+               K = K_model,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE,
+               coupling_on = TRUE, # turn coupling on
+               rungs = 10,         # the number of rungs used
+               GTI_pow = 2,        # the thermodynamic power
+               create_maps = FALSE)
+```
+
+Again let's repeat the above five times and compare the same outputs. 
+
+```{r, echo = F, eval = F}
+set.seed(126)
+p1couple <- run_mcmc(project = p,
+               K = K_model,
+               rungs = 10,
+               coupling_on = TRUE,
+               GTI_pow = 2,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE,
+               create_maps = FALSE)
+#
+set.seed(360)
+p2couple <- run_mcmc(project = p,
+               K = K_model,
+               rungs = 10,
+               coupling_on = TRUE,
+               GTI_pow = 2,
+               burnin = 5e3,
+               samples = 5e3,
+               converge_test = 1e3,
+               auto_converge = TRUE,
+               create_maps = FALSE)
+#
+set.seed(520)
+p3couple <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 10,
+              coupling_on = TRUE,
+              GTI_pow = 2,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE,
+              create_maps = FALSE)
+#
+set.seed(19)
+p4couple <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 10,
+              coupling_on = TRUE,
+              GTI_pow = 2,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE,
+              create_maps = FALSE)
+#
+set.seed(129)
+p5couple <- run_mcmc(project = p,
+              K = K_model,
+              rungs = 10,
+              coupling_on = TRUE,
+              GTI_pow = 2,
+              burnin = 5e3,
+              samples = 5e3,
+              converge_test = 1e3,
+              auto_converge = TRUE,
+              create_maps = FALSE)
+              
+```
+
+```{r, echo = F, fig.height = 10, fig.width = 10}
+
+# HS1couple <- do.call(rbind, lapply(FUN =function(X){get_output(p1couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
+# HS2couple <- do.call(rbind, lapply(FUN =function(X){get_output(p2couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
+# HS3couple <- do.call(rbind, lapply(FUN =function(X){get_output(p3couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
+# HS4couple <- do.call(rbind, lapply(FUN =function(X){get_output(p4couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
+# HS5couple <- do.call(rbind, lapply(FUN =function(X){get_output(p5couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
+# 
+# logLikescouple <- data.frame(rbind(HS1couple, HS2couple, HS3couple, HS4couple, HS5couple), chain = rep(1:5, each = 5), source = rep(1:5,5))
+# 
+# # process population size intervals
+# populationSize1couple <- do.call(rbind, lapply(FUN =function(X){get_output(p1couple, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize2couple <- do.call(rbind, lapply(FUN =function(X){get_output(p2couple, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize3couple <- do.call(rbind, lapply(FUN =function(X){get_output(p3couple, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize4couple <- do.call(rbind, lapply(FUN =function(X){get_output(p4couple, "expected_popsize_intervals", X)}, X = K_model))
+# populationSize5couple <- do.call(rbind, lapply(FUN =function(X){get_output(p5couple, "expected_popsize_intervals", X)}, X = K_model))
+# 
+# populationSizecouple <- data.frame(rbind(populationSize1couple, 
+#                                          populationSize2couple, 
+#                                          populationSize3couple, 
+#                                          populationSize4couple, 
+#                                          populationSize5couple)/1e3, chain = rep(1:5, each = 5), source = rep(1:5,5))
+# 
+# # process sigma size intervals
+# sigma1couple <- do.call(rbind, lapply(FUN =function(X){get_output(p1couple, "sigma_intervals", X)}, X = K_model))
+# sigma2couple <- do.call(rbind, lapply(FUN =function(X){get_output(p2couple, "sigma_intervals", X)}, X = K_model))
+# sigma3couple <- do.call(rbind, lapply(FUN =function(X){get_output(p3couple, "sigma_intervals", X)}, X = K_model))
+# sigma4couple <- do.call(rbind, lapply(FUN =function(X){get_output(p4couple, "sigma_intervals", X)}, X = K_model))
+# sigma5couple <- do.call(rbind, lapply(FUN =function(X){get_output(p5couple, "sigma_intervals", X)}, X = K_model))
+# 
+# sigmaSizecouple <- rbind(sigma1couple, sigma2couple, sigma3couple, sigma4couple, sigma5couple)
+# sigmaSizecouple <- sigmaSizecouple[complete.cases(sigmaSizecouple),]
+# sigmaSizecouple <- data.frame(sigmaSizecouple, chain = rep(1:5, each = 5), source = rep(1:5,5))
+# 
+# 
+# # process new DIC
+# DIC1couple <- do.call(rbind, lapply(FUN =function(X){get_output(p1couple, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC2couple <- do.call(rbind, lapply(FUN =function(X){get_output(p2couple, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC3couple <- do.call(rbind, lapply(FUN =function(X){get_output(p3couple, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC4couple <- do.call(rbind, lapply(FUN =function(X){get_output(p4couple, "DIC_gelman", X, type = "summary")}, X = K_model))
+# DIC5couple <- do.call(rbind, lapply(FUN =function(X){get_output(p5couple, "DIC_gelman", X, type = "summary")}, X = K_model))
+# 
+# DICSizecouple <- rbind(DIC1couple, DIC2couple, DIC3couple, DIC4couple, DIC5couple)
+# DICSizecouple <- DICSizecouple[complete.cases(DICSizecouple),]
+# DICSizecouple <- data.frame(DIC = DICSizecouple, chain = rep(1:5, each = 5), source = rep(1:5,5))
+
+
+Loglikeplot <- ggplot(logLikescouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+                ylab("Loglikelihood") +
+                xlab("Source") +
+                theme(legend.position = "none") +
+                theme(text = element_text(size = 10))
+
+popSizePlot <- ggplot(populationSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+                geom_abline(slope = 0, intercept = 1.5, col = "red") + 
+                ylab("Expected population size (thousands)") +
+                xlab("Source") + 
+                theme(legend.position = "none") +
+                theme(text = element_text(size = 10)) #+ 
+                # ylim(c(9,23))
+
+sigmaPlot <- ggplot(sigmaSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+              geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+              geom_abline(slope = 0, intercept = 1.5, col = "red") +
+              ylab("Sigma") +
+              xlab("Source") +
+              theme(legend.position = "none") +
+              theme(text = element_text(size = 10))# +
+              # ylim(c(0.4,1.8))
+
+DICPlot <- ggplot(DICSizecouple, aes(x = source, y = DIC, col = as.character(chain))) + theme_bw() +  
+              geom_line(size = 1) +
+              ylab("DIC") +
+              xlab("Source") +
+              theme(legend.position = "none") +
+              theme(text = element_text(size = 10))# +
+              # ylim(c(0.4,1.8))
+
+# mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
+Loglikeplot
+DICPlot
+sigmaPlot
+popSizePlot
+
+```
+
+Perfect! Our MCMC chains agree with one another. The DIC line plots are all very similar, they all correctly conclude that `K = 3` is the most suitable number of sources to describe the data (we simulated under a `K = 3` model).   
+
+## Optimising beta values
+
+We may not always know a suitable value for `GTI_pow` or the number of rungs that we need to ensure healthy mixing. Hence, silverblaze offers the `optimise_beta()` function to do this for us. This function will run the model a maximum number of times (`max_iterations`) each time checking if the transition acceptance rate between heated rungs is above a certain threshold, `target_acceptance`. If the transition probability between two rungs is less than the target and each rung has heats $a$ and $b$ then the function will place a new rung between these two, with heat $\frac{a + b}{2}$. The `beta_init` argument allows us to specify where the heat will start. An example of is shown and executed below.  
+
+```{r, eval = TRUE}
+# beta_k <- silverblaze:::optimise_beta(proj = p, 
+#                                       K = 3, 
+#                                       target_acceptance = 0.5, 
+#                                       max_iterations = 2,
+#                                       beta_init = seq(0,1, l = 10), 
+#                                       coupling_on = TRUE,
+#                                       burnin = 5e2,
+#                                       converge_test = 1e2,
+#                                       samples = 10,
+#                                       create_maps = FALSE,
+#                                       pb_markdown = TRUE)
+```
+
+As we can see this code will output the `K_model` chosen, the iteration, the number of rungs, each rungs heat and transition probabilities with neighbouring rungs. We start with 10 rungs in the first iteration, and 2 of the probabilities are less than 0.5, hence the total rungs is bumped up by 2 in the next iteration. When running the MCMC algorithm for real, we pass these beta values over to the `run_mcmc()` function as shown here.   
+
+```{r, eval = F}
+p1couple <- run_mcmc(project = p,
+                     K = K_model,
+                     burnin = 5e3,
+                     samples = 5e3,
+                     converge_test = 1e3,
+                     auto_converge = TRUE,
+                     coupling_on = TRUE, 
+                     beta_manual = beta_k$beta_vec[[2]])
+```
+
+## References

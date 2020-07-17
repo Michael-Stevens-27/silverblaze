@@ -10,7 +10,7 @@ plot_expected_popsize(project, K = NULL)
 \item{project}{an RgeoProfile project, as produced by the function
 \code{rgeoprofile_project()}.}
 
-\item{K}{which value of K to plot.}
+\item{K}{which value of K to produce the plot for.}
 }
 \description{
 TODO
@@ -20,5 +20,5 @@ TODO
 }
 \examples{
 \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-plot_expected_popsize(project = p)
+plot_expected_popsize(project = p, K = 1)
 }

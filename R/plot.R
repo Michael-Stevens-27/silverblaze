@@ -117,7 +117,8 @@ theme_empty <- function() {
 #' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
 #'   auto-chosen lower limit. 3 = double-log scale.
 #' @param phase which phase to plot. Must be either "burnin" or "sampling".
-#'
+#' @param legend switches the legend for thermondynamic power on or off
+#' 
 #' @import ggplot2
 #' @importFrom grDevices grey
 #' @export
@@ -126,7 +127,8 @@ plot_loglike <- function(project,
                          K = 1, 
                          x_axis_type = 1, 
                          y_axis_type = 1, 
-                         phase = "sampling") {
+                         phase = "sampling", 
+                         legend = TRUE) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -134,6 +136,7 @@ plot_loglike <- function(project,
   assert_in(x_axis_type, 1:2)
   assert_in(y_axis_type, 1:3)
   assert_in(phase, c("burnin", "sampling"))
+  assert_single_logical(legend)
   
   # get output
   beta_vec <- get_output(project, type = "summary", name = "beta_vec", K = K)
@@ -191,15 +194,18 @@ plot_loglike <- function(project,
   plot1 <- plot1 + geom_vline(aes(xintercept = x_vec), col = grey(0.9))
   plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
   plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50, color = ~col))
-  plot1 <- plot1 + xlab(x_lab) + ylab(y_lab)
-  plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
+  plot1 <- plot1 + xlab(x_lab) + ylab(y_lab) + theme(legend.position = "none")
+  
+  if(legend == TRUE){
+    plot1 <- plot1 + scale_colour_gradientn(colours = c("red", "blue"), name = "thermodynamic\npower", limits = c(0,1))
+  }
   
   # define y-axis
   if (y_axis_type == 2) {
     y_min <- quantile(df$Q2.5, probs = 0.5)
     y_max <- max(df$Q97.5)
     plot1 <- plot1 + coord_cartesian(ylim = c(y_min, y_max))
-  } else if (y_axis_type == 3) {
+  } else if (y_axis_type == 3 & legend == TRUE) {
     plot1 <- plot1 + scale_y_continuous(trans = "log10")
   }
   
@@ -313,7 +319,11 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
     m <- unclass(qmatrix_list[[i]])
     m <- m[!is.na(m[,1]), , drop = FALSE]
     n <- nrow(m)
-    df <- rbind(df, data.frame(K = as.numeric(K[i]), ind = rep(1:n,each=K[i]), k = as.factor(rep(1:K[i],times=n)), val = as.vector(t(m))))
+    df <- rbind(df, 
+                data.frame(K = as.numeric(K[i]), 
+                           ind = rep(1:n, each = K[i]), 
+                           k = as.factor(rep(1:K[i], times = n)), 
+                           val = as.vector(t(m))))
   }
 
   # produce basic plot
@@ -378,7 +388,7 @@ plot_sigma <- function(project, K = NULL) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # get sigma model
@@ -416,32 +426,84 @@ plot_sigma <- function(project, K = NULL) {
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.
-#' @param K which value of K to plot.
+#' @param K which value of K to produce the plot for.
 #'
 #' @import ggplot2
 #' @export
 #' 
 #' @examples
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' plot_expected_popsize(project = p)
+#' plot_expected_popsize(project = p, K = 1)
 
 plot_expected_popsize <- function(project, K = NULL) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  
+  # single or independent expected population size?
+  s <- project$active_set
+  expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_model
+      
   # get output
   expected_popsize_intervals <- get_output(project, "expected_popsize_intervals", K)
-
+  
+  # set plotting params
+  if(expected_popsize_model == "single"){
+    K <- 1
+    xlabel <- ""
+  } else if(expected_popsize_model == "independent"){   
+    xlabel <- as.character(1:K)
+  }  
+  
   # produce plot
   plot1 <- ggplot(expected_popsize_intervals) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
-  plot1 <- plot1 + geom_point(aes_(x = 1, y = ~Q50))
+  plot1 <- plot1 + geom_segment(aes_(x = 1:K, y = ~Q2.5, xend = 1:K, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = 1:K, y = ~Q50))
   plot1 <- plot1 + scale_y_continuous(limits = c(0, max(expected_popsize_intervals$Q97.5)*1.1), expand = c(0,0))
-  plot1 <- plot1 + xlab("") + ylab("expected population size")
+  plot1 <- plot1 + xlab(xlabel) + ylab("expected population size")
+
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot alpha 95\% credible intervals
+#'
+#' @description Plot the over dispersion parameter alpha, in accordance with 
+#'              a negative binomial model
+#'
+#' @details TODO
+#'
+#' @param project an RgeoProfile project, as produced by the function
+#'                \code{rgeoprofile_project()}.
+#' @param K which value of K to produce the plot for.
+#'
+#' @import ggplot2
+#' @export
+#' 
+#' @examples 
+#' # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' # plot_alpha(project = p)
+
+plot_alpha <- function(project, K = NULL) {
+
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_single_pos_int(K, zero_allowed = FALSE)
+  
+  # single or independent expected population size?
+  s <- project$active_set
+      
+  # get output
+  alpha_intervals <- get_output(project, "alpha_intervals", K)
+  
+  # produce plot
+  plot1 <- ggplot(alpha_intervals) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = "", y = ~Q50))
+  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(alpha_intervals$Q97.5)*1.1), expand = c(0,0))
+  plot1 <- plot1 + xlab("") + ylab("alpha") + ggtitle("Alpha - 95% confidence interval")
 
   # return plot object
   return(plot1)
@@ -457,7 +519,8 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' @param K which value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
-#'
+#' @param phase plot the trace during the burnin or sampling phase
+#' 
 #' @import ggplot2
 #' @export
 #' 
@@ -467,7 +530,7 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' # Similarly, plot the trace for every K value.
 #' plot_trace(project = p)
 
-plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_trace <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -477,15 +540,20 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
   
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }
   
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # get into ggplot format
   df <- data.frame(x = 1:length(loglike), y = loglike)
@@ -515,6 +583,7 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param K which value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
+#' @param phase plot the acf during the burnin or sampling phase
 #'
 #' @import ggplot2
 #' @export
@@ -523,7 +592,7 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_acf(project = p)
 
-plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_acf <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -533,15 +602,20 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
 
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
-
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }
+  
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # store variable to plot
   v <- loglike
@@ -577,6 +651,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' @param K value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
 #' @param col colour of the trace.
+#' @param phase plot the acf during the burnin or sampling phase.
 #'
 #' @import ggplot2
 #' @export
@@ -585,7 +660,7 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_density(project = p)
 
-plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_density <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -595,15 +670,20 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("burnin", "sampling"))
 
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
+  if(phase == "sampling"){
+    loglike_mat <- get_output(project, "loglike_sampling", K, "raw")
+  } else if(phase == "burnin"){
+    loglike_mat <- get_output(project, "loglike_burnin", K, "raw")
+  }  
 
   # use cold rung by default
-  rungs <- ncol(loglike_sampling)
+  rungs <- ncol(loglike_mat)
   rung <- define_default(rung, rungs)
   assert_leq(rung, rungs)
-  loglike <- as.vector(loglike_sampling[,rung])
+  loglike <- as.vector(loglike_mat[,rung])
 
   # get into ggplot format
   df <- data.frame(v = loglike)
@@ -657,7 +737,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
   
   # set default K to first value with output
@@ -744,7 +824,7 @@ plot_DIC_gelman <- function(project) {
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get DIC values
@@ -931,7 +1011,7 @@ overlay_sentinels <- function(myplot,
     # get active set and check non-zero
     s <- project$active_set
     if (s == 0) {
-      stop("  no active parameter set")
+      stop("no active parameter set")
     }
     
     # get sentinel radius
@@ -978,6 +1058,145 @@ overlay_sentinels <- function(myplot,
   # return plot object
   return(myplot)
 }
+
+#------------------------------------------------
+#' @title Add trial sites to dynamic map
+#'
+#' @description Add trial sites to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function
+#'   \code{rgeoprofile_project()}.
+#' @param fill whether to fill circles.
+#' @param fill_colour colour of circle fill.
+#' @param fill_opacity fill opacity.
+#' @param border whether to add border to circles.
+#' @param border_colour colour of circle borders.
+#' @param border_weight thickness of circle borders.
+#' @param border_opacity opacity of circle borders.
+#' @param legend whether to add a legend for site count.
+#' @param site_radius radius in Km shown at each site
+#' @param plot_type plot trial sites as circles or piecharts
+#'
+#' @import leaflet
+#' @importFrom grDevices grey
+#' @export
+#' 
+#' @examples
+#' #\dontshow{p <- rgeoprofile_file("tutorial2_project.rds")}
+#' #plot1 <- plot_map()
+#' #plot1 <- overlay_trial_sites(plot1, project = p, fill_opacity = 0.9, fill = TRUE,
+#' #                           fill_colour = c(grey(0.7), "red"), border = c(FALSE, TRUE),
+#' #                           border_colour = "black",border_weight = 0.5)
+#' #plot1
+
+overlay_trial_sites <- function(myplot,
+                                project,
+                                fill = TRUE,
+                                fill_colour = c(grey(0.5), "red"),
+                                fill_opacity = 0.5,
+                                border = FALSE,
+                                border_colour = "black",
+                                border_weight = 1,
+                                border_opacity = 1.0,
+                                legend = FALSE,
+                                site_radius = 20,
+                                plot_type = "piecharts") {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_logical(fill)
+  assert_vector(fill)
+  assert_in(length(fill), c(1,2))
+  if (length(fill) == 1) {
+    fill <- rep(fill, 2)
+  }
+  assert_string(fill_colour)
+  assert_vector(fill_colour)
+  # assert_in(length(fill_colour), c(1,2))
+  if (length(fill_colour) == 1) {
+    fill_colour <- rep(fill_colour, 2)
+  }
+  assert_single_pos(fill_opacity)
+  assert_bounded(fill_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_logical(border)
+  assert_vector(border)
+  assert_in(length(border), c(1,2))
+  if (length(border) == 1) {
+    border <- rep(border, 2)
+  }
+  assert_string(border_colour)
+  assert_vector(border_colour)
+  # assert_in(length(border_colour), c(1,2))
+  if (length(border_colour) == 1) {
+    border_colour <- rep(border_colour, 2)
+  }
+  assert_single_pos(border_opacity)
+  assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_logical(legend)
+  assert_single_pos_int(site_radius)
+  assert_in(plot_type, c("circles", "piecharts"))
+  
+  # check for data
+  df <- project$data$frame
+  if (is.null(df)) {
+    stop("no data loaded")
+  }
+  
+  if(plot_type == "circles")  {
+  # make circle attributes depend on counts
+  n <- nrow(df)
+  fill_vec <- rep(fill[1], n)
+  
+  fill_vec[df$positive > 0] <- fill[2]
+  fill_colour_vec <- rep(fill_colour[1], n)
+  fill_colour_vec[df$positive > 0] <- fill_colour[2]
+  border_vec <- rep(border[1], n)
+  
+  border_vec[df$positive > 0] <- border[2]
+  border_colour_vec <- rep(border_colour[1], n)
+  border_colour_vec[df$positive > 0] <- border_colour[2]
+  
+  # overlay circles
+  myplot <- addCircles(myplot, 
+                       lng = df$longitude, 
+                       lat = df$latitude,
+                       radius = site_radius,
+                       fill = fill_vec, 
+                       fillColor = fill_colour_vec, 
+                       fillOpacity = fill_opacity,
+                       stroke = border_vec, 
+                       color = border_colour_vec,
+                       opacity = border_opacity, 
+                       weight = border_weight)
+                        
+  } else if(plot_type == "piecharts"){
+    
+  # get data into ggplot format
+  lon <- project$data$frame$longitude
+  lat <- project$data$frame$latitude
+  positive <- project$data$frame$positive
+  tested <- project$data$frame$tested
+  # proportions <- positive/tested
+  
+  pie_size <- site_radius
+  df <- data.frame(positive = positive, 
+                   negative = tested - positive)
+
+  # overlay pie charts
+  myplot <- addMinicharts(myplot, lon, lat,
+                          type = "pie",
+                          chartdata = df,
+                          colorPalette = c("red", "grey"),
+                          width = pie_size,
+                          transitionTime = 20)
+  
+  
+  }
+  return(myplot)
+}
+
 
 #------------------------------------------------
 #' @title Add points to dynamic map
@@ -1056,7 +1275,6 @@ overlay_spatial_prior <- function(myplot,
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
@@ -1064,7 +1282,7 @@ overlay_spatial_prior <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # get spatial prior
@@ -1092,6 +1310,7 @@ overlay_spatial_prior <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of geoprofile to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of geoprofile (that is not invisible due to being
@@ -1116,61 +1335,65 @@ overlay_geoprofile <- function(myplot,
                                project,
                                K = NULL,
                                source = NULL,
+                               realised = FALSE,
                                threshold = 0.1,
                                col = col_hotcold(),
                                opacity = 0.8,
                                smoothing = 1,
                                legend  = FALSE) {
-
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
   assert_single_logical(legend)
-
+  
   # extract geoprofile
-  if (is.null(source)) {
-    geoprofile <- get_output(project, "geoprofile", K = K)
+  if (realised) {
+    geoprofile <- get_output(project, "geoprofile_realised", K = K)
   } else {
-    assert_leq(source, K)
-    geoprofile_split <- get_output(project, "geoprofile_split", K = K)
-    geoprofile <- geoprofile_split[[source]]
+    if (is.null(source)) {
+      geoprofile <- get_output(project, "geoprofile", K = K)
+    } else {
+      assert_leq(source, K)
+      geoprofile_split <- get_output(project, "geoprofile_split", K = K)
+      geoprofile <- geoprofile_split[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     geoprofile <- disaggregate(geoprofile, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   geoprofile_mat <- matrix(values(geoprofile), nrow(geoprofile), byrow = TRUE)
   geoprofile_mat[geoprofile_mat > threshold*100] <- NA
   geoprofile <- setValues(geoprofile, geoprofile_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity, project = FALSE)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(geoprofile), ymin(geoprofile),
                           xmax(geoprofile), ymax(geoprofile),
                           fill = FALSE, weight = 2, color = grey(0.2))
-
+  
   # add hitscore legend
-  if(legend == TRUE)
-  {
-  hitscoreSequence <- seq(0, threshold, threshold/(length(col) - 1))
-  pal <- colorNumeric(palette = col, domain = hitscoreSequence)
-  myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscoreSequence, title = "Hitscore", opacity = 1)
+  if (legend == TRUE) {
+    hitscore_sequence <- seq(0, threshold, threshold / (length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = hitscore_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = hitscore_sequence, title = "Hit score", opacity = 1)
   }
+  
   # return plot object
   return(myplot)
 }
@@ -1185,6 +1408,7 @@ overlay_geoprofile <- function(myplot,
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param source which source to plot. If NULL then plot combined surface.
+#' @param realised if TRUE then plot surface for realised sources only.
 #' @param threshold what proportion of posterior probability surface to plot.
 #' @param col set of plotting colours.
 #' @param opacity opacity of posterior probability surface (that is not
@@ -1192,6 +1416,7 @@ overlay_geoprofile <- function(myplot,
 #' @param smoothing what level of smoothing to apply to posterior probability
 #'   surface. Smoothing is applied using the \code{raster} function
 #'   \code{disaggregate}, with \code{method = "bilinear"}.
+#' @param legend whether or not a legend is plotted
 #'
 #' @import leaflet
 #' @importFrom grDevices grey
@@ -1207,52 +1432,214 @@ overlay_surface <- function(myplot,
                             project,
                             K = NULL,
                             source = NULL,
+                            realised = FALSE,
                             threshold = 0.1,
                             col = rev(col_hotcold()),
                             opacity = 0.8,
-                            smoothing = 1.0) {
-
+                            smoothing = 1.0,
+                            legend = FALSE) {
+  
   # check inputs
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-  assert_single_numeric(threshold)
+  assert_single_logical(realised)
   assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_string(col)
-  assert_single_numeric(opacity)
   assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
   assert_single_pos(smoothing)
   assert_greq(smoothing, 1.0)
-
+  assert_single_logical(legend)
+  
+  
   # extract geoprofile
-  if (is.null(source)) {
-    prob_surface <- get_output(project, "prob_surface", K = K)
+  if (realised) {
+    prob_surface <- get_output(project, "prob_surface_realised", K = K)
   } else {
-    assert_leq(source, K)
-    prob_surface_split <- get_output(project, "prob_surface_split", K = K)
-    prob_surface <- prob_surface[[source]]
+    if (is.null(source)) {
+      prob_surface <- get_output(project, "prob_surface", K = K)
+    } else {
+      assert_leq(source, K)
+      prob_surface_split <- get_output(project, "prob_surface_split", K = K)
+      prob_surface <- prob_surface[[source]]
+    }
   }
-
+  
   # apply smoothing
   if (smoothing > 1.0) {
     prob_surface <- disaggregate(prob_surface, smoothing, method = "bilinear")
   }
-
+  
   # apply threshold
   prob_surface_mat <- matrix(values(prob_surface), nrow(prob_surface), byrow = TRUE)
   threshold_final <- sort(prob_surface_mat, decreasing = TRUE)[ceiling(length(prob_surface_mat)*threshold)]
   prob_surface_mat[prob_surface_mat < threshold_final] <- NA
   prob_surface <- setValues(prob_surface, prob_surface_mat)
-
+  
   # overlay raster
   myplot <- addRasterImage(myplot, x = prob_surface, colors = col, opacity = opacity)
-
+  
   # add bounding rect
   myplot <- addRectangles(myplot, xmin(prob_surface), ymin(prob_surface),
                           xmax(prob_surface), ymax(prob_surface),
                           fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # add legend
+  if (legend == TRUE) {
+    prob_sequence <- seq(1 - threshold, 1, threshold/(length(col) - 1))
+    pal <- colorNumeric(palette = col, domain = prob_sequence)
+    myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Posterior\nprobability", opacity = 1)
+  }                        
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add risk surface to dynamic map
+#'
+#' @description Add posterior probability surface to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function.
+#' @param project an RgeoProfile project, as produced by the function
+#'   \code{rgeoprofile_project()}.
+#' @param K which value of K to plot.
+#' @param source which source to plot. If NULL then plot combined surface.
+#' @param threshold what proportion of posterior probability surface to plot.
+#' @param col set of plotting colours.
+#' @param opacity opacity of posterior probability surface (that is not
+#'   invisible due to being below threshold).
+#' @param smoothing what level of smoothing to apply to posterior probability
+#'   surface. Smoothing is applied using the \code{raster} function
+#'   \code{disaggregate}, with \code{method = "bilinear"}.
+#' @param legend whether or not a legend is plotted
+#' @param iterations the number of random parameter sets to generate and combine
+#'   risk maps
+#'
+#' @import leaflet
+#' @importFrom grDevices grey
+#' @importFrom raster ncell
+#' @export
+#' 
+#' @examples
+#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
+#' plot1 <- plot_map()
+#' plot1 <-overlay_surface(myplot = plot1, project = p, K = 2, source = NULL, threshold = 0.5)
+#' plot1
+
+overlay_risk_map <- function(myplot,
+                             project,
+                             K = NULL,
+                             source = NULL,
+                             threshold = 0.1,
+                             col = rev(col_hotcold()),
+                             opacity = 0.8,
+                             smoothing = 1.0,
+                             legend = FALSE,
+                             iterations = 50) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+  assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_string(col)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
+  assert_single_logical(legend)
+  assert_single_pos_int(iterations)
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # create risk map 
+  
+  # extract param values for the model run
+  longs <- get_output(project, name = "source_lon_sampling", type = "raw", K = K)
+  lats <- get_output(project, name = "source_lat_sampling", type = "raw", K = K)
+  sigmas <- get_output(project, name = "sigma_sampling", type = "raw", K = K)
+  expected_popsizes <- get_output(project, name = "expected_popsize_sampling", type = "raw", K = K)
+  
+  # get spatial prior
+  spatial_prior <- project$parameter_sets[[s]]$spatial_prior
+  raster_dims <- dim(spatial_prior)
+  
+  # get grid of raster cell locations
+  grid_extent <- extent(spatial_prior)
+  longrid <- seq(grid_extent[1], grid_extent[2], l = raster_dims[2])
+  latgrid <- seq(grid_extent[3], grid_extent[4], l = raster_dims[1])
+  grid <- expand.grid(longrid, latgrid)
+  grid <- data.frame(longitude = grid$Var1, latitude = grid$Var2)
+  
+  # how many iterations will this be done for
+  samples <- nrow(longs)
+  chosen_iterations <- sample(seq_len(samples), iterations)
+  ncells <- raster::ncell(spatial_prior)
+  risk_map_matrix <- matrix(NA, ncol = iterations, nrow = ncells)
+  
+  for (i in seq_len(iterations)) {
+    
+    # get distances from each source to every grid cell
+    gc_dist <- mapply(function(x, y) {
+        lonlat_to_bearing(x, y, grid$longitude, grid$latitude)$gc_dist
+      }, x = longs[chosen_iterations[i],], y = lats[chosen_iterations[i],])
+    
+    # get heights of each cell on the mixture of normals
+    densities <- dnorm(gc_dist, 0, sigmas[chosen_iterations[i],], FALSE) * dnorm(0, 0, sigmas[chosen_iterations[i],], FALSE)
+    
+    # multiply by expected popsizes and take weighted average over sources
+    hazard_values <- rowSums(sweep(densities, 2, expected_popsizes[chosen_iterations[i],], "*"))
+    
+    # transform to [0,1] domain
+    binom_prob <- hazard_values/(hazard_values + 1)
+    
+    # store risk map
+    risk_map_matrix[,i] <- binom_prob
+  }
+  
+  # average over all risk_map values
+  risk_map <- apply(risk_map_matrix, 1, mean)
+  risk_raster <- spatial_prior # (these values will be overwritten)
+  
+  # manipulate the values of the risk map to conform to the form a raster 
+  # receives values
+  manipulated_value <- t(matrix(risk_map, raster_dims[1], raster_dims[2], byrow = TRUE))
+  risk_raster <- setValues(risk_raster, apply(manipulated_value,1,rev))
+    
+  # apply smoothing
+  if (smoothing > 1.0) {
+    risk_mat <- disaggregate(risk_mat, smoothing, method = "bilinear")
+  }  
+  
+  # threshold = 1
+  # apply threshold
+  risk_map_mat <- matrix(values(risk_raster), nrow(risk_raster), byrow = TRUE)
+  threshold_final <- sort(risk_map_mat, decreasing = TRUE)[ceiling(length(risk_map_mat)*threshold)]
+  risk_map_mat[risk_map_mat < threshold_final] <- NA
+  risk_map <- setValues(risk_raster, risk_map_mat)
+  
+  # overlay raster
+  myplot <- addRasterImage(myplot, x = risk_raster, colors = col, opacity = opacity)
+
+  # add bounding rect
+  myplot <- addRectangles(myplot, xmin(risk_raster), ymin(risk_raster),
+                          xmax(risk_raster), ymax(risk_raster),
+                          fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # add legend
+  if(legend == TRUE) {
+  prob_sequence <- seq(0, threshold, threshold/(length(col) - 1))
+  pal <- colorNumeric(palette = col, domain = prob_sequence)
+  myplot <- addLegend(myplot, "bottomright", pal = pal, values = prob_sequence, title = "Trial\nProbability", opacity = 1)
+  }          
 
   # return plot object
   return(myplot)
@@ -1429,7 +1816,7 @@ overlay_ringsearch <- function(myplot,
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
-    stop("  no active parameter set")
+    stop("no active parameter set")
   }
 
   # extract ringsearch output

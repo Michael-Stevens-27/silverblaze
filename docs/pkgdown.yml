@@ -1,10 +1,15 @@
-pandoc: 1.19.2.1
-pkgdown: 1.4.1
+pandoc: 1.19.2.4
+pkgdown: 1.5.1
 pkgdown_sha: ~
 articles:
+  Binomial-basic-implementation: Binomial-basic-implementation.html
+  MHCoupling: MHCoupling.html
+  PointPattern-basic-implementation: PointPattern-basic-implementation.html
+  Poisson-basic-implementation: Poisson-basic-implementation.html
+  Variable-population: Variable-population.html
   Variable-sigma: Variable-sigma.html
-  basic-implementation: basic-implementation.html
   complex-spatial-priors: complex-spatial-priors.html
   installation: installation.html
   model-validation: model-validation.html
+last_built: 2020-06-23T10:53Z
 

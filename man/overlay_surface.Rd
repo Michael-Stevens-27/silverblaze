@@ -9,10 +9,12 @@ overlay_surface(
   project,
   K = NULL,
   source = NULL,
+  realised = FALSE,
   threshold = 0.1,
   col = rev(col_hotcold()),
   opacity = 0.8,
-  smoothing = 1
+  smoothing = 1,
+  legend = FALSE
 )
 }
 \arguments{
@@ -25,6 +27,8 @@ overlay_surface(
 
 \item{source}{which source to plot. If NULL then plot combined surface.}
 
+\item{realised}{if TRUE then plot surface for realised sources only.}
+
 \item{threshold}{what proportion of posterior probability surface to plot.}
 
 \item{col}{set of plotting colours.}
@@ -35,6 +39,8 @@ invisible due to being below threshold).}
 \item{smoothing}{what level of smoothing to apply to posterior probability
 surface. Smoothing is applied using the \code{raster} function
 \code{disaggregate}, with \code{method = "bilinear"}.}
+
+\item{legend}{whether or not a legend is plotted}
 }
 \description{
 Add posterior probability surface to dynamic map

@@ -34,29 +34,34 @@ public:
   std::vector<std::vector<double>> loglike_burnin;
   std::vector<std::vector<double>> source_lon_burnin;
   std::vector<std::vector<double>> source_lat_burnin;
+  std::vector<std::vector<bool>> source_realised_burnin;
   std::vector<std::vector<double>> sigma_burnin;
-  std::vector<double> ep_burnin;
+  std::vector<std::vector<double>> ep_burnin;
+  std::vector<double> alpha_burnin;
   
   std::vector<std::vector<double>> loglike_sampling;
   std::vector<std::vector<double>> source_lon_sampling;
   std::vector<std::vector<double>> source_lat_sampling;
+  std::vector<std::vector<bool>> source_realised_sampling;
   std::vector<std::vector<double>> sigma_sampling;
-  std::vector<double> ep_sampling;
+  std::vector<std::vector<double>> ep_sampling;
+  std::vector<double> alpha_sampling;
   
   // objects for storing acceptance rates
   std::vector<int> source_accept_burnin;
   std::vector<int> source_accept_sampling;
   std::vector<int> sigma_accept_burnin;
   std::vector<int> sigma_accept_sampling;
-  int ep_accept_burnin;
-  int ep_accept_sampling;
+  std::vector<int> ep_accept_burnin;
+  std::vector<int> ep_accept_sampling;
+  int alpha_accept_burnin;
+  int alpha_accept_sampling;
   std::vector<int> coupling_accept_burnin;
   std::vector<int> coupling_accept_sampling;
   
   // store convergence
   std::vector<bool> rung_converged;
-  int convergence_iteration;
-  
+  int convergence_iteration;  
   
   // PUBLIC FUNCTIONS
   
@@ -68,5 +73,6 @@ public:
   void burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress);
   void metropolis_coupling(bool burnin_phase);
+  void sample_realised_sources(std::vector<std::vector<double>> &qmatrix, std::vector<int> const &label_order, std::vector<bool> &source_realised);
   
 };

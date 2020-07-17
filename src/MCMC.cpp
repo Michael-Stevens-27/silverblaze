@@ -38,20 +38,26 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   loglike_burnin = vector<vector<double>>(p->rungs, vector<double>(p->burnin));
   source_lon_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
   source_lat_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
+  source_realised_burnin = vector<vector<bool>>(p->burnin, vector<bool>(p->K, false));
   sigma_burnin = vector<vector<double>>(p->burnin, vector<double>(p->K));
-  ep_burnin = vector<double>(p->burnin);
+  ep_burnin =  vector<vector<double>>(p->burnin, vector<double>(p->K));
+  alpha_burnin = vector<double>(p->burnin);
   
   loglike_sampling = vector<vector<double>>(p->rungs, vector<double>(p->samples));
   source_lon_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
   source_lat_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  source_realised_sampling = vector<vector<bool>>(p->samples, vector<bool>(p->K, false));
   sigma_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
-  ep_sampling = vector<double>(p->samples);
+  ep_sampling = vector<vector<double>>(p->samples, vector<double>(p->K));
+  alpha_sampling = vector<double>(p->samples);
   
   // objects for storing acceptance rates
   source_accept_burnin = vector<int>(p->K);
   source_accept_sampling = vector<int>(p->K);
   sigma_accept_burnin = vector<int>(p->K);
   sigma_accept_sampling = vector<int>(p->K);
+  ep_accept_burnin = vector<int>(p->K);
+  ep_accept_sampling = vector<int>(p->K);
   
   coupling_accept_burnin = vector<int>(p->rungs - 1);
   coupling_accept_sampling = vector<int>(p->rungs - 1);
@@ -99,6 +105,9 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       // update expected population size
       particle_vec[rung].update_expected_popsize(true, rep + 1);
       
+      // update alpha
+      particle_vec[rung].update_alpha(true, rep + 1);
+      
     } // end loop over rungs
     
     // apply Metropolis-coupling
@@ -125,6 +134,10 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
           log_qmatrix_running[i][k] = log_sum(log_qmatrix_running[i][k], particle_vec[cold_rung].log_qmatrix[i][label_order[k]]);
         }
       }
+      
+      // draw realised sources
+      sample_realised_sources(particle_vec[cold_rung].qmatrix, label_order, source_realised_burnin[rep]);
+      
     }
     
     // store loglikelihood
@@ -137,34 +150,35 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     for (int k = 0; k < p->K; ++k) {
       source_lon_burnin[rep][k] = particle_vec[cold_rung].source_lon[label_order[k]];
       source_lat_burnin[rep][k] = particle_vec[cold_rung].source_lat[label_order[k]];
-    }
-    
-    // store sigma
-    for (int k = 0; k < p->K; ++k) {
+      
+      // store sigma
       sigma_burnin[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
+      
+      // store expected population size
+      ep_burnin[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+      
+      // store alpha
+      alpha_burnin[rep] = particle_vec[cold_rung].alpha;
     }
-    
-    // store expected population size
-    ep_burnin[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
     if (!p->silent) {
       if ((rep+1) == p->burnin) {
-        update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
+        update_progress(args_progress, "pb_burnin", rep + 1, p->burnin);
       } else {
         int remainder = rep % int(ceil(double(p->burnin)/100));
         if (remainder == 0 && !p->pb_markdown) {
-          update_progress(args_progress, "pb_burnin", rep+1, p->burnin);
+          update_progress(args_progress, "pb_burnin", rep + 1, p->burnin);
         }
       }
     }
     
     // check for convergence
-    if ((p->auto_converge && ((rep+1) % p->converge_test) == 0) || (rep+1) == p->burnin) {
+    if ((p->auto_converge && ((rep + 1) % p->converge_test) == 0) || (rep + 1) == p->burnin) {
       
       // check for convergence of each chain
       for (int r = 0; r < p->rungs; ++r) {
-        rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep+1));
+        rung_converged[r] = rcpp_to_bool(test_convergence(loglike_burnin[r], rep + 1));
       }
       
       // break if convergence reached
@@ -178,7 +192,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
       // end if all reached convergence
       if (all_convergence_reached) {
-        convergence_iteration = rep+1;
+        convergence_iteration = rep + 1;
         if (!p->silent) {
           update_progress(args_progress, "pb_burnin", p->burnin, p->burnin);
           print("   converged within", convergence_iteration, "iterations");
@@ -194,6 +208,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   source_accept_burnin = particle_vec[cold_rung].source_accept_burnin;
   sigma_accept_burnin = particle_vec[cold_rung].sigma_accept_burnin;
   ep_accept_burnin = particle_vec[cold_rung].ep_accept_burnin;
+  alpha_accept_burnin = particle_vec[cold_rung].alpha_accept_burnin;
   
   // warning if still not converged
   if (!all_convergence_reached && !p->silent) {
@@ -231,6 +246,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       // update expected popsize
       particle_vec[rung].update_expected_popsize(false, 0);
       
+      // update alpha
+      particle_vec[rung].update_alpha(false, 0);
+            
     } // end loop over rungs
     
     // apply Metropolis-coupling
@@ -265,6 +283,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
         }
       }
       
+      // draw realised sources
+      sample_realised_sources(particle_vec[cold_rung].qmatrix, label_order, source_realised_sampling[rep]);
+      
     }
     
     // store loglikelihood
@@ -277,15 +298,16 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     for (int k = 0; k < p->K; ++k) {
       source_lon_sampling[rep][k] = particle_vec[cold_rung].source_lon[label_order[k]];
       source_lat_sampling[rep][k] = particle_vec[cold_rung].source_lat[label_order[k]];
-    }
-    
-    // store sigma
-    for (int k = 0; k < p->K; ++k) {
+      
+      // store sigma
       sigma_sampling[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
+      
+      // store expected population size
+      ep_sampling[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+            
+      // store alpha
+      alpha_sampling[rep] = particle_vec[cold_rung].alpha;
     }
-    
-    // store expected population size
-    ep_sampling[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
     if (!p->silent) {
@@ -305,6 +327,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   source_accept_sampling = particle_vec[cold_rung].source_accept_sampling;
   sigma_accept_sampling = particle_vec[cold_rung].sigma_accept_sampling;
   ep_accept_sampling = particle_vec[cold_rung].ep_accept_sampling;
+  alpha_accept_sampling = particle_vec[cold_rung].alpha_accept_sampling;  
 }
 
 //------------------------------------------------
@@ -348,9 +371,14 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
       particle_vec[rung2].sigma_propSD = store_sigma_propSD1;
       
       // swap expected_pop proposal SD
-      double store_ep_propSD1 = particle_vec[rung1].ep_propSD;
+      vector<double> store_ep_propSD1 = particle_vec[rung1].ep_propSD;
       particle_vec[rung1].ep_propSD = particle_vec[rung2].ep_propSD;
       particle_vec[rung2].ep_propSD = store_ep_propSD1;
+      
+      // swap alpha proposal SD
+      double store_alpha_propSD1 = particle_vec[rung1].alpha_propSD;
+      particle_vec[rung1].alpha_propSD = particle_vec[rung2].alpha_propSD;
+      particle_vec[rung2].alpha_propSD = store_alpha_propSD1;
       
       // swap rung order
       rung_order[i] = rung2;
@@ -366,4 +394,36 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
     }
   }
 
+}
+
+//------------------------------------------------
+// draw from the posterior allocation of observations to sources
+void MCMC::sample_realised_sources(vector<vector<double>> &qmatrix, vector<int> const &label_order, vector<bool> &source_realised) {
+  
+  // currently only applies to prevalence model
+  if (d->data_type != 2) {
+    return;
+  }
+  
+  // sample allocation for each row of qmatrix
+  vector<int> rand_multinom(p->K);
+  for (int i = 0; i < d->n; ++i) {
+    
+    // skip if no observation at this site
+    if (d->positive[i] == 0) {
+      continue;
+    }
+    
+    // sample a source for each positive observation
+    rmultinom1(d->positive[i], qmatrix[i], 1.0, rand_multinom);
+    
+    // source is realised if any observation is allocated to ii
+    for (int j = 0; j < p->K; ++j) {
+      if (rand_multinom[label_order[j]] > 0) {
+        source_realised[j] = true;
+      }
+    }
+    
+  }  // end i loop
+  
 }

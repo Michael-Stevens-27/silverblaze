@@ -9,6 +9,7 @@ sim_data(
   sentinel_lat,
   sentinel_radius = 0.1,
   K = 3,
+  source_weights = NULL,
   source_lon_min = -0.2,
   source_lon_max = 0,
   source_lat_min = 51.45,
@@ -20,7 +21,9 @@ sim_data(
   sigma_var = 0.1,
   expected_popsize = 100,
   data_type = "counts",
-  reg_population = 10
+  test_rate = 5,
+  N = 150,
+  dispersal_model = "normal"
 )
 }
 \arguments{
@@ -31,6 +34,8 @@ sim_data(
 \item{sentinel_radius}{observation radius of the sentinel site (km).}
 
 \item{K}{the number of sources.}
+
+\item{source_weights}{the proportion of events coming from each source}
 
 \item{source_lon_min}{minimum limit on source longitudes.}
 
@@ -63,8 +68,13 @@ and unobserved) in the study area.}
 \item{data_type}{what model we wish to simulate under - a poisson or binomial
 corresponding to "counts" or "prevalence"}
 
-\item{reg_population}{number of individuals present in the search area that 
-fail the trial (randomly distributed)}
+\item{test_rate}{The rate of the Poisson distribution with which we draw the 
+number of individuals tested at each sentinel site}
+
+\item{N}{the number of events to distributed under a point-pattern model}
+
+\item{dispersal_model}{distribute points via a "normal", "cauchy" or 
+"laplace" model}
 }
 \description{
 Simulate data from the same presence-absence model used in the

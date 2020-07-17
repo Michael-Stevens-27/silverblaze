@@ -1,11 +1,11 @@
 ---
-title: "Tutorial 2: Complex Spatial Priors"
+title: "Complex Spatial Priors"
 author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-bibliography: complex-spatial-priors.bib
+bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{"Tutorial 2: Complex Spatial Priors"}
+  %\VignetteIndexEntry{"Complex Spatial Priors"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,9 @@ vignette: >
 library(silverblaze)
 library(raster)
 library(rgdal)
-set.seed(5)
+plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
+            "#BD3786FF", "#9C179EFF", "#7301A8FF", "#47039FFF", "#0D0887FF")
+set.seed(2)
 ```
 
 ## Using shapefiles
@@ -22,16 +24,8 @@ It is also possible to import a shapefile that restricts our search area. The ex
 
 ```{r, message = FALSE, warning = FALSE, error = FALSE}
 s <- rgeoprofile_shapefile("London_north")
-spatial_prior <- raster_from_shapefile(s, cells_lon = 500, cells_lat = 500)
-```
-
-```{r, echo = FALSE}
-spatialProject <- rgeoprofile_project()
-spatialProject <- new_set(project = spatialProject,
-                          spatial_prior = spatial_prior)
-plot_spatial <- plot_map()
-plot_spatial <- overlay_spatial_prior(plot_spatial, spatialProject, opacity = 0.2, col = "red")
-plot_spatial
+spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
+plot(spatial_prior, xlab = "Longitude", ylab = "Latitude")
 ```
 
 This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (see @Verity2014 and @Faulkner2017) that implements the shapefile post-hoc.   
@@ -66,12 +60,7 @@ summary(values(PopDenRaster))
 values(PopDenRaster) <- values(PopDenRaster)/sum(values(PopDenRaster)[!is.na(values(PopDenRaster))])
 
 # Let's take a look at what the final results. 
-PopDenProject <- rgeoprofile_project()
-PopDenProject <- new_set(project = PopDenProject,
-                          spatial_prior = PopDenRaster)
-plot_PopDen <- plot_map()
-plot_PopDen <- overlay_spatial_prior(plot_PopDen, PopDenProject, opacity = 0.5)
-plot_PopDen
+plot(PopDenRaster, xlab = "Longitude", ylab = "Latitude")
 ```
 
 Now we've loaded the shapefile and converted it into a spatial prior, let generate some data, and run the model using the new prior.  
@@ -81,17 +70,17 @@ Now we've loaded the shapefile and converted it into a spatial prior, let genera
 ```{r}
 # create example dataset
 Extent <- extent(PopDenRaster)
-sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 5), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 5))
+sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 10), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 10))
 data <- sim_data(sentinel_lon = sentGrid[,1],
                  sentinel_lat = sentGrid[,2],
-                 sentinel_radius = 1, 
-                 K = 5,
+                 sentinel_radius = 0.3, 
+                 K = 2,
                  source_lon_min = Extent[1] + 0.1, 
                  source_lon_max = Extent[2] - 0.1, 
                  source_lat_min = Extent[3] + 0.05,
                  source_lat_max = Extent[4] - 0.05, 
                  sigma_model = "single", 
-                 sigma_mean = 3, 
+                 sigma_mean = 2, 
                  sigma_var = 0,
                  expected_popsize = 1000)
 df_all <- data$data
@@ -113,19 +102,19 @@ Create parameter sets:
 ```{r}
 # add parameter set to project
 pPopDen <- new_set(project = pPopDen,
-             spatial_prior = PopDenRaster,
-             sentinel_radius = 1,
-             sigma_model = "single",
-             sigma_prior_mean = 3,
-             sigma_prior_sd = 2,
-             expected_popsize_prior_sd = 1e3)
+                   spatial_prior = PopDenRaster,
+                   sentinel_radius = 0.3,
+                   sigma_model = "single",
+                   sigma_prior_mean = 2,
+                   sigma_prior_sd = 1,
+                   expected_popsize_prior_sd = 1e3)
 ```
 
 Plot the data with the prior:
 
 ```{r}
 # uniform
-plot1 <- plot_map()
+plot1 <- plot_map(map_type = 110)
 plot1 <- overlay_sentinels(plot1, pPopDen, sentinel_radius = 1)
 plot1 <- overlay_sources(plot1, lon = true_sources$longitude, lat = true_sources$latitude)
 plot1 <- overlay_points(plot1, lon = dataPoints$longitude, lat = dataPoints$latitude)
@@ -137,9 +126,9 @@ Run the MCMC:
 
 ```{r, eval = FALSE}
 pPopDen <- run_mcmc(project = pPopDen,
-              K = 1:10,
-              burnin = 1e4,
-              samples = 1e4,
+              K = 1:5,
+              burnin = 2e4,
+              samples = 2e4,
               pb_markdown = TRUE,
               converge_test = 1e4)
 ```
@@ -153,14 +142,24 @@ Plot the prior and the geoprofile:
 ```{r}
 # uniform
 plot3 <- plot_map()
-plot3 <- overlay_geoprofile(plot3, pPopDen, K = 5, smoothing = 2, threshold = 1)
-plot3 <- overlay_sources(plot3, lon = true_sources$longitude, lat = true_sources$latitude)
+plot3 <- overlay_sources(plot3, 
+                         lon = true_sources$longitude, 
+                         lat = true_sources$latitude)
+                         
+plot3 <- overlay_geoprofile(plot3, 
+                            pPopDen, 
+                            K = 2, 
+                            smoothing = 2, 
+                            threshold = 1,
+                            col = plasma,
+                            legend = TRUE)
+                            
 plot_loglike_diagnostic(pPopDen, K = 2)
 plot3
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
 # secretly save/load data from file so output is consistent between tutorials
-# saveRDS(pPopDen, file = "../inst/extdata/complex_spatial_project.rds")
+# saveRDS(pPopDen, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/complex_spatial_project.rds")
 ```
 ### References

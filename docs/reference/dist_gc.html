@@ -10,23 +10,27 @@
 
 
 <!-- jquery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script>
+
+<!-- bootstrap-toc -->
+<link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script>
 
 <!-- headroom.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -39,7 +43,6 @@
 <meta property="og:description" content="Analogue of the dist() function, but calculating great
   circle distances. Points should be input as a two-column matrix or
   dataframe with longitude in the first column and latitude in the second." />
-<meta name="twitter:card" content="summary" />
 
 
 
@@ -57,7 +60,7 @@
 
   </head>
 
-  <body>
+  <body data-spy="scroll" data-target="#toc">
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -71,7 +74,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -87,17 +90,32 @@
     <li>
       <a href="../articles/installation.html">Installation</a>
     </li>
+    <li class="divider"></li>
+    <li class="dropdown-header">Basic Tutorials</li>
     <li>
-      <a href="../articles/basic-implementation.html">Tutorial 1: Basic Implementation</a>
+      <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
     <li>
-      <a href="../articles/complex-spatial-priors.html">Tutorial 2: Complex Spatial Priors</a>
+      <a href="../articles/Binomial-basic-implementation.html">Binomial model and prevalence data</a>
     </li>
     <li>
-      <a href="../articles/model-validation.html">Tutorial 3: Model Validation</a>
+      <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
+    </li>
+    <li class="dropdown-header">Other topics</li>
+    <li>
+      <a href="../articles/model-validation.html">Model Validation</a>
     </li>
     <li>
-      <a href="../articles/Variable-sigma.html">Tutorial 4: Variable Sigma</a>
+      <a href="../articles/MHCoupling.html">Metropolis-Hastings Coupling</a>
+    </li>
+    <li>
+      <a href="../articles/complex-spatial-priors.html">Complex Spatial Priors</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-sigma.html">Variable Sigma</a>
+    </li>
+    <li>
+      <a href="../articles/Variable-population.html">Variable Expected Population</a>
     </li>
   </ul>
 </li>
@@ -154,52 +172,49 @@ and latitude in the second</p></td>
 <span class='no'>london_lat</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/Uniform.html'>runif</a></span>(<span class='fl'>20</span>, <span class='kw'>min</span> <span class='kw'>=</span> <span class='fl'>51.47</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='fl'>51.53</span>)
 <span class='no'>some_data</span>  <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='kw'>longitude</span> <span class='kw'>=</span> <span class='no'>london_lon</span>, <span class='kw'>latitude</span> <span class='kw'>=</span> <span class='no'>london_lat</span>)
 <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>(<span class='no'>some_data</span>)</div><div class='output co'>#&gt;     longitude latitude
-#&gt; 1 -0.18384997 51.48739
-#&gt; 2 -0.03313339 51.51070
-#&gt; 3 -0.07984782 51.51412
-#&gt; 4 -0.16855831 51.48176
-#&gt; 5 -0.19852011 51.52883
-#&gt; 6 -0.10672130 51.51449</div><div class='input'><span class='no'>distance_matrix</span> <span class='kw'>&lt;-</span> <span class='fu'>dist_gc</span>(<span class='no'>some_data</span>)
-<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>(<span class='no'>distance_matrix</span>)</div><div class='output co'>#&gt;           [,1]      [,2]     [,3]     [,4]      [,5]     [,6]     [,7]     [,8]
-#&gt; [1,]  0.000000 10.750022 7.788216 1.230421  4.718320 6.130372 5.990944 3.308461
-#&gt; [2,] 10.750022  0.000000 3.254958 9.912062 11.619390 5.109775 6.261946 7.602526
-#&gt; [3,]  7.788216  3.254958 0.000000 7.117520  8.372088 1.860071 4.780219 4.516941
-#&gt; [4,]  1.230421  9.912062 7.117520 0.000000  5.630304 5.618867 4.814723 2.888278
-#&gt; [5,]  4.718320 11.619390 8.372088 5.630304  0.000000 6.548465 9.192897 4.929269
-#&gt; [6,]  6.130372  5.109775 1.860071 5.618867  6.548465 0.000000 4.624433 2.822148
-#&gt;           [,9]      [,10]     [,11]     [,12]      [,13]    [,14]    [,15]
-#&gt; [1,]  9.425713  9.9395591 11.129654 1.3731921  0.6481672 4.043951 4.627977
-#&gt; [2,]  1.408966  0.8582072  4.353442 9.6161488 11.3594885 7.119154 6.126218
-#&gt; [3,]  1.847466  2.3975927  6.036787 6.8059058  8.3613291 3.936235 3.235487
-#&gt; [4,]  8.639836  9.1310421  9.997286 0.3151568  1.8410705 3.706989 3.884212
-#&gt; [5,] 10.217302 10.7654695 13.573713 5.5452284  4.5500049 4.901971 6.408599
-#&gt; [6,]  3.700809  4.2515756  7.375834 5.3038386  6.6660230 2.138940 1.963023
-#&gt;         [,16]    [,17]      [,18]    [,19]     [,20]
-#&gt; [1,] 1.852873 5.262366  4.4009024 4.326970 12.401247
-#&gt; [2,] 8.992371 5.965391 10.8161222 7.007785  3.647174
-#&gt; [3,] 5.961092 2.736371  7.5672648 4.725403  6.235863
-#&gt; [4,] 1.663514 4.819767  5.1855426 3.207817 11.334404
-#&gt; [5,] 4.491633 5.778699  0.8071014 7.507415 14.337152
-#&gt; [6,] 4.278243 0.900866  5.7415853 3.895488  7.870122</div></pre>
+#&gt; 1 -0.13323534 51.47746
+#&gt; 2 -0.05014547 51.47691
+#&gt; 3 -0.01736840 51.49200
+#&gt; 4 -0.15913419 51.49826
+#&gt; 5 -0.10564888 51.51705
+#&gt; 6 -0.12296338 51.49942</div><div class='input'><span class='no'>distance_matrix</span> <span class='kw'>&lt;-</span> <span class='fu'>dist_gc</span>(<span class='no'>some_data</span>)
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span>(<span class='no'>distance_matrix</span>)</div><div class='output co'>#&gt;          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]      [,7]      [,8]
+#&gt; [1,] 0.000000 5.754724 8.184307 2.926583 4.798356 2.543430 0.8298242  5.693748
+#&gt; [2,] 5.754724 0.000000 2.822515 7.910953 5.889254 5.629028 4.9390390  9.195601
+#&gt; [3,] 8.184307 2.822515 0.000000 9.838804 6.715110 7.356464 7.4203420 10.358457
+#&gt; [4,] 2.926583 7.910953 9.838804 0.000000 4.250494 2.507151 3.5877550  3.157799
+#&gt; [5,] 4.798356 5.889254 6.715110 4.250494 0.000000 2.297294 4.6811602  3.664146
+#&gt; [6,] 2.543430 5.629028 7.356464 2.507151 2.297294 0.000000 2.5936844  3.803821
+#&gt;           [,9]     [,10]    [,11]    [,12]     [,13]    [,14]    [,15]
+#&gt; [1,]  5.959459 2.5549189 3.796139 7.124425  4.781196 5.662362 3.711451
+#&gt; [2,] 11.004899 5.9308344 4.148042 1.624932  9.377803 7.683897 7.651135
+#&gt; [3,] 12.744279 7.6608220 5.468298 1.197705 11.002170 8.443905 9.208311
+#&gt; [4,]  3.147326 2.2163648 4.472013 8.972341  1.863860 4.085256 1.508009
+#&gt; [5,]  6.450196 2.4028933 1.855537 6.235591  4.671887 1.802845 2.999529
+#&gt; [6,]  5.426419 0.3076183 1.968690 6.540938  3.752238 3.191816 2.035433
+#&gt;          [,16]     [,17]     [,18]     [,19]     [,20]
+#&gt; [1,] 5.0249978  4.366832  6.115025 10.295145  9.329195
+#&gt; [2,] 5.7238929 10.111966 10.506006  5.847935  4.870746
+#&gt; [3,] 6.4236552 12.530022 11.943986  3.276116  2.428990
+#&gt; [4,] 4.6059128  3.687053  3.201102 11.211283 10.353320
+#&gt; [5,] 0.3700368  7.855135  5.363836  7.259799  6.521404
+#&gt; [6,] 2.5682880  5.778191  4.892205  8.746611  7.867663</div></pre>
   </div>
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 
 
       <footer>
       <div class="copyright">
-  <p>Developed by Robert Verity.</p>
+  <p>Developed by Bob Verity, Michael Stevens.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
 </div>
 
       </footer>

@@ -62,6 +62,10 @@ void sample3(std::vector<TYPE> &x, int n) {
 double rgamma1(double shape, double rate);
 
 //------------------------------------------------
+// draw from gamma(shape,rate) distribution
+double dgamma1(double x, double shape, double rate);
+
+//------------------------------------------------
 // draw from beta(shape1,shape2) distribution
 double rbeta1(double shape1, double shape2);
 
@@ -95,4 +99,20 @@ int rnbinom1(double lambda, double gamma);
 //------------------------------------------------
 // probability mass of negative binomial distribution with mean lambda and
 // variance gamma*lambda (gamma must be >1)
-double dnbinom1(int n, double lambda, double gamma, bool returnLog=true);
+double dnbinom1(int n, double lambda, double gamma, bool returnLog= TRUE);
+
+//------------------------------------------------
+// probability mass of negative binomial distribution with mean and variance 
+double dnbinom_mu1(int n, double size, double mean, bool returnLog = TRUE);
+
+//------------------------------------------------
+// return closest value to a vector of target values
+double closest(std::vector<double> const& vec, double value) ;
+
+//------------------------------------------------
+// draw from binomial(N,p) distribution
+int rbinom1(int N, double p);
+
+//------------------------------------------------
+// draw from multinomial(N,p) distribution, where p sums to p_sum
+void rmultinom1(int N, const std::vector<double> &p, double p_sum, std::vector<int> &ret);
