@@ -664,11 +664,11 @@ run_mcmc <- function(project,
     # get 95% credible intervals over sigma
     sigma_intervals <- as.data.frame(t(apply(sigma_sampling, 2, quantile_95)))
     
+    # get 95% credible intervals over expected_popsize
+    expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
+    
     # split method based on data type
     if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
-      
-      # get 95% credible intervals over expected_popsize
-      expected_popsize_intervals <- as.data.frame(t(apply(expected_popsize_sampling, 2, quantile_95)))
       
       # get 95% credible intervals over negative binomial parameters
       if (args_model$n_binom == TRUE) {
@@ -678,7 +678,6 @@ run_mcmc <- function(project,
       }
     
     } else if (project$data$data_type == "point-pattern") {
-      expected_popsize_intervals <- NULL
       alpha_intervals <- NULL
     }
     
