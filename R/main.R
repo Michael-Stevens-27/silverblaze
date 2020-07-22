@@ -625,11 +625,11 @@ run_mcmc <- function(project,
     }
     
     # split method based on data type
+    # get expected_popsize in coda::mcmc format
+    expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
+    expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
+    
     if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
-      
-      # get expected_popsize in coda::mcmc format
-      expected_popsize_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_burnin)[1:convergence_iteration, ,drop = FALSE])
-      expected_popsize_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$ep_sampling))
       
       if (args_model$expected_popsize_model == "single") {
         expected_popsize_burnin <- expected_popsize_burnin[, 1, drop = FALSE]
@@ -644,12 +644,12 @@ run_mcmc <- function(project,
         # get alpha in coda::mcmc format
         alpha_burnin <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_burnin)[1:convergence_iteration, ,drop = FALSE])
         alpha_sampling <- coda::mcmc(rcpp_to_mat(output_raw[[i]]$alpha_sampling))
+
       } else {
         alpha_burnin <- alpha_sampling <- NULL
       }
     
     } else if (project$data$data_type == "point-pattern") {
-      expected_popsize_burnin <- expected_popsize_sampling <- NULL
       alpha_burnin <- alpha_sampling <- NULL
     } else {
       stop("invalid data type in output")

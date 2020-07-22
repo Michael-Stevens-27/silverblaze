@@ -37,6 +37,10 @@ public:
   std::vector<double> cum_sum_density; 
   std::vector<double> cum_sum_normalised;
   
+  // weights for each souce in the case of point pattern data
+  std::vector<double> source_weights;
+  std::vector<double> source_weight_prop;
+  
   // parameter controlling the nbinom variance = mean + alpha*mean^2 
   double alpha; 
   
@@ -61,13 +65,14 @@ public:
   int counts_total;
   int tested_total;
   double log_K;
+  double ep_total;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;
   std::vector<double> dist_source_data_prop;
   std::vector<std::vector<double>> log_hazard_height;
-  std::vector<double> log_hazard_height_prop;
-  std::vector<std::vector<double>> log_hazard_height_prop2;
+  std::vector<std::vector<double>> log_hazard_height_prop2; // placeholder for proposal when altering sets of source dependent params
+  std::vector<double> log_hazard_height_prop; // placeholder for proposal when altering individual source dependent params
   double logprior;
   double loglike;
   
@@ -137,9 +142,12 @@ public:
   // void update_expected_popsize_pois_independent(bool robbins_monro_on);
   void update_expected_popsize_binom(bool robbins_monro_on, int iteration);
   void update_expected_popsize_negative_binomial_independent(bool robbins_monro_on, int iteration);
-  
+    
   // loglikelihood and update for alpha parameter controlling the nbinom variance
   void update_alpha_negative_binomial(bool robbins_monro_on, int iteration);
+
+  // loglikelihood/update function for weights
+  void update_weights_point_pattern(bool robbins_monro_on, int iteration);
 
   // misc  
   void update_qmatrix();

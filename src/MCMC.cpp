@@ -154,8 +154,12 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       // store sigma
       sigma_burnin[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
       
-      // store expected population size
-      ep_burnin[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+      // store expected population size or source weights
+      if (d->data_type == 3){
+        ep_burnin[rep][k] = particle_vec[cold_rung].source_weights[label_order[k]];
+      } else {
+        ep_burnin[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+      }
       
       // store alpha
       alpha_burnin[rep] = particle_vec[cold_rung].alpha;
@@ -302,8 +306,12 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       // store sigma
       sigma_sampling[rep][k] = particle_vec[cold_rung].sigma[label_order[k]];
       
-      // store expected population size
-      ep_sampling[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+      // store expected population size or source weights
+      if (d->data_type == 3){
+        ep_sampling[rep][k] = particle_vec[cold_rung].source_weights[label_order[k]];
+      } else {
+        ep_sampling[rep][k] = particle_vec[cold_rung].expected_popsize[label_order[k]];
+      }
             
       // store alpha
       alpha_sampling[rep] = particle_vec[cold_rung].alpha;
