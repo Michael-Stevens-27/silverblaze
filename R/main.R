@@ -508,9 +508,8 @@ run_mcmc <- function(project,
   # convert expected_popsize_model to numeric
   if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
     expected_popsize_model_numeric <- match(project$parameter_sets[[s]]$expected_popsize_model, c("single", "independent"))
-    fixed_expected_popsize_model <- project$parameter_sets[[s]]$expected_popsize_prior_sd == 0
   } else if (project$data$data_type == "point-pattern") {
-    expected_popsize_model_numeric <- fixed_expected_popsize_model <- -1
+    expected_popsize_model_numeric <- 2
   }
   
   # convert dispersal model and count type to numeric
@@ -531,7 +530,6 @@ run_mcmc <- function(project,
                           sigma_model_numeric = sigma_model_numeric,
                           fixed_sigma_model = fixed_sigma_model,
                           expected_popsize_model_numeric = expected_popsize_model_numeric,
-                          fixed_expected_popsize_model = fixed_expected_popsize_model,
                           dispersal_model_numeric = dispersal_model_numeric,
                           count_type_numeric = count_type_numeric)
   
@@ -839,7 +837,7 @@ run_mcmc <- function(project,
       expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
-       if (args_model$n_binom == TRUE) {
+      if (args_model$n_binom == TRUE) {
          alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
          alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
        } else {
@@ -847,7 +845,6 @@ run_mcmc <- function(project,
        }
       
     } else {
-      expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
       alpha_accept_burnin <- alpha_accept_sampling <- NULL
     } 
     

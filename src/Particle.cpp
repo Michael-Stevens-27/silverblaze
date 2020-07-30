@@ -442,7 +442,7 @@ double Particle::calculate_loglike_source_points(double source_lon_prop, double 
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
-    log_hazard_height_prop[i] = log(source_weights[k]) + log(p->cell_area) + calculate_hazard(dist, sigma[k]); 
+    log_hazard_height_prop[i] = log(source_weights[k]) + calculate_hazard(dist, sigma[k]); 
     
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = log_hazard_height_prop[i];
@@ -861,7 +861,7 @@ void Particle::update_sigma_points(bool robbins_monro_on, int iteration){
       
       // recalculate hazard given new sigma
       double dist = dist_source_data[i][k];
-      log_hazard_height_prop[i] = log(source_weights[k]) + log(p->cell_area) + calculate_hazard(dist, sigma_prop);       
+      log_hazard_height_prop[i] = log(source_weights[k]) + calculate_hazard(dist, sigma_prop);       
       
       // sum hazard over sources while remaining in log space
       double log_hazard_sum = log_hazard_height_prop[i];
@@ -1184,7 +1184,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       for (int l = 0; l < p->K; ++l) {
         // recalculate hazard of each source given new weights
         double dist = dist_source_data[i][l];
-        log_hazard_height_prop2[i][l] = log(source_weight_prop[l]) + log(p->cell_area) + calculate_hazard(dist, sigma[l]);       
+        log_hazard_height_prop2[i][l] = log(source_weight_prop[l]) + calculate_hazard(dist, sigma[l]);       
       } 
       
       // sum hazard over sources while remaining in log space
