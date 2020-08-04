@@ -824,21 +824,21 @@ run_mcmc <- function(project,
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    source_accept_burnin <- output_raw[[i]]$source_accept_burnin/burnin
+    source_accept_burnin <- output_raw[[i]]$source_accept_burnin/convergence_iteration
     source_accept_sampling <- output_raw[[i]]$source_accept_sampling/samples
     names(source_accept_burnin) <- names(source_accept_sampling) <- group_names
     
-    sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/burnin
+    sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/convergence_iteration
     sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
     names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     
     # if prevelance or independent expected popsize model return acceptance rates
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
-      expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
+      expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/convergence_iteration
       expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
       if (args_model$n_binom == TRUE) {
-         alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
+         alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/convergence_iteration
          alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
        } else {
          alpha_accept_burnin <- alpha_accept_sampling <- NULL
