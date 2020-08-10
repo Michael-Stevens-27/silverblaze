@@ -13,9 +13,8 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   p = &params;
   d = &data;
   
-  // initialise rung order
-  rung_order = seq_int(0, p->rungs - 1);
-  cold_rung = rung_order[p->rungs - 1];
+  // store cold rung
+  cold_rung = p->rungs - 1;
   
   // vector of particles
   particle_vec = vector<Particle>(p->rungs);
@@ -86,7 +85,6 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   for (int r = 0; r < p->rungs; r++) {
     particle_vec[r].reset(p->beta_vec[r]);
   }
-  rung_order = seq_int(0, p->rungs-1);
   
   // loop through burnin iterations
   bool all_convergence_reached = false;
@@ -94,19 +92,18 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     
     // update particles
     for (int r = 0; r < p->rungs; r++) {
-      int rung = rung_order[r];
       
       // update sources
-      particle_vec[rung].update_sources(true, rep + 1);
+      particle_vec[r].update_sources(true, rep + 1);
       
       // update sigma
-      particle_vec[rung].update_sigma(true, rep + 1);
+      particle_vec[r].update_sigma(true, rep + 1);
       
       // update expected population size
-      particle_vec[rung].update_expected_popsize(true, rep + 1);
+      particle_vec[r].update_expected_popsize(true, rep + 1);
       
       // update alpha
-      particle_vec[rung].update_alpha(true, rep + 1);
+      particle_vec[r].update_alpha(true, rep + 1);
       
     } // end loop over rungs
     
@@ -114,9 +111,6 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     if (p->coupling_on) {
       metropolis_coupling(true);
     }
-    
-    // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
     
     // methods that only apply when K>1
     if (p->K > 1) {
@@ -142,8 +136,7 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     
     // store loglikelihood
     for (int r = 0; r < p->rungs; ++r) {
-      int rung = rung_order[r];
-      loglike_burnin[r][rep] = particle_vec[rung].loglike;
+      loglike_burnin[r][rep] = particle_vec[r].loglike;
     }
     
     // store source locations
@@ -239,19 +232,18 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     
     // update particles
     for (int r = 0; r < p->rungs; ++r) {
-      int rung = rung_order[r];
       
       // update sources
-      particle_vec[rung].update_sources(false, 0);
+      particle_vec[r].update_sources(false, 0);
       
       // update sigma
-      particle_vec[rung].update_sigma(false, 0);
+      particle_vec[r].update_sigma(false, 0);
       
       // update expected popsize
-      particle_vec[rung].update_expected_popsize(false, 0);
+      particle_vec[r].update_expected_popsize(false, 0);
       
       // update alpha
-      particle_vec[rung].update_alpha(false, 0);
+      particle_vec[r].update_alpha(false, 0);
             
     } // end loop over rungs
     
@@ -259,9 +251,6 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     if (p->coupling_on) {
       metropolis_coupling(false);
     }
-    
-    // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
     
     // methods that only apply when K>1
     if (p->K > 1) {
@@ -294,8 +283,7 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     
     // store loglikelihood
     for (int r = 0; r < p->rungs; ++r) {
-      int rung = rung_order[r];
-      loglike_sampling[r][rep] = particle_vec[rung].loglike;
+      loglike_sampling[r][rep] = particle_vec[r].loglike;
     }
     
     // store source locations
@@ -347,8 +335,8 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
   for (int i = 0; i < (p->rungs - 1); i++) {
     
     // define rungs of interest
-    int rung1 = rung_order[i];
-    int rung2 = rung_order[i + 1];
+    int rung1 = i;
+    int rung2 = i + 1;
     
     // get log-likelihoods and beta values of two chains in the comparison
     double loglike1 = particle_vec[rung1].loglike;
@@ -364,34 +352,32 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
     double rand1 = runif1();
     if (log(rand1) < acceptance) {
       
-      // swap beta values
-      particle_vec[rung1].beta = beta2;
-      particle_vec[rung2].beta = beta1;
+      // swap source lat
+      vector<double> store_source_lat = particle_vec[rung1].source_lat;
+      particle_vec[rung1].source_lat = particle_vec[rung2].source_lat;
+      particle_vec[rung2].source_lat = store_source_lat;
       
-      // swap source proposal SD
-      vector<double> store_source_propSD1 = particle_vec[rung1].source_propSD;
-      particle_vec[rung1].source_propSD = particle_vec[rung2].source_propSD;
-      particle_vec[rung2].source_propSD = store_source_propSD1;
+      // swap source lon
+      vector<double> store_source_lon = particle_vec[rung1].source_lon;
+      particle_vec[rung1].source_lon = particle_vec[rung2].source_lon;
+      particle_vec[rung2].source_lon = store_source_lon;
       
-      // swap sigma proposal SD
-      vector<double> store_sigma_propSD1 = particle_vec[rung1].sigma_propSD;
-      particle_vec[rung1].sigma_propSD = particle_vec[rung2].sigma_propSD;
-      particle_vec[rung2].sigma_propSD = store_sigma_propSD1;
+      // swap sigma
+      vector<double> store_sigma = particle_vec[rung1].sigma;
+      particle_vec[rung1].sigma = particle_vec[rung2].sigma;
+      particle_vec[rung2].sigma = store_sigma;
       
-      // swap expected_pop proposal SD
-      vector<double> store_ep_propSD1 = particle_vec[rung1].ep_propSD;
-      particle_vec[rung1].ep_propSD = particle_vec[rung2].ep_propSD;
-      particle_vec[rung2].ep_propSD = store_ep_propSD1;
+      // swap expected_popsize
+      vector<double> store_expected_popsize = particle_vec[rung1].expected_popsize;
+      particle_vec[rung1].expected_popsize = particle_vec[rung2].expected_popsize;
+      particle_vec[rung2].expected_popsize = store_expected_popsize;
       
-      // swap alpha proposal SD
-      double store_alpha_propSD1 = particle_vec[rung1].alpha_propSD;
-      particle_vec[rung1].alpha_propSD = particle_vec[rung2].alpha_propSD;
-      particle_vec[rung2].alpha_propSD = store_alpha_propSD1;
+      // swap alpha
+      double store_alpha = particle_vec[rung1].alpha;
+      particle_vec[rung1].alpha = particle_vec[rung2].alpha;
+      particle_vec[rung2].alpha = store_alpha;
       
-      // swap rung order
-      rung_order[i] = rung2;
-      rung_order[i + 1] = rung1;
-      
+      // update coupling acceptance rates
       if (burnin_phase){
         // update burnin coupling acceptance rates
         coupling_accept_burnin[i]++;
