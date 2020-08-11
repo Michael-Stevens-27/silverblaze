@@ -16,7 +16,8 @@ public:
   Parameters * p;
   Data * d;
   
-  // store cold rung
+  // thermodynamic parameters
+  std::vector<int> rung_order;
   int cold_rung;
   
   // vector of particles
