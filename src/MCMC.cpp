@@ -116,7 +116,12 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
+    for (int r = 0; r < p->rungs; r++) {
+      if (rung_order[r] == p->rungs - 1) {
+        cold_rung = r;
+        break;
+      }
+    }
     
     // methods that only apply when K>1
     if (p->K > 1) {
@@ -261,7 +266,12 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
+    for (int r = 0; r < p->rungs; r++) {
+      if (rung_order[r] == p->rungs - 1) {
+        cold_rung = r;
+        break;
+      }
+    }
     
     // methods that only apply when K>1
     if (p->K > 1) {
