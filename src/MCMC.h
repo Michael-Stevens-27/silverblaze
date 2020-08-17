@@ -48,14 +48,14 @@ public:
   std::vector<double> alpha_sampling;
   
   // objects for storing acceptance rates
-  std::vector<int> source_accept_burnin;
-  std::vector<int> source_accept_sampling;
-  std::vector<int> sigma_accept_burnin;
-  std::vector<int> sigma_accept_sampling;
-  std::vector<int> ep_accept_burnin;
-  std::vector<int> ep_accept_sampling;
-  int alpha_accept_burnin;
-  int alpha_accept_sampling;
+  std::vector<std::vector<int>> source_accept_burnin;
+  std::vector<std::vector<int>> source_accept_sampling;
+  std::vector<std::vector<int>> sigma_accept_burnin;
+  std::vector<std::vector<int>> sigma_accept_sampling;
+  std::vector<std::vector<int>> ep_accept_burnin;
+  std::vector<std::vector<int>> ep_accept_sampling;
+  std::vector<int> alpha_accept_burnin;
+  std::vector<int> alpha_accept_sampling;
   std::vector<int> coupling_accept_burnin;
   std::vector<int> coupling_accept_sampling;
   

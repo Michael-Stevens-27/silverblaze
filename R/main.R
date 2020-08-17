@@ -824,22 +824,27 @@ run_mcmc <- function(project,
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    source_accept_burnin <- output_raw[[i]]$source_accept_burnin/convergence_iteration
-    source_accept_sampling <- output_raw[[i]]$source_accept_sampling/samples
-    names(source_accept_burnin) <- names(source_accept_sampling) <- group_names
-    
-    sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/convergence_iteration
-    sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
-    names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
+    source_accept_burnin <- matrix(unlist(output_raw[[i]]$source_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+    source_accept_sampling <- matrix(unlist(output_raw[[i]]$source_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+    colnames(source_accept_burnin) <- colnames(source_accept_sampling) <- group_names
+    rownames(source_accept_burnin) <- rownames(source_accept_sampling) <- rung_names
+        
+    sigma_accept_burnin <- matrix(unlist(output_raw[[i]]$sigma_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+    sigma_accept_sampling <- matrix(unlist(output_raw[[i]]$sigma_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+    colnames(sigma_accept_burnin) <- colnames(sigma_accept_sampling) <- group_names
+    rownames(sigma_accept_burnin) <- rownames(sigma_accept_sampling) <- rung_names
     
     # if prevelance or independent expected popsize model return acceptance rates
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
-      expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/convergence_iteration
-      expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
+      expected_popsize_accept_burnin <- matrix(unlist(output_raw[[i]]$ep_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+      expected_popsize_accept_sampling <- matrix(unlist(output_raw[[i]]$ep_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+      colnames(expected_popsize_accept_burnin) <- colnames(expected_popsize_accept_sampling) <- group_names
+      rownames(expected_popsize_accept_burnin) <- rownames(expected_popsize_accept_sampling) <- rung_names
+    
       if (args_model$n_binom == TRUE) {
-         alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/convergence_iteration
-         alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
+         alpha_accept_burnin <- unlist(output_raw[[i]]$alpha_accept_burnin)/convergence_iteration
+         alpha_accept_sampling <- unlist(output_raw[[i]]$alpha_accept_sampling)/samples
        } else {
          alpha_accept_burnin <- alpha_accept_sampling <- NULL
        }
@@ -1077,14 +1082,19 @@ align_qmatrix <- function(project) {
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
     
     # reorder source_accept
-    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[best_perm_order]
+    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order]
     names(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
-    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[best_perm_order]
+    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order]
     names(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
+    
+    # reorder expected_popsize_accept
+    expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
+    names(expected_popsize_accept_sampling) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
