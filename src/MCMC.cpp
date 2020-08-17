@@ -349,10 +349,11 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   // store acceptance rates
   for (int r = 0; r < p->rungs; ++r) {
     int rung = rung_order[r];
-    source_accept_sampling[rung] = particle_vec[rung].source_accept_sampling;
-    sigma_accept_sampling[rung] = particle_vec[rung].sigma_accept_sampling;
-    ep_accept_sampling[rung] = particle_vec[rung].ep_accept_sampling;
-    alpha_accept_sampling[rung] = particle_vec[rung].alpha_accept_sampling;
+    
+    source_accept_sampling[r] = particle_vec[rung].source_accept_sampling;
+    sigma_accept_sampling[r] = particle_vec[rung].sigma_accept_sampling;
+    ep_accept_sampling[r] = particle_vec[rung].ep_accept_sampling;
+    alpha_accept_sampling[r] = particle_vec[rung].alpha_accept_sampling;
   }
 
 }

@@ -1083,17 +1083,17 @@ align_qmatrix <- function(project) {
     
     # reorder source_accept
     source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order]
-    names(source_accept_sampling) <- group_names
+    colnames(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
     sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order]
-    names(sigma_accept_sampling) <- group_names
+    colnames(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
     
     # reorder expected_popsize_accept
     expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
-    names(expected_popsize_accept_sampling) <- group_names
+    colnames(expected_popsize_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     
     # qmatrix becomes template for next level up
