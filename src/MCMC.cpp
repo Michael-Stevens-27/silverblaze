@@ -116,12 +116,13 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // focus on cold rung
-    for (int r = 0; r < p->rungs; r++) {
-      if (rung_order[r] == p->rungs - 1) {
-        cold_rung = r;
-        break;
-      }
-    }
+    //for (int r = 0; r < p->rungs; r++) {
+    //  if (rung_order[r] == p->rungs - 1) {
+    //    cold_rung = r;
+    //    break;
+    //  }
+    //}
+    cold_rung = rung_order[p->rungs - 1];
     
     // methods that only apply when K>1
     if (p->K > 1) {
@@ -266,12 +267,19 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // focus on cold rung
-    for (int r = 0; r < p->rungs; r++) {
-      if (rung_order[r] == p->rungs - 1) {
-        cold_rung = r;
-        break;
-      }
-    }
+    //for (int r = 0; r < p->rungs; r++) {
+    //  if (rung_order[r] == p->rungs - 1) {
+    //    cold_rung = r;
+    //    break;
+    //  }
+    //}
+    cold_rung = rung_order[p->rungs - 1];
+    
+    //print_vector(rung_order);
+    //print(cold_rung);
+    //for (int r = 0; r < p->rungs; r++) {
+    //  print(particle_vec[rung_order[r]].beta);
+    //}
     
     // methods that only apply when K>1
     if (p->K > 1) {
