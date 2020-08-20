@@ -28,8 +28,10 @@ check_silverblaze_loaded <- function() {
 #'     "longitude", "latitude" and "counts".
 #'     \item for \code{data_type = "prevalence"}, data must have columns
 #'     "longitude", "latitude", "tested" and "positive"
+#'     \item for \code{data_type = "point-pattern"}, data must have columns
+#'     "longitude", "latitude"
 #'     }
-#' @param data_type the type of data, either "counts" or "prevalence".
+#' @param data_type the type of data, either "counts", "prevalence" or "point-pattern"
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting
 #'   existing data
@@ -96,6 +98,16 @@ bind_data <- function(project,
 #' @param cells_lon  number of cells in longitude direction
 #' @param cells_lat  number of cells in latitude direction
 #' @param guard_rail Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.
+#' @param df a dataframe with columns that must conform to the following rules:
+#'   \itemize{
+#'     \item for \code{data_type = "counts"}, data must have columns
+#'     "longitude", "latitude" and "counts".
+#'     \item for \code{data_type = "prevalence"}, data must have columns
+#'     "longitude", "latitude", "tested" and "positive"
+#'     \item for \code{data_type = "point-pattern"}, data must have columns
+#'     "longitude", "latitude"
+#'     }
+#' @param data_type the type of data, either "counts", "prevalence" or "point-pattern"
 #'
 #' @importFrom raster raster setValues
 #' @export
@@ -104,36 +116,132 @@ raster_grid <- function (range_lon = c(-0.2, 0),
                          range_lat = c(51.45, 51.55),
                          cells_lon = 1e2,
                          cells_lat = 1e2,
-                         guard_rail = 0.05) {
+                         guard_rail = 0.05,
+                         df = NULL,
+                         data_type = NULL) {
   
   # check inputs
-  assert_numeric(range_lon)
-  assert_vector(range_lon)
-  assert_length(range_lon, 2)
-  assert_numeric(range_lat)
-  assert_vector(range_lat)
-  assert_length(range_lat, 2)
+  if (is.null(df)){
+    # check for pre defined sentinels
+    assert_numeric(range_lon)
+    assert_vector(range_lon)
+    assert_length(range_lon, 2)
+    assert_numeric(range_lat)
+    assert_vector(range_lat)
+    assert_length(range_lat, 2)
+  } else {
+    # check for collected data
+    assert_dataframe(df)
+    assert_single_string(data_type)
+    assert_in(data_type, c("counts", "prevalence", "point-pattern"))
+    
+    if (data_type == "counts") {
+      assert_in(c("longitude", "latitude", "counts"), names(df))
+      assert_pos_int(df$counts, zero_allowed = TRUE)
+    } else if (data_type == "prevalence") {
+      assert_in(c("longitude", "latitude", "tested", "positive"), names(df))
+      assert_pos_int(df$tested, zero_allowed = TRUE)
+      assert_pos_int(df$positive, zero_allowed = TRUE)
+      assert_leq(df$positive, df$tested)
+    } else if(data_type == "point-pattern"){
+      assert_in(c("longitude", "latitude"), names(df))
+    }
+    
+    assert_numeric(df$longitude)
+    assert_numeric(df$latitude)
+  }
+  
   assert_single_pos_int(cells_lon)
   assert_single_pos_int(cells_lat)
   assert_numeric(guard_rail)
   assert_single_pos(guard_rail)
-  
-  # make raster grid
-  dlon <- guard_rail*diff(range(range_lon))
-  dlat <- guard_rail*diff(range(range_lat))
-  lomn <- range_lon[1] - dlon/2
-  lomx <- range_lon[2] + dlon/2
-  lamn <- range_lat[1] - dlat/2
-  lamx <- range_lat[2] + dlat/2
-  r <- raster::raster(xmn = lomn,
-                      xmx = lomx,
-                      ymn = lamn,
-                      ymx = lamx,
-                      ncol = cells_lon,
-                      nrow = cells_lat)
-  r <- raster::setValues(r, 1/(cells_lon*cells_lat))
-  
-  return(r)
+                      
+  # create uniform prior if no data is provided else create a bivariate normal
+  # prior
+  if (is.null(df)){
+    # define raster extent
+    dlon <- guard_rail*diff(range(range_lon))
+    dlat <- guard_rail*diff(range(range_lat))
+    lomn <- range_lon[1] - dlon/2
+    lomx <- range_lon[2] + dlon/2
+    lamn <- range_lat[1] - dlat/2
+    lamx <- range_lat[2] + dlat/2
+    
+    # create blank raster with this extent
+    r <- raster::raster(xmn = lomn,
+                        xmx = lomx,
+                        ymn = lamn,
+                        ymx = lamx,
+                        ncol = cells_lon,
+                        nrow = cells_lat)
+    r <- raster::setValues(r, 1/(cells_lon*cells_lat))
+    return(r)
+  } else {
+    
+    # define raster extent
+    range_lon <- range(df$longitude)
+    range_lat <- range(df$latitude)
+    dlon <- guard_rail*diff(range_lon)
+    dlat <- guard_rail*diff(range_lat)
+    lomn <- range_lon[1] - dlon/2
+    lomx <- range_lon[2] + dlon/2
+    lamn <- range_lat[1] - dlat/2
+    lamx <- range_lat[2] + dlat/2
+    
+    # generate source prior parameters:
+    
+    # mean of positive points
+    if (data_type == "counts") {
+      pos_df <- subset(df, df$counts > 0)
+    } else if (data_type == "prevalence") {
+      pos_df <- subset(df, df$positive > 0)
+    } else if (data_type == "point-pattern") {
+      pos_df <- df
+    }
+    
+    # source_prior_mean_lon <- mean(pos_df$longitude)
+    # source_prior_mean_lat <- mean(pos_df$latitude)
+    # 
+    # # max distance between POSITIVE data points and source prior mean 
+    # # for source prior sd 
+    # source_prior_sd <- apply(pos_df[,1:2], 1, function(x) 
+    #                          lonlat_to_bearing(source_prior_mean_lon,
+    #                                            source_prior_mean_lat, 
+    #                                            x[1], x[2])$gc_dist)
+    # source_prior_sd <- max(source_prior_sd)
+    
+    # extract spatial prior object
+    lon_dom <- seq(lomn, lomx, l = cells_lon + 1)
+    lat_dom <- seq(lamn, lamx, l = cells_lat + 1)
+    grid_domain <- expand.grid(lon_dom, lat_dom)
+    
+    source_prior_vals <- kernel_smooth(pos_df$longitude,
+                                       pos_df$latitude,
+                                       lon_dom,
+                                       lat_dom)
+
+    # source_prior_dists <- apply(grid_domain, 1, function(x) 
+    #                             lonlat_to_bearing(source_prior_mean_lon,
+    #                                               source_prior_mean_lat, 
+    #                                               x[1], x[2])$gc_dist)
+    # 
+    # source_prior_vals <- dnorm(source_prior_dists, 0, sd = source_prior_sd)*dnorm(0, 0, sd = source_prior_sd)
+    # source_prior_vals <- source_prior_vals/sum(source_prior_vals)
+    
+    # create blank raster with this extent
+    r <- raster::raster(xmn = lomn,
+                        xmx = lomx,
+                        ymn = lamn,
+                        ymx = lamx,
+                        ncol = cells_lon,
+                        nrow = cells_lat)
+    
+    # set raster values                    
+    r <- raster::setValues(r, source_prior_vals)
+    r[is.na(r)] <- 0
+    
+    return(r)
+  }
 }
 
 #------------------------------------------------
@@ -495,7 +603,7 @@ run_mcmc <- function(project,
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
-  spatial_prior_values <- raster::values(spatial_prior)
+  spatial_prior_values <- log(raster::values(spatial_prior))
   spatial_prior_values[is.na(spatial_prior_values)] <- 0
   
   # initialise sources in a non-NA cell

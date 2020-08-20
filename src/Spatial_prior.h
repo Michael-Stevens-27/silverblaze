@@ -14,7 +14,7 @@ public:
   Parameters * p;
   
   // spatial prior
-  std::vector<bool> spatial_prior_mask;
+  std::vector<double> spatial_prior_mask;
 
   // constructors
   Spatial_prior() {};

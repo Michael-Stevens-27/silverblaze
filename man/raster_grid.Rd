@@ -4,13 +4,9 @@
 \alias{raster_grid}
 \title{Make raster grid}
 \usage{
-raster_grid(
-  range_lon = c(-0.2, 0),
-  range_lat = c(51.45, 51.55),
-  cells_lon = 100,
-  cells_lat = 100,
-  guard_rail = 0.05
-)
+raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
+  cells_lon = 100, cells_lat = 100, guard_rail = 0.05, df = NULL,
+  data_type = NULL)
 }
 \arguments{
 \item{range_lon}{min and max longitude}
@@ -22,6 +18,18 @@ raster_grid(
 \item{cells_lat}{number of cells in latitude direction}
 
 \item{guard_rail}{Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.}
+
+\item{df}{a dataframe with columns that must conform to the following rules:
+\itemize{
+  \item for \code{data_type = "counts"}, data must have columns
+  "longitude", "latitude" and "counts".
+  \item for \code{data_type = "prevalence"}, data must have columns
+  "longitude", "latitude", "tested" and "positive"
+  \item for \code{data_type = "point-pattern"}, data must have columns
+  "longitude", "latitude"
+  }}
+
+\item{data_type}{the type of data, either "counts", "prevalence" or "point-pattern"}
 }
 \description{
 Make raster grid
