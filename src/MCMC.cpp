@@ -52,12 +52,14 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   alpha_sampling = vector<double>(p->samples);
   
   // objects for storing acceptance rates
-  source_accept_burnin = vector<int>(p->K);
-  source_accept_sampling = vector<int>(p->K);
-  sigma_accept_burnin = vector<int>(p->K);
-  sigma_accept_sampling = vector<int>(p->K);
-  ep_accept_burnin = vector<int>(p->K);
-  ep_accept_sampling = vector<int>(p->K);
+  source_accept_burnin = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  source_accept_sampling = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  sigma_accept_burnin = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  sigma_accept_sampling = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  ep_accept_burnin = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  ep_accept_sampling = vector<vector<int>>(p->rungs, vector<int>(p->K));
+  alpha_accept_burnin = vector<int>(p->rungs);
+  alpha_accept_sampling = vector<int>(p->rungs);
   
   coupling_accept_burnin = vector<int>(p->rungs - 1);
   coupling_accept_sampling = vector<int>(p->rungs - 1);
@@ -209,10 +211,13 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
   }  // end burn-in iterations
   
   // store acceptance rates
-  source_accept_burnin = particle_vec[cold_rung].source_accept_burnin;
-  sigma_accept_burnin = particle_vec[cold_rung].sigma_accept_burnin;
-  ep_accept_burnin = particle_vec[cold_rung].ep_accept_burnin;
-  alpha_accept_burnin = particle_vec[cold_rung].alpha_accept_burnin;
+  for (int r = 0; r < p->rungs; ++r) {
+    int rung = rung_order[r];
+    source_accept_burnin[r] = particle_vec[rung].source_accept_burnin;
+    sigma_accept_burnin[r] = particle_vec[rung].sigma_accept_burnin;
+    ep_accept_burnin[r] = particle_vec[rung].ep_accept_burnin;
+    alpha_accept_burnin[r] = particle_vec[rung].alpha_accept_burnin;
+  }
   
   // warning if still not converged
   if (!all_convergence_reached && !p->silent) {
@@ -332,10 +337,15 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
   } // end sampling iterations
   
   // store acceptance rates
-  source_accept_sampling = particle_vec[cold_rung].source_accept_sampling;
-  sigma_accept_sampling = particle_vec[cold_rung].sigma_accept_sampling;
-  ep_accept_sampling = particle_vec[cold_rung].ep_accept_sampling;
-  alpha_accept_sampling = particle_vec[cold_rung].alpha_accept_sampling;  
+  for (int r = 0; r < p->rungs; ++r) {
+    int rung = rung_order[r];
+    
+    source_accept_sampling[r] = particle_vec[rung].source_accept_sampling;
+    sigma_accept_sampling[r] = particle_vec[rung].sigma_accept_sampling;
+    ep_accept_sampling[r] = particle_vec[rung].ep_accept_sampling;
+    alpha_accept_sampling[r] = particle_vec[rung].alpha_accept_sampling;
+  }
+
 }
 
 //------------------------------------------------

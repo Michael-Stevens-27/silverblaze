@@ -4,13 +4,8 @@
 \alias{raster_grid}
 \title{Make raster grid}
 \usage{
-raster_grid(
-  range_lon = c(-0.2, 0),
-  range_lat = c(51.45, 51.55),
-  cells_lon = 100,
-  cells_lat = 100,
-  guard_rail = 0.05
-)
+raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
+  cells_lon = 100, cells_lat = 100, guard_rail = 0.05)
 }
 \arguments{
 \item{range_lon}{min and max longitude}
@@ -21,7 +16,8 @@ raster_grid(
 
 \item{cells_lat}{number of cells in latitude direction}
 
-\item{guard_rail}{Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.}
+\item{guard_rail}{Extend each lon lat range by a proportion of the length of said range. 
+E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.}
 }
 \description{
 Make raster grid

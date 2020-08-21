@@ -15,9 +15,10 @@ Spatial_prior::Spatial_prior(const Rcpp::List &args, Parameters &params) {
   vector<double> spatial_prior_values = rcpp_to_vector_double(args["spatial_prior_values"]);
   
   // populate mask
-  spatial_prior_mask = vector<bool>(p->n_lat*p->n_lon, false);
+  spatial_prior_mask = vector<double>(p->n_lat*p->n_lon, 0);
+  
   for (int i = 0; i < (p->n_lat*p->n_lon); ++i) {
-    spatial_prior_mask[i] = (spatial_prior_values[i] != 0) ? true : false;
+    spatial_prior_mask[i] = spatial_prior_values[i];
   }
   
 }

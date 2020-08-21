@@ -28,8 +28,10 @@ check_silverblaze_loaded <- function() {
 #'     "longitude", "latitude" and "counts".
 #'     \item for \code{data_type = "prevalence"}, data must have columns
 #'     "longitude", "latitude", "tested" and "positive"
+#'     \item for \code{data_type = "point-pattern"}, data must have columns
+#'     "longitude", "latitude"
 #'     }
-#' @param data_type the type of data, either "counts" or "prevalence".
+#' @param data_type the type of data, either "counts", "prevalence" or "point-pattern"
 #' @param name optional name of the data set to aid in record keeping
 #' @param check_delete_output whether to prompt the user before overwriting
 #'   existing data
@@ -95,7 +97,8 @@ bind_data <- function(project,
 #' @param range_lat  min and max latitude
 #' @param cells_lon  number of cells in longitude direction
 #' @param cells_lat  number of cells in latitude direction
-#' @param guard_rail Extend each lon lat range by a proportion of the length of said range. E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.
+#' @param guard_rail Extend each lon lat range by a proportion of the length of said range. 
+#'    E.g. a guard_rail of 0.05 increases the lon and lat range by 5 percent.
 #'
 #' @importFrom raster raster setValues
 #' @export
@@ -117,14 +120,16 @@ raster_grid <- function (range_lon = c(-0.2, 0),
   assert_single_pos_int(cells_lat)
   assert_numeric(guard_rail)
   assert_single_pos(guard_rail)
-  
-  # make raster grid
+                      
+  # define raster extent
   dlon <- guard_rail*diff(range(range_lon))
   dlat <- guard_rail*diff(range(range_lat))
   lomn <- range_lon[1] - dlon/2
   lomx <- range_lon[2] + dlon/2
   lamn <- range_lat[1] - dlat/2
   lamx <- range_lat[2] + dlat/2
+  
+  # create blank raster with this extent
   r <- raster::raster(xmn = lomn,
                       xmx = lomx,
                       ymn = lamn,
@@ -132,7 +137,6 @@ raster_grid <- function (range_lon = c(-0.2, 0),
                       ncol = cells_lon,
                       nrow = cells_lat)
   r <- raster::setValues(r, 1/(cells_lon*cells_lat))
-  
   return(r)
 }
 
@@ -178,6 +182,8 @@ raster_from_shapefile <- function (shp,
 #' @param name an optional name for the parameter set.
 #' @param spatial_prior a raster file defining the spatial prior. Precision
 #'   values are taken from this raster if it is defined.
+#' @param source_model choose prior type for source locations. Pick from "uniform"
+#'   (default), "normal" (bivariate normal), "kernal" (KDE based on positive data) 
 #' @param dispersal_model distribute points via a "normal", "cauchy" or 
 #'   "laplace" model
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
@@ -205,6 +211,7 @@ raster_from_shapefile <- function (shp,
 
 new_set <- function(project,
                     spatial_prior = NULL,
+                    source_model = "uniform",
                     name = "(no name)",
                     sigma_model = "single",
                     dispersal_model = "normal",
@@ -220,9 +227,11 @@ new_set <- function(project,
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
+  
   if (!is.null(spatial_prior)) {
     assert_custom_class(spatial_prior, "RasterLayer")
   }
+  assert_in(source_model, c("uniform", "normal", "kernel"))
   
   assert_in(dispersal_model, c("normal", "cauchy", "laplace"))
   assert_in(sigma_model, c("single", "independent"))
@@ -241,15 +250,98 @@ new_set <- function(project,
       assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
     }
   }
+  
   assert_single_string(name)
   
-  # make spatial_prior from data limits if unspecified
+  # make uniform spatial_prior from data limits if unspecified
   if (is.null(spatial_prior)) {
     range_lon <- range(project$data$frame$longitude)
     range_lon <- mean(range_lon) + 1.05*c(-1,1)*diff(range_lon)/2
     range_lat <- range(project$data$frame$latitude)
     range_lat <- mean(range_lat) + 1.05*c(-1,1)*diff(range_lat)/2
-    spatial_prior <- raster_grid(range_lon, range_lat)
+    spatial_prior <- raster_grid(range_lon, range_lat, cells_lon = 1e2, cells_lat = 1e2)
+    values(spatial_prior) <- 1/(1e2^2)
+    
+  } else if (source_model == "uniform"){
+    # create uniform prior based on specified raster
+    values(spatial_prior)[!is.na(values(spatial_prior))] <- 1/sum(!is.na(values(spatial_prior)))
+    values(spatial_prior)[is.na(values(spatial_prior))] <- 0
+  
+  } else if (source_model == "normal"){
+    # create spatial prior based on mean of positive data
+    if (project$data$data_type == "counts") {
+      pos_df <- subset(project$data$frame, project$data$frame$counts > 0)
+    } else if (project$data$data_type == "prevalence") {
+      pos_df <- subset(project$data$frame, project$data$frame$positive > 0)
+    } else if (project$data$data_type == "point-pattern") {
+      pos_df <- project$data$frame
+    }
+      
+    # mean of positive points
+    source_prior_mean_lon <- mean(pos_df$longitude)
+    source_prior_mean_lat <- mean(pos_df$latitude)
+      
+    # max distance between POSITIVE data points and source prior mean 
+    # for source prior sd 
+    source_prior_sd <- apply(pos_df[,1:2], 1, function(x) 
+                             lonlat_to_bearing(source_prior_mean_lon,
+                                               source_prior_mean_lat, 
+                                               x[1], x[2])$gc_dist)
+    source_prior_sd <- max(source_prior_sd)
+    
+    # create domain based on empty sptail_prior raster 
+    lomn <- extent(spatial_prior)[1]
+    lomx <- extent(spatial_prior)[2]
+    lamn <- extent(spatial_prior)[3]
+    lamx <- extent(spatial_prior)[4]
+    
+    lon_dom <- seq(lomn, lomx, l = ncol(spatial_prior))
+    lat_dom <- seq(lamn, lamx, l = nrow(spatial_prior))
+    grid_domain <- expand.grid(lon_dom, lat_dom)
+            
+    source_prior_dists <- apply(grid_domain, 1, function(x) 
+                                lonlat_to_bearing(source_prior_mean_lon,
+                                                  source_prior_mean_lat, 
+                                                  x[1], x[2])$gc_dist)
+    
+    # calculate density of the bivariate normal for each cell  
+    source_prior_vals <- dnorm(source_prior_dists, 0, sd = source_prior_sd)*dnorm(0, 0, sd = source_prior_sd)
+
+    # allocate these values to the spatial prior (masking out areas with NAs) 
+    values(spatial_prior)[!is.na(values(spatial_prior))] <- 1
+    values(spatial_prior) <- values(spatial_prior)*source_prior_vals
+    values(spatial_prior) <- values(spatial_prior)/sum(values(spatial_prior), na.rm = TRUE)
+    
+  } else if (source_model == "kernel"){
+      
+    # mean of positive points
+      if (project$data$data_type == "counts") {
+        pos_df <- subset(project$data$frame, project$data$frame$counts > 0)
+      } else if (project$data$data_type == "prevalence") {
+        pos_df <- subset(project$data$frame, project$data$frame$positive > 0)
+      } else if (project$data$data_type == "point-pattern") {
+        pos_df <- project$data$frame
+      }
+    
+    # create domain based on empty spatial_prior raster 
+    lomn <- extent(spatial_prior)[1]
+    lomx <- extent(spatial_prior)[2]
+    lamn <- extent(spatial_prior)[3]
+    lamx <- extent(spatial_prior)[4]
+    lon_dom <- seq(lomn, lomx, l = ncol(spatial_prior) + 1)
+    lat_dom <- seq(lamn, lamx, l = nrow(spatial_prior) + 1)
+    
+    # run kernel density estimator on positive data
+    source_prior_vals <- kernel_smooth(pos_df$longitude,
+                                       pos_df$latitude,
+                                       lon_dom,
+                                       lat_dom)
+    source_prior_vals <- t(apply(source_prior_vals, 2, rev))
+      
+    # allocate these values to the spatial prior (masking out areas with NAs) 
+    values(spatial_prior)[!is.na(values(spatial_prior))] <- 1
+    values(spatial_prior) <- values(spatial_prior)*c(source_prior_vals)
+    values(spatial_prior) <- values(spatial_prior)/sum(values(spatial_prior), na.rm = TRUE)
   }
   
   # get average single cell area and total study area in km^2
@@ -495,7 +587,7 @@ run_mcmc <- function(project,
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
-  spatial_prior_values <- raster::values(spatial_prior)
+  spatial_prior_values <- log(raster::values(spatial_prior))
   spatial_prior_values[is.na(spatial_prior_values)] <- 0
   
   # initialise sources in a non-NA cell
@@ -824,22 +916,27 @@ run_mcmc <- function(project,
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    source_accept_burnin <- output_raw[[i]]$source_accept_burnin/burnin
-    source_accept_sampling <- output_raw[[i]]$source_accept_sampling/samples
-    names(source_accept_burnin) <- names(source_accept_sampling) <- group_names
-    
-    sigma_accept_burnin <- output_raw[[i]]$sigma_accept_burnin/burnin
-    sigma_accept_sampling <- output_raw[[i]]$sigma_accept_sampling/samples
-    names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
+    source_accept_burnin <- matrix(unlist(output_raw[[i]]$source_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+    source_accept_sampling <- matrix(unlist(output_raw[[i]]$source_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+    colnames(source_accept_burnin) <- colnames(source_accept_sampling) <- group_names
+    rownames(source_accept_burnin) <- rownames(source_accept_sampling) <- rung_names
+        
+    sigma_accept_burnin <- matrix(unlist(output_raw[[i]]$sigma_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+    sigma_accept_sampling <- matrix(unlist(output_raw[[i]]$sigma_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+    colnames(sigma_accept_burnin) <- colnames(sigma_accept_sampling) <- group_names
+    rownames(sigma_accept_burnin) <- rownames(sigma_accept_sampling) <- rung_names
     
     # if prevelance or independent expected popsize model return acceptance rates
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
-      expected_popsize_accept_burnin <- output_raw[[i]]$ep_accept_burnin/burnin
-      expected_popsize_accept_sampling <- output_raw[[i]]$ep_accept_sampling/samples
       
+      expected_popsize_accept_burnin <- matrix(unlist(output_raw[[i]]$ep_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
+      expected_popsize_accept_sampling <- matrix(unlist(output_raw[[i]]$ep_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+      colnames(expected_popsize_accept_burnin) <- colnames(expected_popsize_accept_sampling) <- group_names
+      rownames(expected_popsize_accept_burnin) <- rownames(expected_popsize_accept_sampling) <- rung_names
+    
       if (args_model$n_binom == TRUE) {
-         alpha_accept_burnin <- output_raw[[i]]$alpha_accept_burnin/burnin
-         alpha_accept_sampling <- output_raw[[i]]$alpha_accept_sampling/samples
+         alpha_accept_burnin <- unlist(output_raw[[i]]$alpha_accept_burnin)/convergence_iteration
+         alpha_accept_sampling <- unlist(output_raw[[i]]$alpha_accept_sampling)/samples
        } else {
          alpha_accept_burnin <- alpha_accept_sampling <- NULL
        }
@@ -1077,14 +1174,19 @@ align_qmatrix <- function(project) {
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
     
     # reorder source_accept
-    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[best_perm_order]
-    names(source_accept_sampling) <- group_names
+    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order]
+    colnames(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
-    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[best_perm_order]
-    names(sigma_accept_sampling) <- group_names
+    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order]
+    colnames(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
+    
+    # reorder expected_popsize_accept
+    expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
+    colnames(expected_popsize_accept_sampling) <- group_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
