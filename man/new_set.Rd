@@ -4,22 +4,13 @@
 \alias{new_set}
 \title{Create new parameter set}
 \usage{
-new_set(
-  project,
-  spatial_prior = NULL,
-  name = "(no name)",
-  sigma_model = "single",
-  dispersal_model = "normal",
-  sigma_prior_mean = 1,
-  sigma_prior_sd = 1,
-  expected_popsize_model = "single",
-  expected_popsize_prior_mean = 1000,
-  expected_popsize_prior_sd = 20,
-  sentinel_radius = 0.2,
-  n_binom = FALSE,
-  alpha_prior_mean = 1,
-  alpha_prior_sd = 100
-)
+new_set(project, spatial_prior = NULL, source_model = "uniform",
+  name = "(no name)", sigma_model = "single",
+  dispersal_model = "normal", sigma_prior_mean = 1,
+  sigma_prior_sd = 1, expected_popsize_model = "single",
+  expected_popsize_prior_mean = 1000, expected_popsize_prior_sd = 20,
+  sentinel_radius = 0.2, n_binom = FALSE, alpha_prior_mean = 1,
+  alpha_prior_sd = 100)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -27,6 +18,9 @@ new_set(
 
 \item{spatial_prior}{a raster file defining the spatial prior. Precision
 values are taken from this raster if it is defined.}
+
+\item{source_model}{choose prior type for source locations. Pick from "uniform"
+(default), "normal" (bivariate normal), "kernal" (KDE based on positive data)}
 
 \item{name}{an optional name for the parameter set.}
 
