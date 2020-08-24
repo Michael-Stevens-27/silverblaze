@@ -183,7 +183,8 @@ raster_from_shapefile <- function (shp,
 #' @param spatial_prior a raster file defining the spatial prior. Precision
 #'   values are taken from this raster if it is defined.
 #' @param source_model choose prior type for source locations. Pick from "uniform"
-#'   (default), "normal" (bivariate normal), "kernal" (KDE based on positive data) 
+#'   (default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+#'   "manual" (the current value of the raster) 
 #' @param dispersal_model distribute points via a "normal", "cauchy" or 
 #'   "laplace" model
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
@@ -231,7 +232,7 @@ new_set <- function(project,
   if (!is.null(spatial_prior)) {
     assert_custom_class(spatial_prior, "RasterLayer")
   }
-  assert_in(source_model, c("uniform", "normal", "kernel"))
+  assert_in(source_model, c("uniform", "normal", "kernel", "manual"))
   
   assert_in(dispersal_model, c("normal", "cauchy", "laplace"))
   assert_in(sigma_model, c("single", "independent"))
@@ -306,23 +307,27 @@ new_set <- function(project,
     
     # calculate density of the bivariate normal for each cell  
     source_prior_vals <- dnorm(source_prior_dists, 0, sd = source_prior_sd)*dnorm(0, 0, sd = source_prior_sd)
-
+    source_prior_vals <- matrix(source_prior_vals, 
+                                ncol = ncol(spatial_prior), 
+                                nrow = nrow(spatial_prior), 
+                                byrow = T)
+    source_prior_vals <- apply(source_prior_vals, 2, rev)
+    
     # allocate these values to the spatial prior (masking out areas with NAs) 
     values(spatial_prior)[!is.na(values(spatial_prior))] <- 1
     values(spatial_prior) <- values(spatial_prior)*source_prior_vals
     values(spatial_prior) <- values(spatial_prior)/sum(values(spatial_prior), na.rm = TRUE)
     
   } else if (source_model == "kernel"){
-      
-    # mean of positive points
-      if (project$data$data_type == "counts") {
-        pos_df <- subset(project$data$frame, project$data$frame$counts > 0)
-      } else if (project$data$data_type == "prevalence") {
-        pos_df <- subset(project$data$frame, project$data$frame$positive > 0)
-      } else if (project$data$data_type == "point-pattern") {
-        pos_df <- project$data$frame
-      }
-    
+    # create spatial prior based on a KDE of positive data
+    if (project$data$data_type == "counts") {
+      pos_df <- subset(project$data$frame, project$data$frame$counts > 0)
+    } else if (project$data$data_type == "prevalence") {
+      pos_df <- subset(project$data$frame, project$data$frame$positive > 0)
+    } else if (project$data$data_type == "point-pattern") {
+      pos_df <- project$data$frame
+    }
+  
     # create domain based on empty spatial_prior raster 
     lomn <- extent(spatial_prior)[1]
     lomx <- extent(spatial_prior)[2]
@@ -342,7 +347,11 @@ new_set <- function(project,
     values(spatial_prior)[!is.na(values(spatial_prior))] <- 1
     values(spatial_prior) <- values(spatial_prior)*c(source_prior_vals)
     values(spatial_prior) <- values(spatial_prior)/sum(values(spatial_prior), na.rm = TRUE)
+  
+  } else if (source_model == "manual"){
+    print("Using manually specified values in spatial prior")
   }
+
   
   # get average single cell area and total study area in km^2
   study_area <- sum(raster::area(spatial_prior)[])
@@ -799,7 +808,6 @@ run_mcmc <- function(project,
     prob_surface_split <- raster()
     prob_surface_mat <- 0
     for (k in seq_len(K[i])) {
-      
       if (create_maps) {
         
         # get prob surface for this K by smoothing
@@ -815,7 +823,7 @@ run_mcmc <- function(project,
       } else {
         
         # store dummy surface
-        prob_surface_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+        prob_surface_split_mat <- matrix(NA, length(breaks_lat) - 1, length(breaks_lon) - 1)
       }
       
       # add as raster layer
@@ -847,7 +855,7 @@ run_mcmc <- function(project,
     } else {
       
       # store dummy surface
-      prob_surface_realised_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+      prob_surface_realised_mat <- matrix(NA, length(breaks_lat) - 1, length(breaks_lon) - 1)
     }
     
     # make raster
@@ -867,7 +875,7 @@ run_mcmc <- function(project,
       } else {
         
         # store dummy surface
-        geoprofile_split_mat <- matrix(NA, length(breaks_lon) - 1, length(breaks_lat) - 1)
+        geoprofile_split_mat <- matrix(NA, length(breaks_lat) - 1, length(breaks_lon) - 1)
       }
       
       # add as raster layer
@@ -914,23 +922,22 @@ run_mcmc <- function(project,
     DIC_gelman <- -2*mu + 4*sigma_sq
     
     # ---------- acceptance rates ----------
-    
     # process acceptance rates
-    source_accept_burnin <- matrix(unlist(output_raw[[i]]$source_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
-    source_accept_sampling <- matrix(unlist(output_raw[[i]]$source_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+    source_accept_burnin <- matrix(unlist(output_raw[[i]]$source_accept_burnin), ncol = K[i], nrow = rungs, byrow = T)/convergence_iteration
+    source_accept_sampling <- matrix(unlist(output_raw[[i]]$source_accept_sampling), ncol = K[i], nrow = rungs, byrow = T)/samples
     colnames(source_accept_burnin) <- colnames(source_accept_sampling) <- group_names
     rownames(source_accept_burnin) <- rownames(source_accept_sampling) <- rung_names
         
-    sigma_accept_burnin <- matrix(unlist(output_raw[[i]]$sigma_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
-    sigma_accept_sampling <- matrix(unlist(output_raw[[i]]$sigma_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
-    colnames(sigma_accept_burnin) <- colnames(sigma_accept_sampling) <- group_names
+    sigma_accept_burnin <- matrix(unlist(output_raw[[i]]$sigma_accept_burnin), ncol = K[i], nrow = rungs, byrow = T)/convergence_iteration
+    sigma_accept_sampling <- matrix(unlist(output_raw[[i]]$sigma_accept_sampling), ncol = K[i], nrow = rungs, byrow = T)/samples
+    names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
     rownames(sigma_accept_burnin) <- rownames(sigma_accept_sampling) <- rung_names
     
     # if prevelance or independent expected popsize model return acceptance rates
     if (project$data$data_type == "prevalence" | expected_popsize_model_numeric == 2) {
       
-      expected_popsize_accept_burnin <- matrix(unlist(output_raw[[i]]$ep_accept_burnin), ncol = K, nrow = rungs, byrow = T)/convergence_iteration
-      expected_popsize_accept_sampling <- matrix(unlist(output_raw[[i]]$ep_accept_sampling), ncol = K, nrow = rungs, byrow = T)/samples
+      expected_popsize_accept_burnin <- matrix(unlist(output_raw[[i]]$ep_accept_burnin), ncol = K[i], nrow = rungs, byrow = T)/convergence_iteration
+      expected_popsize_accept_sampling <- matrix(unlist(output_raw[[i]]$ep_accept_sampling), ncol = K[i], nrow = rungs, byrow = T)/samples
       colnames(expected_popsize_accept_burnin) <- colnames(expected_popsize_accept_sampling) <- group_names
       rownames(expected_popsize_accept_burnin) <- rownames(expected_popsize_accept_sampling) <- rung_names
     
@@ -943,8 +950,8 @@ run_mcmc <- function(project,
       
     } else {
       alpha_accept_burnin <- alpha_accept_sampling <- NULL
+      expected_popsize_accept_burnin <- expected_popsize_accept_sampling <- NULL
     } 
-    
     # get Metropolis coupling acceptance rates
     coupling_accept_burnin <- output_raw[[i]]$coupling_accept_burnin/(convergence_iteration)
     coupling_accept_sampling <- output_raw[[i]]$coupling_accept_sampling/(samples)
@@ -956,7 +963,7 @@ run_mcmc <- function(project,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         pb_markdown = pb_markdown,
-                        GTI_pow,
+                        GTI_pow = GTI_pow,
                         rungs = rungs,
                         silent = silent)
     
@@ -993,7 +1000,7 @@ run_mcmc <- function(project,
                                                                     coupling_accept_sampling = coupling_accept_sampling,
                                                                     beta_vec = beta_vec,
                                                                     GTI_pow = GTI_pow)
-    
+                                                                    
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
                                                                   source_lon_burnin = source_lon_burnin,
@@ -1009,13 +1016,14 @@ run_mcmc <- function(project,
                                                                   sigma_sampling = sigma_sampling,
                                                                   expected_popsize_sampling = expected_popsize_sampling,
                                                                   alpha_sampling = alpha_sampling)
+    
     }
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
                                                                           call = match.call())
-    
+
   } # end loop over K
-  
+
   # name output over K
   K_all <- length(project$output$single_set[[s]]$single_K)
   names(project$output$single_set[[s]]$single_K) <- paste0("K", 1:K_all)
@@ -1026,7 +1034,7 @@ run_mcmc <- function(project,
   project <- align_qmatrix(project)
   
   # get matrix of realised K over all model K (assuming K > 1)
-  if (K_all > 1){
+  if (K_all > 1 & project$data$data_type == "prevalence"){
     realised_K_all <- mapply(function(x) {
       ret <- rep(NA, K_all)
       tmp <- x$summary$realised_K
@@ -1172,21 +1180,25 @@ align_qmatrix <- function(project) {
     sigma_intervals <- x[[i]]$summary$sigma_intervals[best_perm_order,,drop = FALSE]
     rownames(sigma_intervals) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
-    
+
     # reorder source_accept
     source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order]
-    colnames(source_accept_sampling) <- group_names
+    names(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
     sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order]
-    colnames(sigma_accept_sampling) <- group_names
+    names(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
     
     # reorder expected_popsize_accept
-    expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
-    colnames(expected_popsize_accept_sampling) <- group_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
+    if( project$data$data_type == "prevalence" | 
+        project$parameter_sets[[s]]$n_binom == TRUE | 
+        project$parameter_sets[[s]]$expected_popsize_model == "independent") {
+      expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
+      colnames(expected_popsize_accept_sampling) <- group_names
+      project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
+    }
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix

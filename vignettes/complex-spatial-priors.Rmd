@@ -19,8 +19,167 @@ plasma <- c("#F0F921FF", "#FDC926FF", "#FA9E3BFF", "#ED7953FF", "#D8576BFF",
 set.seed(2)
 ```
 
+## Introduction
+The geographic profiling models described in the previous tutorials all make use of a Metropolis-Hastings algorithm for updating source locations. As a result, we can impose any prior we like on source locations. So far, priors on source locations have assumed that the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (see @Verity2014 and @Faulkner2017) that implements the shapefile post-hoc. This tutorial will walk through different options for spatial priors in the silverblaze package. Let's start with a refresher: a uniform prior based on simulated data. The prior on source locations is defined over a grid of cells, hence we create a uniform prior via the `raster_grid()` function.    
+
+```{r}
+# define sentinel site array
+sentinal_lon <- seq(-0.2, 0.0, l = 15)
+sentinal_lat <- seq(51.45, 51.55, l = 15)
+sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
+names(sentinal_grid) <- c("longitude", "latitude")
+
+# create example dataset
+data <- sim_data(sentinel_lon = sentinal_grid[,1],
+                 sentinel_lat = sentinal_grid[,2],
+                 sentinel_radius = 0.3, 
+                 K = 2,
+                 source_lon_min = min(sentinal_lon), 
+                 source_lon_max = max(sentinal_lon), 
+                 source_lat_min = min(sentinal_lat),
+                 source_lat_max = max(sentinal_lat), 
+                 sigma_model = "single", 
+                 sigma_mean = 1, 
+                 sigma_var = 0,
+                 expected_popsize = 1e3)
+                 
+# store objects for easy access later
+df_all <- data$data
+dataPoints <- data$record$data_all
+true_sources <- data$record$true_source
+```
+
+Now let's create a raster based on the data we've just simulated, this will work as a foundation for our spatial prior.  
+
+```{r}
+# create uniform prior on source locations
+raster_frame <- raster_grid(cells_lon = 100, cells_lat = 100,
+                            range_lat = range(sentinal_lat),
+                            range_lon = range(sentinal_lon), guard_rail = 0.25)
+```
+
+This spatial prior is then fed into our geographic profiling project using the `spatial_prior` argument in the `new_set()` function. We then specify which kind of prior we wish to impose on source locations, using this raster, via the `source_model` argument.  
+
+```{r}
+# create GP project
+p <- rgeoprofile_project()
+p <- bind_data(p,
+               df = df_all,
+               data_type = "counts")
+  
+# add parameter set to project
+p <- new_set(project = p,
+             spatial_prior = raster_frame,
+             source_model = "uniform",
+             sentinel_radius = 0.3,
+             sigma_model = "single",
+             sigma_prior_mean = 2,
+             sigma_prior_sd = 1,
+             expected_popsize_prior_mean = 1e3,
+             expected_popsize_prior_sd = 1e2, 
+             name = "uniform_prior_project")
+```
+
+Now let's have a look at our data and spatial prior. 
+
+```{r, echo = FALSE}
+
+plot2 <- plot_map(map_type = 110)
+plot2 <- overlay_spatial_prior(plot2, p, opacity = 0.5)
+plot2 <- overlay_sentinels(plot2, 
+                           p, 
+                           border = F,
+                           legend = FALSE, 
+                           fill_opacity = 1, 
+                           sentinel_radius = 0.3)
+plot2 <- overlay_sources(plot2, 
+                         true_sources$longitude, 
+                         true_sources$latitude, 
+                         icon_width = 15, 
+                         icon_height = 15)
+
+plot2
+
+```
+
+## Bi-variate normal prior
+
+A more informative prior could be a bivariate normal distribution centred on the spatial mean of the positive data. Similarly to @Verity2014, the standard deviation of this bivariate normal prior is set to the maximum distance bewteen the mean and the positive data.  
+
+```{r}
+# add parameter set to project
+p <- new_set(project = p,
+             spatial_prior = raster_frame,
+             source_model = "normal",
+             sentinel_radius = 0.3,
+             sigma_model = "single",
+             sigma_prior_mean = 2,
+             sigma_prior_sd = 1,
+             expected_popsize_prior_mean = 1e3,
+             expected_popsize_prior_sd = 1e2, 
+             name = "bvnorm_prior_project")
+```
+
+```{r, echo = FALSE}
+
+plot2 <- plot_map(map_type = 110)
+plot2 <- overlay_spatial_prior(plot2, p, opacity = 0.5)
+plot2 <- overlay_sentinels(plot2, 
+                           p, 
+                           border = F,
+                           legend = FALSE, 
+                           fill_opacity = 1, 
+                           sentinel_radius = 0.3)
+plot2 <- overlay_sources(plot2, 
+                         true_sources$longitude, 
+                         true_sources$latitude, 
+                         icon_width = 15, 
+                         icon_height = 15)
+
+plot2
+
+```
+
+## Kernel density prior
+
+A bivariate normal distribution may be an inappropriate choice for a prior if the spatial mean of the positive data is an area containing absences. Hence, another option for `source_model` is `"kernel".` This will produce a kernel density estimate for the positive data (see @Barnard2010 for a description of the KDE and bandwidth choice). 
+
+```{r}
+# add parameter set to project
+p <- new_set(project = p,
+             spatial_prior = raster_frame,
+             source_model = "kernel",
+             sentinel_radius = 0.3,
+             sigma_model = "single",
+             sigma_prior_mean = 2,
+             sigma_prior_sd = 1,
+             expected_popsize_prior_mean = 1e3,
+             expected_popsize_prior_sd = 1e2, 
+             name = "kde_prior_project")
+```
+
+```{r, echo = FALSE}
+
+plot2 <- plot_map(map_type = 110)
+plot2 <- overlay_spatial_prior(plot2, p, opacity = 0.5)
+plot2 <- overlay_sentinels(plot2, 
+                           p, 
+                           border = F,
+                           legend = FALSE, 
+                           fill_opacity = 1, 
+                           sentinel_radius = 0.3)
+plot2 <- overlay_sources(plot2, 
+                         true_sources$longitude, 
+                         true_sources$latitude, 
+                         icon_width = 15, 
+                         icon_height = 15)
+
+plot2
+
+```
+
 ## Using shapefiles
-It is also possible to import a shapefile that restricts our search area. The example here relates to a particular London borough.
+We built our raster from scratch using the `raster_grid()` function, however, silverblaze also allows for the importing of shapefiles such that the boundaries of our raster conform to a particular geographic boundary. The example here relates to a particular borough of London.
 
 ```{r, message = FALSE, warning = FALSE, error = FALSE}
 s <- rgeoprofile_shapefile("London_north")
@@ -28,7 +187,7 @@ spatial_prior <- raster_from_shapefile(s, cells_lon = 100, cells_lat = 100)
 plot(spatial_prior, xlab = "Longitude", ylab = "Latitude")
 ```
 
-This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html). In this prior we assume the probability of observing a source at a specific location is either constant (inside the shapefile) or zero (outside the shapefile). When we update source locations via the Metropolis-Hastings algorithm any proposed value that is outside the shapefile is immediately rejected. This differs from the conventional geographic profiling model (see @Verity2014 and @Faulkner2017) that implements the shapefile post-hoc.   
+This shapefile is built into the package, any other shapefile should be loaded using the `readOGR()` function from [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html).   
 
 ## A non-uniform spatial prior
 
@@ -68,9 +227,10 @@ Now we've loaded the shapefile and converted it into a spatial prior, let genera
 ## A non-uniform spatial prior in a GP project
 
 ```{r}
+set.seed(10)
 # create example dataset
 Extent <- extent(PopDenRaster)
-sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 10), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 10))
+sentGrid <- expand.grid(seq(Extent[1] + 0.1, Extent[2] - 0.1, l = 10), seq(Extent[3]+ 0.05, Extent[4]- 0.05, l = 15))
 data <- sim_data(sentinel_lon = sentGrid[,1],
                  sentinel_lat = sentGrid[,2],
                  sentinel_radius = 0.3, 
@@ -80,7 +240,7 @@ data <- sim_data(sentinel_lon = sentGrid[,1],
                  source_lat_min = Extent[3] + 0.05,
                  source_lat_max = Extent[4] - 0.05, 
                  sigma_model = "single", 
-                 sigma_mean = 2, 
+                 sigma_mean = 4, 
                  sigma_var = 0,
                  expected_popsize = 1000)
 df_all <- data$data
@@ -103,17 +263,17 @@ Create parameter sets:
 # add parameter set to project
 pPopDen <- new_set(project = pPopDen,
                    spatial_prior = PopDenRaster,
+                   source_model = "manual",
                    sentinel_radius = 0.3,
                    sigma_model = "single",
-                   sigma_prior_mean = 2,
-                   sigma_prior_sd = 1,
+                   sigma_prior_mean = 4,
+                   sigma_prior_sd = 0.1,
                    expected_popsize_prior_sd = 1e3)
 ```
 
 Plot the data with the prior:
 
-```{r}
-# uniform
+```{r, echo = FALSE}
 plot1 <- plot_map(map_type = 110)
 plot1 <- overlay_sentinels(plot1, pPopDen, sentinel_radius = 1)
 plot1 <- overlay_sources(plot1, lon = true_sources$longitude, lat = true_sources$latitude)
@@ -125,12 +285,13 @@ plot1
 Run the MCMC: 
 
 ```{r, eval = FALSE}
+set.seed(10)
 pPopDen <- run_mcmc(project = pPopDen,
-              K = 1:5,
-              burnin = 2e4,
-              samples = 2e4,
-              pb_markdown = TRUE,
-              converge_test = 1e4)
+                    K = 1:2,
+                    burnin = 2e4,
+                    samples = 2e4,
+                    pb_markdown = TRUE,
+                    converge_test = 1e4)
 ```
 
 ```{r, echo = FALSE}
@@ -162,4 +323,4 @@ plot3
 # secretly save/load data from file so output is consistent between tutorials
 # saveRDS(pPopDen, file = "/home/mstevens/Desktop/MAIN WORK/Presence Absence/Package Versions/silverblaze/inst/extdata/complex_spatial_project.rds")
 ```
-### References
+## References

@@ -152,10 +152,10 @@
   parameter set becomes the active set once created.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>,
-  <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>, <span class='kw'>dispersal_model</span> <span class='kw'>=</span> <span class='st'>"normal"</span>,
-  <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
+    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>source_model</span> <span class='kw'>=</span> <span class='st'>"uniform"</span>,
+  <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>, <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
+  <span class='kw'>dispersal_model</span> <span class='kw'>=</span> <span class='st'>"normal"</span>, <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
   <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>20</span>,
   <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>n_binom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>alpha_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>alpha_prior_sd</span> <span class='kw'>=</span> <span class='fl'>100</span>)</pre>
@@ -172,6 +172,11 @@
       <th>spatial_prior</th>
       <td><p>a raster file defining the spatial prior. Precision
 values are taken from this raster if it is defined.</p></td>
+    </tr>
+    <tr>
+      <th>source_model</th>
+      <td><p>choose prior type for source locations. Pick from "uniform"
+(default), "normal" (bivariate normal), "kernal" (KDE based on positive data)</p></td>
     </tr>
     <tr>
       <th>name</th>
