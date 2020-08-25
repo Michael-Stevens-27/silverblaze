@@ -1196,7 +1196,7 @@ align_qmatrix <- function(project) {
         project$parameter_sets[[s]]$n_binom == TRUE | 
         project$parameter_sets[[s]]$expected_popsize_model == "independent") {
       expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
-      colnames(expected_popsize_accept_sampling) <- group_names
+      names(expected_popsize_accept_sampling) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     }
     
