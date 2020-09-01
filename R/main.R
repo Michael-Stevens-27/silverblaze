@@ -1188,12 +1188,12 @@ align_qmatrix <- function(project) {
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
 
     # reorder source_accept
-    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order]
+    source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order, drop = FALSE]
     names(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
-    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order]
+    sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order, drop = FALSE]
     names(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
     
@@ -1201,7 +1201,7 @@ align_qmatrix <- function(project) {
     if( project$data$data_type == "prevalence" | 
         project$parameter_sets[[s]]$n_binom == TRUE | 
         project$parameter_sets[[s]]$expected_popsize_model == "independent") {
-      expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order]
+      expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order, drop = FALSE]
       names(expected_popsize_accept_sampling) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     }
