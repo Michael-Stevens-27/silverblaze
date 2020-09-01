@@ -599,9 +599,14 @@ run_mcmc <- function(project,
   spatial_prior_values <- log(raster::values(spatial_prior))
   spatial_prior_values[is.na(spatial_prior_values)] <- 0
   
-  # initialise sources in a non-NA cell
-  source_init <- raster::xyFromCell(spatial_prior, which(!is.na(raster::values(spatial_prior)))[1])
-  
+  # initialise sources based on prior
+  source_init <- raster::xyFromCell(spatial_prior, sample(x = 1:ncell(spatial_prior), 
+                                                          size = max(K), 
+                                                          prob = values(spatial_prior), 
+                                                          replace = TRUE))
+  source_init_lon <- source_init[,1]                                                          
+  source_init_lat <- source_init[,2]  
+                                                        
   # convert sigma_model to numeric
   sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
   fixed_sigma_model <- project$parameter_sets[[s]]$sigma_prior_sd == 0
@@ -627,7 +632,8 @@ run_mcmc <- function(project,
                           res_lat = raster::yres(spatial_prior),
                           n_lat = nrow(spatial_prior),
                           spatial_prior_values = spatial_prior_values,
-                          source_init = source_init,
+                          source_init_lon = source_init_lon,
+                          source_init_lat = source_init_lat,
                           sigma_model_numeric = sigma_model_numeric,
                           fixed_sigma_model = fixed_sigma_model,
                           expected_popsize_model_numeric = expected_popsize_model_numeric,

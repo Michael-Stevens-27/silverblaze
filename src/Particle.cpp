@@ -106,8 +106,8 @@ void Particle::reset(double beta) {
   
   // initialise source locations
   for (int k = 0; k < p->K; ++k) {
-    source_lon[k] = p->source_init[0];
-    source_lat[k] = p->source_init[1];
+    source_lon[k] = p->source_init_lon[k];
+    source_lat[k] = p->source_init_lat[k];
   }
   
   // draw sigma from prior
@@ -1203,7 +1203,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 
     }
 
-    // calculate priors (uniform prior on weights
+    // calculate priors (uniform prior on weights)
     double logprior = 0;
     double logprior_prop = 0;
     
@@ -1217,7 +1217,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       expected_popsize[k] = ep_prop;
       ep_total = ep_prop_total;
         
-      // update the weight for this source
+      // update the weights for each source
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
       }
