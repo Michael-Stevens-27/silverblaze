@@ -106,8 +106,12 @@ void Particle::reset(double beta) {
   
   // initialise source locations
   for (int k = 0; k < p->K; ++k) {
-    source_lon[k] = p->source_init_lon[k];
-    source_lat[k] = p->source_init_lat[k];
+    // source_lon[k] = p->source_init_lon[k];
+    // source_lat[k] = p->source_init_lat[k];
+    
+    // randomly draw from spatial extent of prior
+    source_lon[k] = runif1(p->min_lon, p->max_lon);
+    source_lat[k] = runif1(p->min_lat, p->max_lat);
   }
   
   // draw sigma from prior
