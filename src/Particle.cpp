@@ -70,7 +70,6 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   log_hazard_height = vector<vector<double>>(d->n, vector<double>(p->K));
   log_hazard_height_prop = vector<double>(d->n);
   log_hazard_height_prop2 = vector<vector<double>>(d->n, vector<double>(p->K));
-  logprior = 0;
   loglike = 0;
   
   // initialise ordering of labels
@@ -106,12 +105,8 @@ void Particle::reset(double beta) {
   
   // initialise source locations
   for (int k = 0; k < p->K; ++k) {
-    // source_lon[k] = p->source_init_lon[k];
-    // source_lat[k] = p->source_init_lat[k];
-    
-    // randomly draw from spatial extent of prior
-    source_lon[k] = runif1(p->min_lon, p->max_lon);
-    source_lat[k] = runif1(p->min_lat, p->max_lat);
+     source_lon[k] = p->source_init_lon[k];
+     source_lat[k] = p->source_init_lat[k];
   }
   
   // draw sigma from prior
@@ -169,7 +164,6 @@ void Particle::reset(double beta) {
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
   for (int k = 0; k < p->K; ++k) {
-    logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
     
     for (int i = 0; i < d->n; ++i) {
@@ -281,10 +275,10 @@ void Particle::update_alpha(bool robbins_monro_on, int iteration) {
 
 //------------------------------------------------
 // calculate log-prior given new proposed source
-double Particle::calculate_logprior_source(double source_lon_prop, double source_lat_prop) {
+double Particle::calculate_logprior_source(double source_longitude, double source_latitude) {
   
   // get logprior probability
-  double logprior_prob = sp->get_value(source_lon_prop, source_lat_prop);
+  double logprior_prob = sp->get_value(source_longitude, source_latitude);
   
   // catch values with zero prior probability
   if (logprior_prob == 0) {
@@ -491,6 +485,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     }
     
     // calculate new logprior and loglikelihood
+    double logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     double logprior_prop = calculate_logprior_source(source_lon_prop, source_lat_prop);
     double loglike_prop;
     
@@ -514,7 +509,6 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
       }
       
       // update likelihood and prior
-      logprior = logprior_prop;
       loglike = loglike_prop;
 
       // Robbins-Monro positive update (on the log scale)

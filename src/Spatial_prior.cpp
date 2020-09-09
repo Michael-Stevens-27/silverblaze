@@ -29,9 +29,9 @@ double Spatial_prior::get_value(double lon, double lat) {
   
   // convert lon/lat to index using precision
   int lon_index = floor((lon - p->min_lon)/p->res_lon);
-  int lat_index = floor((lat - p->min_lat)/p->res_lat);
+  int lat_index = ceil((lat - p->min_lat)/p->res_lat);
   
   // lookup value
-  return spatial_prior_mask[(p->n_lat-lat_index)*p->n_lon + lon_index];
+  return spatial_prior_mask[(p->n_lat - lat_index)*p->n_lon + lon_index];
   
 }
