@@ -936,7 +936,7 @@ run_mcmc <- function(project,
         
     sigma_accept_burnin <- matrix(unlist(output_raw[[i]]$sigma_accept_burnin), ncol = K[i], nrow = rungs, byrow = T)/convergence_iteration
     sigma_accept_sampling <- matrix(unlist(output_raw[[i]]$sigma_accept_sampling), ncol = K[i], nrow = rungs, byrow = T)/samples
-    names(sigma_accept_burnin) <- names(sigma_accept_sampling) <- group_names
+    colnames(sigma_accept_burnin) <- colnames(sigma_accept_sampling) <- group_names
     rownames(sigma_accept_burnin) <- rownames(sigma_accept_sampling) <- rung_names
     
     # if prevelance or independent expected popsize model return acceptance rates
@@ -1145,14 +1145,14 @@ align_qmatrix <- function(project) {
       # reorder source_lon_burnin and source_lat_burnin
       source_lon_burnin <- x[[i]]$raw$source_lon_burnin[, best_perm_order, drop = FALSE]
       source_lat_burnin <- x[[i]]$raw$source_lat_burnin[, best_perm_order, drop = FALSE]
-      names(source_lon_burnin) <- names(source_lat_burnin) <- group_names
+      colnames(source_lon_burnin) <- colnames(source_lat_burnin) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lon_burnin <- source_lon_burnin
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lat_burnin <- source_lat_burnin
       
       # reorder source_lon_sampling and source_lat_sampling
       source_lon_sampling <- x[[i]]$raw$source_lon_sampling[, best_perm_order, drop = FALSE]
       source_lat_sampling <- x[[i]]$raw$source_lat_sampling[, best_perm_order, drop = FALSE]
-      names(source_lon_sampling) <- names(source_lat_sampling) <- group_names
+      colnames(source_lon_sampling) <- colnames(source_lat_sampling) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lon_sampling <- source_lon_sampling
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lat_sampling <- source_lat_sampling
       
@@ -1162,7 +1162,7 @@ align_qmatrix <- function(project) {
       if (ncol(sigma_sampling) > 1) {
         sigma_burnin <- sigma_burnin[, best_perm_order, drop = FALSE]
         sigma_sampling <- sigma_sampling[, best_perm_order, drop = FALSE]
-        names(sigma_burnin) <- names(sigma_sampling) <- group_names
+        colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_burnin <- sigma_burnin
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_sampling <- sigma_sampling
       }
@@ -1189,12 +1189,12 @@ align_qmatrix <- function(project) {
 
     # reorder source_accept
     source_accept_sampling <- x[[i]]$summary$source_accept_sampling[, best_perm_order, drop = FALSE]
-    names(source_accept_sampling) <- group_names
+    colnames(source_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept_sampling <- source_accept_sampling
     
     # reorder sigma_accept
     sigma_accept_sampling <- x[[i]]$summary$sigma_accept_sampling[, best_perm_order, drop = FALSE]
-    names(sigma_accept_sampling) <- group_names
+    colnames(sigma_accept_sampling) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept_sampling <- sigma_accept_sampling
     
     # reorder expected_popsize_accept
@@ -1202,7 +1202,7 @@ align_qmatrix <- function(project) {
         project$parameter_sets[[s]]$n_binom == TRUE | 
         project$parameter_sets[[s]]$expected_popsize_model == "independent") {
       expected_popsize_accept_sampling <- x[[i]]$summary$expected_popsize_accept_sampling[, best_perm_order, drop = FALSE]
-      names(expected_popsize_accept_sampling) <- group_names
+      colnames(expected_popsize_accept_sampling) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$summary$expected_popsize_accept_sampling <- expected_popsize_accept_sampling
     }
     
