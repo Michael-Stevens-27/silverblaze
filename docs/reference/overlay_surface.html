@@ -150,9 +150,18 @@
     <p>Add posterior probability surface to dynamic map</p>
     </div>
 
-    <pre class="usage"><span class='fu'>overlay_surface</span>(<span class='no'>myplot</span>, <span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>source</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>col</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rev.html'>rev</a></span>(<span class='fu'>col_hotcold</span>()), <span class='kw'>opacity</span> <span class='kw'>=</span> <span class='fl'>0.8</span>,
-  <span class='kw'>smoothing</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>legend</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>overlay_surface</span>(
+  <span class='no'>myplot</span>,
+  <span class='no'>project</span>,
+  <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>source</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>realised</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>threshold</span> <span class='kw'>=</span> <span class='fl'>0.1</span>,
+  <span class='kw'>col</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rev.html'>rev</a></span>(<span class='fu'>col_hotcold</span>()),
+  <span class='kw'>opacity</span> <span class='kw'>=</span> <span class='fl'>0.8</span>,
+  <span class='kw'>smoothing</span> <span class='kw'>=</span> <span class='fl'>1</span>,
+  <span class='kw'>legend</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -173,6 +182,10 @@
     <tr>
       <th>source</th>
       <td><p>which source to plot. If NULL then plot combined surface.</p></td>
+    </tr>
+    <tr>
+      <th>realised</th>
+      <td><p>if TRUE then plot surface for realised sources only.</p></td>
     </tr>
     <tr>
       <th>threshold</th>

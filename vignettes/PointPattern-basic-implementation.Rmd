@@ -4,7 +4,7 @@ author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Point Pattern - Basic Implementation"}
+  %\VignetteIndexEntry{Point Pattern - Basic Implementation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

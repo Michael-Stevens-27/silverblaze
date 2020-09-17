@@ -33,7 +33,8 @@ public:
   int n_lat;
   double search_area;
   double cell_area;
-  std::vector<double> source_init;
+  std::vector<double> source_init_lon;
+  std::vector<double> source_init_lat;
   int sigma_model;
   double sigma_prior_meanlog;
   double sigma_prior_sdlog;

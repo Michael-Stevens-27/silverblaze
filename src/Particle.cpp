@@ -29,6 +29,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // expected population size for each soure
   expected_popsize = vector<double>(p->K, 100);
   ep_total = 0;
+  weight_total = 1;
     
   // weights for each soure
   source_weights = vector<double>(p->K, 1/(p->K));
@@ -70,7 +71,6 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   log_hazard_height = vector<vector<double>>(d->n, vector<double>(p->K));
   log_hazard_height_prop = vector<double>(d->n);
   log_hazard_height_prop2 = vector<vector<double>>(d->n, vector<double>(p->K));
-  logprior = 0;
   loglike = 0;
   
   // initialise ordering of labels
@@ -106,8 +106,8 @@ void Particle::reset(double beta) {
   
   // initialise source locations
   for (int k = 0; k < p->K; ++k) {
-    source_lon[k] = p->source_init[0];
-    source_lat[k] = p->source_init[1];
+     source_lon[k] = p->source_init_lon[k];
+     source_lat[k] = p->source_init_lat[k];
   }
   
   // draw sigma from prior
@@ -165,7 +165,6 @@ void Particle::reset(double beta) {
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
   for (int k = 0; k < p->K; ++k) {
-    logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
     
     for (int i = 0; i < d->n; ++i) {
@@ -277,10 +276,10 @@ void Particle::update_alpha(bool robbins_monro_on, int iteration) {
 
 //------------------------------------------------
 // calculate log-prior given new proposed source
-double Particle::calculate_logprior_source(double source_lon_prop, double source_lat_prop) {
+double Particle::calculate_logprior_source(double source_longitude, double source_latitude) {
   
   // get logprior probability
-  double logprior_prob = sp->get_value(source_lon_prop, source_lat_prop);
+  double logprior_prob = sp->get_value(source_longitude, source_latitude);
   
   // catch values with zero prior probability
   if (logprior_prob == 0) {
@@ -487,6 +486,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     }
     
     // calculate new logprior and loglikelihood
+    double logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     double logprior_prop = calculate_logprior_source(source_lon_prop, source_lat_prop);
     double loglike_prop;
     
@@ -510,7 +510,6 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
       }
       
       // update likelihood and prior
-      logprior = logprior_prop;
       loglike = loglike_prop;
 
       // Robbins-Monro positive update (on the log scale)
@@ -1156,23 +1155,23 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   for (int k = 0; k < p->K; ++k) {
     
     // propose new value
-    double ep_prop = rnorm1(expected_popsize[k], ep_propSD[k]);
-    if (ep_prop < 0) {
-      ep_prop *= -1;
-    }
-    if (ep_prop < UNDERFLO) {
-      ep_prop = UNDERFLO;
-    }
+    double single_source_weight_prop = rnorm1_interval(source_weights[k], ep_propSD[k], 0, 1);
     
-    double ep_prop_total = ep_total - expected_popsize[k] + ep_prop; 
-    
-    // update all source weights
+    // catch zero weights 
+    if (single_source_weight_prop == UNDERFLO){
+      single_source_weight_prop = 1/(p->K);
+    }
+
+    // get weight total for normalising later
+    double prop_total = weight_total - source_weights[k] + single_source_weight_prop; 
+
+    // update/normalise all source weights
     for (int l = 0; l < p->K; ++l) {
       if (l == k) {
-        source_weight_prop[l] = ep_prop/ep_prop_total; 
+        source_weight_prop[l] = single_source_weight_prop/prop_total; 
       } else{
-        source_weight_prop[l] = expected_popsize[l]/ep_prop_total; 
-      } 
+        source_weight_prop[l] = source_weights[l]/prop_total; 
+        } 
     }
     
     // initialise running values
@@ -1203,9 +1202,20 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 
     }
 
-    // calculate priors (uniform prior on weights
-    double logprior = 0;
-    double logprior_prop = 0;
+    // calculate priors (uniform prior on weights)
+    // define beta prior variance
+    double X = 0.01;
+    // double logprior = 0;
+    double logprior = dbeta1(source_weights[k], 
+                             pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+                             pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
+                             TRUE);
+    
+    // double logprior_prop = 0;
+    double logprior_prop = dbeta1(source_weight_prop[k], 
+                                  pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+                                  pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
+                                  TRUE);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1213,15 +1223,17 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
 
-      // update expected pop size for this source
-      expected_popsize[k] = ep_prop;
-      ep_total = ep_prop_total;
-        
-      // update the weight for this source
+      // update the weights for each source
+      // and update weight total 
+      // (should be 1, but calculate anyway due to precision error)
+      double weight_sum = 0;
+      
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
+        weight_sum += source_weights[j];
       }
-      
+      weight_total = weight_sum;
+
       // update stored hazard values
       for (int i = 0; i < d->n; ++i) {
         for (int j = 0; j < p->K; ++j) {

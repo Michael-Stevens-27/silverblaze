@@ -66,6 +66,7 @@ public:
   int tested_total;
   double log_K;
   double ep_total;
+  double weight_total;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;
@@ -73,7 +74,6 @@ public:
   std::vector<std::vector<double>> log_hazard_height;
   std::vector<std::vector<double>> log_hazard_height_prop2; // placeholder for proposal when altering sets of source dependent params
   std::vector<double> log_hazard_height_prop; // placeholder for proposal when altering individual source dependent params
-  double logprior;
   double loglike;
   
   // initialise ordering of labels
@@ -127,7 +127,7 @@ public:
   double calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k);
   double calculate_loglike_source_negative_binomial_indpendent_lambda(double source_lon_prop, double source_lat_prop, int k);
   
-  double calculate_logprior_source(double source_lon_prop, double source_lat_prop);
+  double calculate_logprior_source(double source_longitude, double source_latitude);
     
   // loglikelihood and update functions for sigmas  
   void update_sigma_pois(bool robbins_monro_on, int iteration);

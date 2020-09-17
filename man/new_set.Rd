@@ -20,7 +20,8 @@ new_set(project, spatial_prior = NULL, source_model = "uniform",
 values are taken from this raster if it is defined.}
 
 \item{source_model}{choose prior type for source locations. Pick from "uniform"
-(default), "normal" (bivariate normal), "kernal" (KDE based on positive data)}
+(default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+"manual" (the current value of the raster)}
 
 \item{name}{an optional name for the parameter set.}
 
