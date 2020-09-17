@@ -66,6 +66,7 @@ public:
   int tested_total;
   double log_K;
   double ep_total;
+  double weight_total;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;

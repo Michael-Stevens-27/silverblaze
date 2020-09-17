@@ -29,6 +29,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // expected population size for each soure
   expected_popsize = vector<double>(p->K, 100);
   ep_total = 0;
+  weight_total = 1;
     
   // weights for each soure
   source_weights = vector<double>(p->K, 1/(p->K));
@@ -1154,23 +1155,23 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   for (int k = 0; k < p->K; ++k) {
     
     // propose new value
-    double ep_prop = rnorm1(expected_popsize[k], ep_propSD[k]);
-    if (ep_prop < 0) {
-      ep_prop *= -1;
-    }
-    if (ep_prop < UNDERFLO) {
-      ep_prop = UNDERFLO;
-    }
+    double single_source_weight_prop = rnorm1_interval(source_weights[k], ep_propSD[k], 0, 1);
     
-    double ep_prop_total = ep_total - expected_popsize[k] + ep_prop; 
-    
-    // update all source weights
+    // catch zero weights 
+    if (single_source_weight_prop == UNDERFLO){
+      single_source_weight_prop = 1/(p->K);
+    }
+
+    // get weight total for normalising later
+    double prop_total = weight_total - source_weights[k] + single_source_weight_prop; 
+
+    // update/normalise all source weights
     for (int l = 0; l < p->K; ++l) {
       if (l == k) {
-        source_weight_prop[l] = ep_prop/ep_prop_total; 
+        source_weight_prop[l] = single_source_weight_prop/prop_total; 
       } else{
-        source_weight_prop[l] = expected_popsize[l]/ep_prop_total; 
-      } 
+        source_weight_prop[l] = source_weights[l]/prop_total; 
+        } 
     }
     
     // initialise running values
@@ -1202,8 +1203,19 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     }
 
     // calculate priors (uniform prior on weights)
-    double logprior = 0;
-    double logprior_prop = 0;
+    // define beta prior variance
+    double X = 0.01;
+    // double logprior = 0;
+    double logprior = dbeta1(source_weights[k], 
+                             pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+                             pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
+                             TRUE);
+    
+    // double logprior_prop = 0;
+    double logprior_prop = dbeta1(source_weight_prop[k], 
+                                  pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+                                  pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
+                                  TRUE);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1211,15 +1223,17 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
 
-      // update expected pop size for this source
-      expected_popsize[k] = ep_prop;
-      ep_total = ep_prop_total;
-        
       // update the weights for each source
+      // and update weight total 
+      // (should be 1, but calculate anyway due to precision error)
+      double weight_sum = 0;
+      
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
+        weight_sum += source_weights[j];
       }
-      
+      weight_total = weight_sum;
+
       // update stored hazard values
       for (int i = 0; i < d->n; ++i) {
         for (int j = 0; j < p->K; ++j) {
