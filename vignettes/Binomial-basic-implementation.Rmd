@@ -4,7 +4,7 @@ author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{"Binomial Model Basic Implementation"}
+  %\VignetteIndexEntry{Binomial Model Basic Implementation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
