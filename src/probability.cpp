@@ -48,33 +48,30 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
 
   // draw raw value relative to a
   double ret = rnorm1(mean, sd) - a;
-
+  double interval_difference = b - a;
+  
   // reflect off boundries at 0 and (b-a)
-  if (ret<0 || ret>(b-a)) {
+  if (ret < 0 || ret > interval_difference) {
     // use multiple reflections to bring into range [-(b-a), 2(b-a)]
-    while (ret < -(b-a)) {
-      ret += 2*(b-a);
-    }
-    while (ret > 2*(b-a)) {
-      ret -= 2*(b-a);
-    }
-
+    double modded = std::fmod(ret, 2*interval_difference);
+    
     // use one more reflection to bring into range [0, (b-a)]
-    if (ret < 0) {
-      ret = -ret;
+    if (modded < 0) {
+      modded = -1*modded;
     }
-    if (ret > (b-a)) {
-      ret = 2*(b-a) - ret;
+    if (modded > interval_difference) {
+      modded = 2*interval_difference - modded;
     }
+    ret = modded;
   }
 
   // no longer relative to a
   ret += a;
-
+  
   // don't let ret equal exactly a or b
-  if (ret==a) {
+  if (ret == a) {
     ret += UNDERFLO;
-  } else if (ret==b) {
+  } else if (ret == b) {
     ret -= UNDERFLO;
   }
 
