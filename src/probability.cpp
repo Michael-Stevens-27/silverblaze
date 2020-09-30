@@ -49,11 +49,13 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   // draw raw value relative to a
   double ret = rnorm1(mean, sd) - a;
   double interval_difference = b - a;
+  // std::cout << "Value " << ret << std::endl;
   
   // reflect off boundries at 0 and (b-a)
   if (ret < 0 || ret > interval_difference) {
-    // use multiple reflections to bring into range [-(b-a), 2(b-a)]
+    // use multiple reflections to bring into range [-2(b-a), 2(b-a)]
     double modded = std::fmod(ret, 2*interval_difference);
+    // std::cout << "Modded Value " << modded << std::endl;
     
     // use one more reflection to bring into range [0, (b-a)]
     if (modded < 0) {
@@ -74,7 +76,9 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   } else if (ret == b) {
     ret -= UNDERFLO;
   }
-
+  // std::cout << "Final ret " << ret << std::endl;
+  // std::cout << "Moving to next weight" << std::endl;
+  
   return ret;
 }
 
@@ -180,21 +184,38 @@ vector<double> rdirichlet1(vector<double> &shapeVec) {
 // draw from dirichlet distribution using bespoke inputs. Outputs are stored in
 // x, passed by reference for speed. Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
-void rdirichlet2(std::vector<double> &x, std::vector<int> &alpha, double beta) {
+void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double beta) {
 
   int n = x.size();
   double xSum = 0;
-  for (int i=0; i<n; i++) {
-    x[i] = rgamma1(alpha[i]+beta, 1.0);
+  double scaleFactor = 1;
+  for (int i = 0; i < n; i++) {
+    x[i] = rgamma1(scaleFactor*alpha[i] + beta, 1.0);
     xSum += x[i];
   }
   double xSumInv = 1.0/xSum;
-  for (int i=0; i<n; i++) {
+  for (int i = 0; i < n; i++) {
     x[i] *= xSumInv;
     if (x[i] <= UNDERFLO) {
       x[i] = UNDERFLO;
     }
   }
+}
+
+//------------------------------------------------
+// density of a dirichlet distribution
+double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double beta) {
+
+  int n = x.size();
+  double xProd = 1;
+  double alphaSum = 0;
+  double scaleFactor = 1;
+  for (int i = 0; i < n; i++) {
+    alphaSum += scaleFactor*alpha[i] + beta;
+    xProd *= pow(x[i], scaleFactor*alpha[i] + beta - 1)/gamma(scaleFactor*alpha[i] + beta);
+  }
+  
+  return gamma(alphaSum)*xProd;
 }
 
 //------------------------------------------------

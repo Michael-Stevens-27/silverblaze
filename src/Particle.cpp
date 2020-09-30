@@ -1152,27 +1152,8 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
 void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration) {
   
   // loop through sources
-  for (int k = 0; k < p->K; ++k) {
-    
-    // propose new value
-    double single_source_weight_prop = rnorm1_interval(source_weights[k], ep_propSD[k], 0, 1);
-    
-    // catch zero weights 
-    if (single_source_weight_prop == UNDERFLO){
-      single_source_weight_prop = 1/(p->K);
-    }
-
-    // get weight total for normalising later
-    double prop_total = weight_total - source_weights[k] + single_source_weight_prop; 
-
-    // update/normalise all source weights
-    for (int l = 0; l < p->K; ++l) {
-      if (l == k) {
-        source_weight_prop[l] = single_source_weight_prop/prop_total; 
-      } else{
-        source_weight_prop[l] = source_weights[l]/prop_total; 
-        } 
-    }
+    // propse new weights in one go via current weights 
+    rdirichlet2(source_weight_prop, source_weights, ep_propSD[0]);
     
     // initialise running values
     double loglike_prop = 0;
@@ -1203,36 +1184,33 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     }
 
     // calculate priors (uniform prior on weights)
-    // define beta prior variance
-    double X = 0.01;
-    // double logprior = 0;
-    double logprior = dbeta1(source_weights[k], 
-                             pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-                             pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
-                             TRUE);
+    // double X = 0.01;
+    // double logprior = dbeta1(source_weights[k], 
+    //                          pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+    //                          pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
+    //                          TRUE);
+    // double logprior_prop = dbeta1(source_weight_prop[k], 
+    //                               pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
+    //                               pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
+    //                               TRUE);
     
-    // double logprior_prop = 0;
-    double logprior_prop = dbeta1(source_weight_prop[k], 
-                                  pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-                                  pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
-                                  TRUE);
+    double logprior = 0;
+    double logprior_prop = 0;
+    
+    // get MH ratio correction terms
+    double prop_density = ddirichlet(source_weight_prop, source_weights, ep_propSD[0]);
+    double current_density = ddirichlet(source_weights, source_weight_prop, ep_propSD[0]);
     
     // Metropolis-Hastings ratio
-    double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
+    double MH_ratio = beta*(loglike_prop - loglike) + (current_density - prop_density) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
 
       // update the weights for each source
-      // and update weight total 
-      // (should be 1, but calculate anyway due to precision error)
-      double weight_sum = 0;
-      
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
-        weight_sum += source_weights[j];
       }
-      weight_total = weight_sum;
 
       // update stored hazard values
       for (int i = 0; i < d->n; ++i) {
@@ -1246,23 +1224,21 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[k] = exp(log(ep_propSD[k]) + ep_rm_stepsize*(1 - 0.44)/sqrt(iteration));
-        ep_accept_burnin[k]++;
+        ep_propSD[0] = exp(log(ep_propSD[0]) + 5*(1 - 0.44)/sqrt(iteration));
+        ep_accept_burnin[0]++;
       } else {
-        ep_accept_sampling[k]++;
+        ep_accept_sampling[0]++;
       }
       
     } else {
       
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[k] = exp(log(ep_propSD[k]) - ep_rm_stepsize*0.44/sqrt(iteration));
+        ep_propSD[0] = exp(log(ep_propSD[0]) - 5*0.44/sqrt(iteration));
       }
       
     }  // end Metropolis-Hastings step
     
-  }  // end loop over sources
-  
 }
 
 //------------------------------------------------
