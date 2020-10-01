@@ -485,6 +485,7 @@ delete_set <- function(project,
 #'   geoprofile. Usually will want to create these maps, but the code runs much
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
+#' @param bugged Turn the spatial prior indexing bug on or off
 #'
 #' @import parallel
 #' @import coda
@@ -509,11 +510,14 @@ run_mcmc <- function(project,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
                      create_maps = TRUE,
-                     silent = !is.null(cluster)) {
+                     silent = !is.null(cluster),
+                     bugged = FALSE) {
   
   # start timer
   t0 <- Sys.time()
   
+  assert_single_logical(bugged)
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_pos_int(K, zero_allowed = FALSE)
@@ -592,7 +596,8 @@ run_mcmc <- function(project,
                       converge_test = converge_test,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
-                      silent = silent)
+                      silent = silent,
+                      bugged = bugged)
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior

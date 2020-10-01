@@ -50,6 +50,8 @@ public:
   double alpha_prior_meanlog;
   double alpha_prior_sdlog;
   
+  bool bugged;
+  
   // constructors
   Parameters() {};
   Parameters(const Rcpp::List &args);

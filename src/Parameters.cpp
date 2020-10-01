@@ -18,6 +18,8 @@ Parameters::Parameters(const Rcpp::List &args) {
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   silent = rcpp_to_bool(args["silent"]);
   coupling_on = rcpp_to_bool(args["coupling_on"]);
+
+  bugged = rcpp_to_bool(args["bugged"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);
