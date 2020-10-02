@@ -486,6 +486,7 @@ delete_set <- function(project,
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
 #' @param bugged Turn the spatial prior indexing bug on or off
+#' @param rung_store Pick a rung whose output will be stored 
 #'
 #' @import parallel
 #' @import coda
@@ -511,12 +512,23 @@ run_mcmc <- function(project,
                      store_raw = TRUE,
                      create_maps = TRUE,
                      silent = !is.null(cluster),
-                     bugged = FALSE) {
+                     bugged = FALSE,
+                     rung_store = NULL) {
   
   # start timer
   t0 <- Sys.time()
   
   assert_single_logical(bugged)
+  
+  if(is.null(rung_store)){
+    if(is.null(beta_manual)){
+      rung_store <- rungs 
+    } else {
+      rung_store <- length(beta_manual)
+    }
+  } else {
+    assert_pos_int(rung_store, zero_allowed = FALSE)
+  }
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -597,7 +609,8 @@ run_mcmc <- function(project,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
                       silent = silent,
-                      bugged = bugged)
+                      bugged = bugged,
+                      rung_store = rung_store)
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior

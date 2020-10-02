@@ -51,6 +51,7 @@ public:
   double alpha_prior_sdlog;
   
   bool bugged;
+  int chosen_rung;
   
   // constructors
   Parameters() {};

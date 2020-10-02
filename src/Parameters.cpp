@@ -20,6 +20,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   coupling_on = rcpp_to_bool(args["coupling_on"]);
 
   bugged = rcpp_to_bool(args["bugged"]);
+  chosen_rung = rcpp_to_int(args["rung_store"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);
