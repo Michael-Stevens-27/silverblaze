@@ -852,7 +852,7 @@ run_mcmc <- function(project,
       
       # add as raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
-      raster::values(prob_surface_split_k)[is.na(raster::values(spatial_prior))] <- NA
+      raster::values(prob_surface_split_k)[raster::values(spatial_prior) == 0] <- NA
       prob_surface_split <- raster::addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
@@ -911,13 +911,13 @@ run_mcmc <- function(project,
     geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
     geoprofile_mat <- 100 * (1 - geoprofile_mat / max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
-    values(geoprofile)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile)[raster::values(spatial_prior) == 0] <- NA
     
     # get groprofile over realised sources only
     geoprofile_realised_mat <- rank(values(prob_surface_realised), ties.method = "first", na.last = FALSE)
     geoprofile_realised_mat <- 100 * (1 - geoprofile_realised_mat / max(geoprofile_realised_mat, na.rm = TRUE))
     geoprofile_realised <- setValues(raster_empty, geoprofile_realised_mat)
-    values(geoprofile_realised)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile_realised)[raster::values(spatial_prior) == 0] <- NA
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
