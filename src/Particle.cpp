@@ -1154,7 +1154,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   // loop through sources
     // propse new weights in one go via current weights 
     rdirichlet2(source_weight_prop, source_weights, ep_propSD[0]);
-    
+        
     // initialise running values
     double loglike_prop = 0;
     
@@ -1206,7 +1206,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
-
+      
       // update the weights for each source
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
@@ -1231,10 +1231,11 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       }
       
     } else {
-      
+
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
         ep_propSD[0] = exp(log(ep_propSD[0]) - 5*0.44/sqrt(iteration));
+
       }
       
     }  // end Metropolis-Hastings step
