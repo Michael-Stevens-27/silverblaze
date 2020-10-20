@@ -52,6 +52,7 @@ public:
   
   bool bugged;
   int chosen_rung;
+  double dirichlet_scale;
   
   // constructors
   Parameters() {};

@@ -158,7 +158,7 @@
   <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
   <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>20</span>,
   <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>n_binom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>alpha_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>alpha_prior_sd</span> <span class='kw'>=</span> <span class='fl'>100</span>)</pre>
+  <span class='kw'>alpha_prior_sd</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>dirichlet_scale</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -237,6 +237,11 @@ be run for a set of count data.</p></td>
     <tr>
       <th>alpha_prior_sd</th>
       <td><p>the prior standard deviation of alpha.</p></td>
+    </tr>
+    <tr>
+      <th>dirichlet_scale</th>
+      <td><p>a value to scale the concentration parameters for the 
+dirichlet proposal on source weights</p></td>
     </tr>
     </table>
 

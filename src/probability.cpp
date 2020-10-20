@@ -184,13 +184,13 @@ vector<double> rdirichlet1(vector<double> &shapeVec) {
 // draw from dirichlet distribution using bespoke inputs. Outputs are stored in
 // x, passed by reference for speed. Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
-void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double beta) {
+void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double beta, double scale_factor) {
 
   int n = x.size();
   double xSum = 0;
-  double scaleFactor = 1;
+
   for (int i = 0; i < n; i++) {
-    x[i] = rgamma1(scaleFactor*alpha[i] + beta, 1.0);
+    x[i] = rgamma1(scale_factor*alpha[i] + beta, 1.0);
     xSum += x[i];
   }
   double xSumInv = 1.0/xSum;
@@ -204,14 +204,13 @@ void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double beta
 
 //------------------------------------------------
 // density of a dirichlet distribution in log space
-double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double beta) {
+double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double beta, double scale_factor) {
 
   int n = x.size();
   double logSum = 0;
-  double scaleFactor = 1;
 
   for (int i = 0; i < n; i++) {
-    logSum += (scaleFactor*alpha[i] + beta - 1)*log(x[i]) - lgamma(scaleFactor*alpha[i] + beta);
+    logSum += (scale_factor*alpha[i] + beta - 1)*log(x[i]) - lgamma(scale_factor*alpha[i] + beta);
   }
   
   return logSum;
