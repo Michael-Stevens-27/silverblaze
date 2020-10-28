@@ -558,16 +558,20 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   }
   
   # find best lambda using optim
-  lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
-  optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
-                        error = function(e) e, warning = function(w) w)
-  if (is(optim_try, "warning")) {
-    warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
-    lambda_ml <- lambda_step
+  if(is.null(lambda)){
+    lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
+    optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
+    error = function(e) e, warning = function(w) w)
+    if (is(optim_try, "warning")) {
+      warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
+      lambda_ml <- lambda_step
+    } else {
+      lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)$par
+    }
   } else {
-    lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)$par
+    lambda_ml <- lambda
   }
-  
+  print(lambda_ml)
   # get smoothed surface
   f4 <- loss(lambda_ml, return_loss = FALSE)
   
