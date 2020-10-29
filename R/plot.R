@@ -1474,8 +1474,10 @@ overlay_surface <- function(myplot,
   
   # apply threshold
   prob_surface_mat <- matrix(values(prob_surface), nrow(prob_surface), byrow = TRUE)
-  threshold_final <- sort(prob_surface_mat, decreasing = TRUE)[ceiling(length(prob_surface_mat)*threshold)]
-  prob_surface_mat[prob_surface_mat < threshold_final] <- NA
+  sorted_prob_mat <- sort(prob_surface_mat, decreasing = TRUE, index.return = TRUE)
+  threshold_final <- max(which(cumsum(sorted_prob_mat$x) < threshold))
+  prob_surface_mat[sorted_prob_mat$ix[(threshold_final:length(prob_surface_mat))]] <- NA
+
   prob_surface <- setValues(prob_surface, prob_surface_mat)
   
   # overlay raster

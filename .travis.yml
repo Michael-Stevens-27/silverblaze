@@ -8,5 +8,7 @@ addons:
       - libfftw3-dev
       - libtiff5-dev
       - libgdal-dev
+      - libharfbuzz-dev 
+      - libfribidi-dev
 sudo: false
 cache: packages

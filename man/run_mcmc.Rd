@@ -4,23 +4,11 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(
-  project,
-  K = 3,
-  burnin = 100,
-  samples = 1000,
-  rungs = 1,
-  auto_converge = TRUE,
-  converge_test = 100,
-  coupling_on = TRUE,
-  GTI_pow = 1,
-  beta_manual = NULL,
-  cluster = NULL,
-  pb_markdown = FALSE,
-  store_raw = TRUE,
-  create_maps = TRUE,
-  silent = !is.null(cluster)
-)
+run_mcmc(project, K = 3, burnin = 100, samples = 1000, rungs = 1,
+  auto_converge = TRUE, converge_test = 100, coupling_on = TRUE,
+  GTI_pow = 1, beta_manual = NULL, cluster = NULL,
+  pb_markdown = FALSE, store_raw = TRUE, create_maps = TRUE,
+  silent = !is.null(cluster), bugged = FALSE, rung_store = NULL)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -64,6 +52,10 @@ geoprofile. Usually will want to create these maps, but the code runs much
 faster without this step, hence the option.}
 
 \item{silent}{whether to suppress all console output.}
+
+\item{bugged}{Turn the spatial prior indexing bug on or off}
+
+\item{rung_store}{Pick a rung whose output will be stored}
 }
 \description{
 Run the main RgeoProfile MCMC. Model parameters are taken from

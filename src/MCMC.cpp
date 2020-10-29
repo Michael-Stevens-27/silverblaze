@@ -15,7 +15,8 @@ MCMC::MCMC(Data &data, Parameters &params, Lookup &lookup, Spatial_prior &spatpr
   
   // initialise rung order
   rung_order = seq_int(0, p->rungs - 1);
-  cold_rung = rung_order[p->rungs - 1];
+  // cold_rung = rung_order[p->rungs - 1];
+  cold_rung = rung_order[p->chosen_rung - 1];
   
   // vector of particles
   particle_vec = vector<Particle>(p->rungs);
@@ -118,7 +119,8 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     }
     
     // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
+    // cold_rung = rung_order[p->rungs - 1];
+    cold_rung = rung_order[p->chosen_rung - 1];
     
     // methods that only apply when K>1
     if (p->K > 1) {
@@ -266,7 +268,8 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     }
     
     // focus on cold rung
-    cold_rung = rung_order[p->rungs - 1];
+    // cold_rung = rung_order[p->rungs - 1];
+    cold_rung = rung_order[p->chosen_rung - 1];
     
     // methods that only apply when K>1
     if (p->K > 1) {

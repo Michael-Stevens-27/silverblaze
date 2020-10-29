@@ -1153,8 +1153,8 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   
   // loop through sources
     // propse new weights in one go via current weights 
-    rdirichlet2(source_weight_prop, source_weights, ep_propSD[0]);
-    
+    rdirichlet2(source_weight_prop, source_weights, ep_propSD[0], p->dirichlet_scale);
+        
     // initialise running values
     double loglike_prop = 0;
     
@@ -1198,15 +1198,15 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     double logprior_prop = 0;
     
     // get MH ratio correction terms
-    double prop_density = ddirichlet(source_weight_prop, source_weights, ep_propSD[0]);
-    double current_density = ddirichlet(source_weights, source_weight_prop, ep_propSD[0]);
+    double prop_density = ddirichlet(source_weight_prop, source_weights, ep_propSD[0], p->dirichlet_scale);
+    double current_density = ddirichlet(source_weights, source_weight_prop, ep_propSD[0], p->dirichlet_scale);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (current_density - prop_density) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
-
+      
       // update the weights for each source
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
@@ -1231,10 +1231,11 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       }
       
     } else {
-      
+
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
         ep_propSD[0] = exp(log(ep_propSD[0]) - 5*0.44/sqrt(iteration));
+
       }
       
     }  // end Metropolis-Hastings step

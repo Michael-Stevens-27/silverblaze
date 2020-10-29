@@ -50,6 +50,10 @@ public:
   double alpha_prior_meanlog;
   double alpha_prior_sdlog;
   
+  bool bugged;
+  int chosen_rung;
+  double dirichlet_scale;
+  
   // constructors
   Parameters() {};
   Parameters(const Rcpp::List &args);

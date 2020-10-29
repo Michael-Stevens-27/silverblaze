@@ -207,6 +207,8 @@ raster_from_shapefile <- function (shp,
 #'   be run for a set of count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
+#' @param dirichlet_scale a value to scale the concentration parameters for the 
+#'  dirichlet proposal on source weights
 #'
 #' @export
 
@@ -224,7 +226,8 @@ new_set <- function(project,
                     sentinel_radius = 0.2,
                     n_binom = FALSE,
                     alpha_prior_mean = 1, 
-                    alpha_prior_sd = 100) {
+                    alpha_prior_sd = 100,
+                    dirichlet_scale = 1) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -239,6 +242,7 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
+  assert_single_pos(dirichlet_scale, zero_allowed = FALSE)
   
   if (project$data$data_type == "counts"| project$data$data_type == "prevalence") {
     assert_in(expected_popsize_model, c("single", "independent"))
@@ -378,7 +382,8 @@ new_set <- function(project,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd,
                                       n_binom = n_binom,
                                       alpha_prior_mean = alpha_prior_mean,
-                                      alpha_prior_sd = alpha_prior_sd)
+                                      alpha_prior_sd = alpha_prior_sd,
+                                      dirichlet_scale = dirichlet_scale)
   
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
@@ -485,6 +490,8 @@ delete_set <- function(project,
 #'   geoprofile. Usually will want to create these maps, but the code runs much
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
+#' @param bugged Turn the spatial prior indexing bug on or off
+#' @param rung_store Pick a rung whose output will be stored 
 #'
 #' @import parallel
 #' @import coda
@@ -509,11 +516,25 @@ run_mcmc <- function(project,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
                      create_maps = TRUE,
-                     silent = !is.null(cluster)) {
+                     silent = !is.null(cluster),
+                     bugged = FALSE,
+                     rung_store = NULL) {
   
   # start timer
   t0 <- Sys.time()
   
+  assert_single_logical(bugged)
+  
+  if(is.null(rung_store)){
+    if(is.null(beta_manual)){
+      rung_store <- rungs 
+    } else {
+      rung_store <- length(beta_manual)
+    }
+  } else {
+    assert_pos_int(rung_store, zero_allowed = FALSE)
+  }
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_pos_int(K, zero_allowed = FALSE)
@@ -592,7 +613,9 @@ run_mcmc <- function(project,
                       converge_test = converge_test,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
-                      silent = silent)
+                      silent = silent,
+                      bugged = bugged,
+                      rung_store = rung_store)
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
@@ -834,7 +857,7 @@ run_mcmc <- function(project,
       
       # add as raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
-      raster::values(prob_surface_split_k)[is.na(raster::values(spatial_prior))] <- NA
+      raster::values(prob_surface_split_k)[raster::values(spatial_prior) == 0] <- NA
       prob_surface_split <- raster::addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
@@ -893,13 +916,13 @@ run_mcmc <- function(project,
     geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
     geoprofile_mat <- 100 * (1 - geoprofile_mat / max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
-    values(geoprofile)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile)[raster::values(spatial_prior) == 0] <- NA
     
     # get groprofile over realised sources only
     geoprofile_realised_mat <- rank(values(prob_surface_realised), ties.method = "first", na.last = FALSE)
     geoprofile_realised_mat <- 100 * (1 - geoprofile_realised_mat / max(geoprofile_realised_mat, na.rm = TRUE))
     geoprofile_realised <- setValues(raster_empty, geoprofile_realised_mat)
-    values(geoprofile_realised)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile_realised)[raster::values(spatial_prior) == 0] <- NA
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
