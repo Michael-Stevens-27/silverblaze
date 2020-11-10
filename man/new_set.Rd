@@ -10,7 +10,7 @@ new_set(project, spatial_prior = NULL, source_model = "uniform",
   sigma_prior_sd = 1, expected_popsize_model = "single",
   expected_popsize_prior_mean = 1000, expected_popsize_prior_sd = 20,
   sentinel_radius = 0.2, n_binom = FALSE, alpha_prior_mean = 1,
-  alpha_prior_sd = 100, dirichlet_scale = 1)
+  alpha_prior_sd = 100)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function
@@ -57,9 +57,6 @@ be run for a set of count data.}
 \item{alpha_prior_mean}{the prior mean alpha.}
 
 \item{alpha_prior_sd}{the prior standard deviation of alpha.}
-
-\item{dirichlet_scale}{a value to scale the concentration parameters for the 
-dirichlet proposal on source weights}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new

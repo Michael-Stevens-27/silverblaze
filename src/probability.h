@@ -79,13 +79,13 @@ std::vector<double> rdirichlet1(std::vector<double> &shapeVec);
 
 //------------------------------------------------
 // density of dirichlet distribution using vector of shape parameters
-double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double beta, double scale_factor);
+double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double scale_factor);
 
 //------------------------------------------------
 // draw from dirichlet distribution using bespoke inputs. Outputs are given in x
 // (passed by reference for speed). Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
-void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double beta, double scale_factor);
+void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double scale_factor);
 
 //------------------------------------------------
 // draw from Poisson(rate) distribution

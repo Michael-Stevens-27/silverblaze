@@ -571,7 +571,7 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   } else {
     lambda_ml <- lambda
   }
-  print(lambda_ml)
+
   # get smoothed surface
   f4 <- loss(lambda_ml, return_loss = FALSE)
   

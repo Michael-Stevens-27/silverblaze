@@ -45,7 +45,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 100.0);
+  ep_propSD = vector<double>(p->K, 1);
   alpha_propSD = 1;
   
   // Robbins-Monro stepsize constants
@@ -156,7 +156,7 @@ void Particle::reset(double beta) {
   // initialise proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 1.0);
+  ep_propSD = vector<double>(p->K, 1);
   alpha_propSD = 1; 
   
   // calculate initial likelihood. Calling calculate_loglike_source() on each
@@ -1153,8 +1153,8 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   
   // loop through sources
     // propse new weights in one go via current weights 
-    rdirichlet2(source_weight_prop, source_weights, ep_propSD[0], p->dirichlet_scale);
-        
+    rdirichlet2(source_weight_prop, source_weights, 1/ep_propSD[0]);
+
     // initialise running values
     double loglike_prop = 0;
     
@@ -1183,23 +1183,13 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 
     }
 
-    // calculate priors (uniform prior on weights)
-    // double X = 0.01;
-    // double logprior = dbeta1(source_weights[k], 
-    //                          pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-    //                          pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
-    //                          TRUE);
-    // double logprior_prop = dbeta1(source_weight_prop[k], 
-    //                               pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-    //                               pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
-    //                               TRUE);
-    
+    // calculate priors (currently uniform prior on weights)
     double logprior = 0;
     double logprior_prop = 0;
     
     // get MH ratio correction terms
-    double prop_density = ddirichlet(source_weight_prop, source_weights, ep_propSD[0], p->dirichlet_scale);
-    double current_density = ddirichlet(source_weights, source_weight_prop, ep_propSD[0], p->dirichlet_scale);
+    double prop_density = ddirichlet(source_weight_prop, source_weights, 1/ep_propSD[0]);
+    double current_density = ddirichlet(source_weights, source_weight_prop, 1/ep_propSD[0]);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (current_density - prop_density) + (logprior_prop - logprior);

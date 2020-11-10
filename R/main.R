@@ -207,8 +207,6 @@ raster_from_shapefile <- function (shp,
 #'   be run for a set of count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
-#' @param dirichlet_scale a value to scale the concentration parameters for the 
-#'  dirichlet proposal on source weights
 #'
 #' @export
 
@@ -226,8 +224,7 @@ new_set <- function(project,
                     sentinel_radius = 0.2,
                     n_binom = FALSE,
                     alpha_prior_mean = 1, 
-                    alpha_prior_sd = 100,
-                    dirichlet_scale = 1) {
+                    alpha_prior_sd = 100) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -242,7 +239,6 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
-  assert_single_pos(dirichlet_scale, zero_allowed = FALSE)
   
   if (project$data$data_type == "counts"| project$data$data_type == "prevalence") {
     assert_in(expected_popsize_model, c("single", "independent"))
@@ -382,8 +378,7 @@ new_set <- function(project,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd,
                                       n_binom = n_binom,
                                       alpha_prior_mean = alpha_prior_mean,
-                                      alpha_prior_sd = alpha_prior_sd,
-                                      dirichlet_scale = dirichlet_scale)
+                                      alpha_prior_sd = alpha_prior_sd)
   
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)

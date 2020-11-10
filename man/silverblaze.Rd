@@ -3,6 +3,7 @@
 \docType{package}
 \name{silverblaze}
 \alias{silverblaze}
+\alias{silverblaze-package}
 \title{Bayesian Geographic Profiling from Presence-Absence Data}
 \description{
 Bayesian geographic profiling model that allows estimation of

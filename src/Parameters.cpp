@@ -22,7 +22,6 @@ Parameters::Parameters(const Rcpp::List &args) {
   bugged = rcpp_to_bool(args["bugged"]);
   chosen_rung = rcpp_to_int(args["rung_store"]);
   
-  dirichlet_scale = rcpp_to_double(args["dirichlet_scale"]);
   
   // model parameters
   K = rcpp_to_int(args["K"]);
