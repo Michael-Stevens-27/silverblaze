@@ -1094,8 +1094,8 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
     }
     
     // calculate priors
-    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape / double(p->K), p->ep_prior_rate));
-    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape / double(p->K), p->ep_prior_rate));
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape / double(pow(p->K, 2)), p->ep_prior_rate/ double(p->K)));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape / double(pow(p->K, 2)), p->ep_prior_rate/ double(p->K)));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);

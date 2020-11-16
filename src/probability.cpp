@@ -55,7 +55,6 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   if (ret < 0 || ret > interval_difference) {
     // use multiple reflections to bring into range [-2(b-a), 2(b-a)]
     double modded = std::fmod(ret, 2*interval_difference);
-    // std::cout << "Modded Value " << modded << std::endl;
     
     // use one more reflection to bring into range [0, (b-a)]
     if (modded < 0) {
@@ -76,8 +75,6 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   } else if (ret == b) {
     ret -= UNDERFLO;
   }
-  // std::cout << "Final ret " << ret << std::endl;
-  // std::cout << "Moving to next weight" << std::endl;
   
   return ret;
 }
@@ -117,7 +114,10 @@ int sample2(int a, int b) {
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// draw from gamma(shape,rate) distribution
+// draw from gamma(shape,rate) distribution 
+// note all gamma functions from RCPP use a scale parameter in place of a rate, 
+// for more info see: https://teuder.github.io/rcpp4everyone_en/310_Rmath.html
+// this is why all rates are inversed
 double rgamma1(double shape, double rate) {
   double x = R::rgamma(shape, 1/rate);
   
