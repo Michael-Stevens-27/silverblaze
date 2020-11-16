@@ -32,8 +32,8 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   weight_total = 1;
     
   // weights for each soure
-  source_weights = vector<double>(p->K, 1/(p->K));
-  source_weight_prop = vector<double>(p->K, 1/(p->K));
+  source_weights = vector<double>(p->K, 1/double(p->K));
+  source_weight_prop = vector<double>(p->K, 1/double(p->K));
   
   // alpha param for nbinom variance
   alpha = 1;
@@ -144,8 +144,8 @@ void Particle::reset(double beta) {
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
         ep_total += expected_popsize[k];
       }
-      for (int k = 0; k < p->K; ++k) { // build source weights based on expected pop size
-        source_weights[k] = expected_popsize[k]/ep_total;
+      for (int k = 0; k < p->K; ++k) { 
+        source_weights[k] = 1/double(p->K);
       }
     }
   }
@@ -1153,7 +1153,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
   
   // loop through sources
     // propse new weights in one go via current weights 
-    rdirichlet2(source_weight_prop, source_weights, 1/ep_propSD[0]);
+    rdirichlet2(source_weight_prop, source_weights, 1/double(ep_propSD[0]));
 
     // initialise running values
     double loglike_prop = 0;
@@ -1188,8 +1188,8 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     double logprior_prop = 0;
     
     // get MH ratio correction terms
-    double prop_density = ddirichlet(source_weight_prop, source_weights, 1/ep_propSD[0]);
-    double current_density = ddirichlet(source_weights, source_weight_prop, 1/ep_propSD[0]);
+    double prop_density = ddirichlet(source_weight_prop, source_weights, 1/double(ep_propSD[0]));
+    double current_density = ddirichlet(source_weights, source_weight_prop, 1/double(ep_propSD[0]));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (current_density - prop_density) + (logprior_prop - logprior);
@@ -1346,10 +1346,10 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+    loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                     d->counts[i]*log_theta_i - 
-                    (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                    (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
   }
   
   return loglike_prop;
@@ -1392,10 +1392,10 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+      loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                       d->counts[i]*log_theta_i - 
-                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                      (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1489,10 +1489,10 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+      loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                       d->counts[i]*log_theta_i - 
-                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                      (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1575,10 +1575,10 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(1/alpha_prop + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(1/alpha_prop) + (1/alpha_prop)*log(1/alpha_prop) + 
+    loglike_prop += lgamma(1/double(alpha_prop) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/double(alpha_prop)) + (1/double(alpha_prop))*log(1/double(alpha_prop)) + 
                     d->counts[i]*log_theta_i - 
-                    (1/alpha_prop + d->counts[i])*log(1/alpha_prop + exp(log_theta_i));
+                    (1/double(alpha_prop) + d->counts[i])*log(1/double(alpha_prop) + exp(log_theta_i));
   }
   
   //-----------------------------------------------------------------------------------------------------------------------
