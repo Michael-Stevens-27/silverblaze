@@ -28,12 +28,11 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   
   // expected population size for each soure
   expected_popsize = vector<double>(p->K, 100);
-  ep_total = 0;
-  weight_total = 1;
     
   // weights for each soure
   source_weights = vector<double>(p->K, 1/double(p->K));
   source_weight_prop = vector<double>(p->K, 1/double(p->K));
+  source_weight_prior = vector<double>(p->K, 1);
   
   // alpha param for nbinom variance
   alpha = 1;
@@ -142,7 +141,6 @@ void Particle::reset(double beta) {
     } else if(d->data_type == 3){
       for (int k = 0; k < p->K; ++k) {
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
-        ep_total += expected_popsize[k];
       }
       for (int k = 0; k < p->K; ++k) { 
         source_weights[k] = 1/double(p->K);
@@ -1184,8 +1182,8 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
     }
 
     // calculate priors (currently uniform prior on weights)
-    double logprior = 0;
-    double logprior_prop = 0;
+    double logprior = ddirichlet(source_weights, source_weight_prior, 1);
+    double logprior_prop = ddirichlet(source_weight_prop, source_weight_prior, 1);
     
     // get MH ratio correction terms
     double prop_density = ddirichlet(source_weight_prop, source_weights, 1/double(ep_propSD[0]));

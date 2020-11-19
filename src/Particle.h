@@ -40,6 +40,7 @@ public:
   // weights for each souce in the case of point pattern data
   std::vector<double> source_weights;
   std::vector<double> source_weight_prop;
+  std::vector<double> source_weight_prior;
   
   // parameter controlling the nbinom variance = mean + alpha*mean^2 
   double alpha; 
@@ -65,8 +66,6 @@ public:
   int counts_total;
   int tested_total;
   double log_K;
-  double ep_total;
-  double weight_total;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;
