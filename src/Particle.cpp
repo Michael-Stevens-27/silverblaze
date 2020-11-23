@@ -44,7 +44,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 1);
+  ep_propSD = vector<double>(p->K, 100);
   alpha_propSD = 1;
   
   // Robbins-Monro stepsize constants
@@ -110,39 +110,39 @@ void Particle::reset(double beta) {
   }
   
   // draw sigma from prior
-  if (p->sigma_prior_sdlog == 0) {
+  if (p->sigma_prior_sdlog == 0) { // if fixed sigma
     sigma = vector<double>(p->K, exp(p->sigma_prior_meanlog));
   } else {
-    if (p->sigma_model == 1) {
+    if (p->sigma_model == 1) { // if single sigma
       sigma = vector<double>(p->K, exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog)) );
     } else if (p->sigma_model == 2) {
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) { // if independent sigma
         sigma[k] = exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog));
       }
     }
   }
   
   // draw expected popsize from prior
-  if (p->ep_prior_sd <= 0) {
+  if (p->ep_prior_sd <= 0) { // if fixed ep
     expected_popsize = vector<double>(p->K, p->ep_prior_mean);
   } else {
     if(d->data_type == 1){
-      if(p->ep_model == 1){
+      if(p->ep_model == 1){  // if single ep 
         expected_popsize = vector<double>(p->K, rgamma1(p->ep_prior_shape, p->ep_prior_rate));
-      } else if(p->ep_model == 2){
+      } else if(p->ep_model == 2){  // if independent ep
         for (int k = 0; k < p->K; ++k) {
           expected_popsize[k] = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
         }
       }
     } else if(d->data_type == 2){
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) {  // independent ep
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
       } 
     } else if(d->data_type == 3){
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) { // independent ep
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
       }
-      for (int k = 0; k < p->K; ++k) { 
+      for (int k = 0; k < p->K; ++k) { // independent weights
         source_weights[k] = 1/double(p->K);
       }
     }
@@ -154,7 +154,7 @@ void Particle::reset(double beta) {
   // initialise proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 1);
+  ep_propSD = vector<double>(p->K, 100);
   alpha_propSD = 1; 
   
   // calculate initial likelihood. Calling calculate_loglike_source() on each
