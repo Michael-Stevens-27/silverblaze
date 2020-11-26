@@ -22,6 +22,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // source locations
   source_lon = vector<double>(p->K);
   source_lat = vector<double>(p->K);
+  source_prop = vector<double>(2);
   
   // standard deviation of sources (km)
   sigma = vector<double>(p->K, 1);
@@ -108,6 +109,8 @@ void Particle::reset(double beta) {
      source_lon[k] = p->source_init_lon[k];
      source_lat[k] = p->source_init_lat[k];
   }
+  source_prop[0] = p->source_init_lon[0];
+  source_prop[1] = p->source_init_lat[0];
   
   // draw sigma from prior
   if (p->sigma_prior_sdlog == 0) { // if fixed sigma
@@ -163,7 +166,7 @@ void Particle::reset(double beta) {
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
   for (int k = 0; k < p->K; ++k) {
-    loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
+    loglike = calculate_loglike_source(source_prop, k);
     
     for (int i = 0; i < d->n; ++i) {
       dist_source_data[i][k] = dist_source_data_prop[i];
@@ -185,24 +188,24 @@ void Particle::reset(double beta) {
 
 //------------------------------------------------
 // calculate log-likelihood given new proposed source
-double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source(std::vector<double> &source_prop, int k) {
   
   // update source based on binomial or poisson model
   double ret = 0.0;
   if (d->data_type == 1) { // count data
     if(p->count_type == 1) { // negative binomial count data
-      ret = calculate_loglike_source_negative_binomial_indpendent_lambda(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_negative_binomial_indpendent_lambda(source_prop, k);
     } else {
       if(p->ep_model == 1){ // single expected pop size
-      ret = calculate_loglike_source_pois(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_pois(source_prop, k);
     } else if(p->ep_model == 2){ // independent expected pop size
-      ret = calculate_loglike_source_ind_exp_pop(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_ind_exp_pop(source_prop, k);
     } 
   }
   } else if (d->data_type == 2) { // prevalence data
-    ret = calculate_loglike_source_binom(source_lon_prop, source_lat_prop, k);
+    ret = calculate_loglike_source_binom(source_prop, k);
   } else if (d->data_type == 3){ // point pattern data
-    ret = calculate_loglike_source_points(source_lon_prop, source_lat_prop, k);
+    ret = calculate_loglike_source_points(source_prop, k);
   }
   
   return ret;
@@ -289,7 +292,7 @@ double Particle::calculate_logprior_source(double source_longitude, double sourc
 
 //------------------------------------------------
 // calculate log-likelihood under Poisson model given new proposed source
-double Particle::calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_pois(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -299,7 +302,7 @@ double Particle::calculate_loglike_source_pois(double source_lon_prop, double so
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -342,7 +345,7 @@ double Particle::calculate_loglike_source_pois(double source_lon_prop, double so
 
 //------------------------------------------------
 // calculate log-likelihood given new proposed source
-double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_ind_exp_pop(std::vector<double> &source_prop, int k) {
   
   // initialise new likelihood
   double loglike_prop = 0;
@@ -351,7 +354,7 @@ double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, do
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -383,7 +386,7 @@ double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, do
 
 //------------------------------------------------
 // calculate log-likelihood under a binomial model given new proposed source
-double Particle::calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_binom(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -392,7 +395,7 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -426,7 +429,7 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
 
 //------------------------------------------------
 // calculate log-likelihood under point pattern model given new proposed source
-double Particle::calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k){
+double Particle::calculate_loglike_source_points(std::vector<double> &source_prop, int k){
 
   // initialise running values
   double loglike_prop = 0;
@@ -435,7 +438,7 @@ double Particle::calculate_loglike_source_points(double source_lon_prop, double 
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -469,12 +472,11 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
   for (int k = 0; k < p->K; ++k) {
     
     // propose new source location
-    double source_lon_prop = rnorm1(source_lon[k], source_propSD[k]);
-    double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
+    propose_source(source_prop, source_lon[k], source_lat[k], source_propSD[k]);
     
     // check proposed source within defined range
-    if (source_lon_prop <= p->min_lon || source_lon_prop >= p->max_lon ||
-        source_lat_prop <= p->min_lat || source_lat_prop >= p->max_lat) {
+    if (source_prop[0] <= p->min_lon || source_prop[0] >= p->max_lon ||
+        source_prop[1] <= p->min_lat || source_prop[1] >= p->max_lat) {
       
       // auto-reject proposed move
       if (robbins_monro_on) {
@@ -485,11 +487,11 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     
     // calculate new logprior and loglikelihood
     double logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
-    double logprior_prop = calculate_logprior_source(source_lon_prop, source_lat_prop);
+    double logprior_prop = calculate_logprior_source(source_prop[0], source_prop[1]);
     double loglike_prop;
     
     // update source
-    loglike_prop = calculate_loglike_source(source_lon_prop, source_lat_prop, k);
+    loglike_prop = calculate_loglike_source(source_prop, k);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -498,8 +500,8 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     if (log(runif_0_1()) < MH_ratio) {
       
       // update source
-      source_lon[k] = source_lon_prop;
-      source_lat[k] = source_lat_prop;
+      source_lon[k] = source_prop[0];
+      source_lat[k] = source_prop[1];
       
       // update stored distances and hazard values
       for (int i = 0; i < d->n; ++i) {
@@ -1314,7 +1316,7 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
 
 //------------------------------------------------
 // calculate log-likelihood under Poisson model given new proposed source
-double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -1323,7 +1325,7 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -1635,6 +1637,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // calculate bivariate CAUCHY height 
     hazard_height = - log(2*M_PI) + 0.5*log(single_scale) - 1.5*log(pow(dist, 2) + single_scale);
     
+    
   } else if (p->dispersal_model == 3) {
     
     // calculate bivariate LAPLACE height
@@ -1651,6 +1654,31 @@ double Particle::calculate_hazard(double dist, double single_scale) {
   
   return hazard_height;
 }
+
+//------------------------------------------------
+// propose new source location based on dispersal kernel choice
+void Particle::propose_source(std::vector<double> &source_prop, double center_lon, double center_lat, double prop_scale) {
+  
+    // update source based on dispersal kernel model
+  if (p->dispersal_model == 1) { // NORMAL proposal
+    
+    source_prop[0] = rnorm1(center_lon, prop_scale);
+    source_prop[1] = rnorm1(center_lat, prop_scale);
+    
+  } else if (p->dispersal_model == 2) { // CAUCHY proposal 
+    
+    
+    
+  } else if (p->dispersal_model == 3) { // LAPLACE proposal
+    
+    
+  } else if (p->dispersal_model == 4) { // OTHER proposal
+
+  }
+  
+}
+
+
 
 // // //------------------------------------------------
 // // // update expected popsize under a Poisson model for each source TODO COMMENTS
