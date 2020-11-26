@@ -7,6 +7,18 @@
 using namespace std;
 
 //------------------------------------------------
+// draw a value from an exponential distribution with set rate parameter
+double exp1(double rate){
+  return R::rexp(rate);               
+}
+
+//------------------------------------------------
+// draw a value from a chi squared distribution with set degrees of freedom
+double rchisq1(double df){
+  return R::rchisq(df);
+}
+
+//------------------------------------------------
 // draw from continuous uniform distribution on interval [0,1)
 double runif_0_1() {
   return R::runif(0,1);

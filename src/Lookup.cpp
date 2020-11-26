@@ -48,7 +48,9 @@ double Lookup::get_data_dist(std::vector<double> source_prop, int data_index) {
   // convert lon/lat to index
   int lon_index = floor((source_prop[0] - p->min_lon)/p->res_lon);
   int lat_index = floor((source_prop[1] - p->min_lat)/p->res_lat);
+
+  double val = lookup_dist[(lon_index*p->n_lat + lat_index)*d->n + data_index]; 
   
   // lookup value
-  return lookup_dist[(lon_index*p->n_lat + lat_index)*d->n + data_index];
+  return val;
 }

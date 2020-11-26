@@ -488,6 +488,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     // calculate new logprior and loglikelihood
     double logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
     double logprior_prop = calculate_logprior_source(source_prop[0], source_prop[1]);
+    
     double loglike_prop;
     
     // update source
@@ -1667,18 +1668,37 @@ void Particle::propose_source(std::vector<double> &source_prop, double center_lo
     
   } else if (p->dispersal_model == 2) { // CAUCHY proposal 
     
+    // create chi squared random variable
+    double chi_val = rchisq1(1);
+    if(chi_val == 0){
+      chi_val = UNDERFLO;
+    }
     
+    // draw values from a normal distribution
+    double z_lon = rnorm1(0, prop_scale);
+    double z_lat = rnorm1(0, prop_scale);
+    
+    // return bi-variate Cauchy random variable
+    source_prop[0] = center_lon + z_lon/double(pow(chi_val, 0.5));
+    source_prop[1] = center_lat + z_lat/double(pow(chi_val, 0.5));    
     
   } else if (p->dispersal_model == 3) { // LAPLACE proposal
+    // create exponential random value
+    double exp_val = exp1(1);
     
+    // draw values from a normal distribution
+    double z_lon = rnorm1(0, prop_scale);
+    double z_lat = rnorm1(0, prop_scale);
+    
+    // return bi-variate Laplace random value
+    source_prop[0] = center_lon + z_lon*pow(exp_val, 0.5);
+    source_prop[1] = center_lat + z_lat*pow(exp_val, 0.5);
     
   } else if (p->dispersal_model == 4) { // OTHER proposal
 
   }
   
 }
-
-
 
 // // //------------------------------------------------
 // // // update expected popsize under a Poisson model for each source TODO COMMENTS

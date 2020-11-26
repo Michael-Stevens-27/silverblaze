@@ -4,6 +4,14 @@
 #include <random>
 
 //------------------------------------------------
+// draw a value from an exponential distribution with set rate parameter
+double exp1(double rate);
+
+//------------------------------------------------
+// draw a value from a chi squared distribution with set degrees of freedom
+double rchisq1(double df);
+
+//------------------------------------------------
 // draw from continuous uniform distribution on interval [0,1)
 double runif_0_1();
 
