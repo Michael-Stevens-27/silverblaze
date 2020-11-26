@@ -463,7 +463,6 @@ delete_set <- function(project,
 #' @param K the number of sources.
 #' @param burnin the number of burn-in iterations.
 #' @param samples the number of sampling iterations.
-#' @param rungs the number of temperature rungs used.
 #' @param auto_converge whether convergence should be assessed automatically
 #'   every \code{converge_test} iterations, leading to termination of the
 #'   burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
@@ -501,18 +500,17 @@ run_mcmc <- function(project,
                      K = 3,
                      burnin = 1e2,
                      samples = 1e3,
-                     rungs = 1,
                      auto_converge = TRUE,
                      converge_test = 1e2,
                      coupling_on = TRUE,
                      GTI_pow = 1,
-                     beta_manual = NULL,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
                      create_maps = TRUE,
                      silent = !is.null(cluster),
                      bugged = FALSE,
+                     beta_manual = NULL,
                      rung_store = NULL) {
   
   # start timer
@@ -522,12 +520,14 @@ run_mcmc <- function(project,
   
   if(is.null(rung_store)){
     if(is.null(beta_manual)){
-      rung_store <- rungs 
+      rung_store <- rungs <- 1
     } else {
-      rung_store <- length(beta_manual)
+      rung_store <- rungs <- length(beta_manual)
     }
   } else {
     assert_pos_int(rung_store, zero_allowed = FALSE)
+    assert_leq(rung_store, length(beta_manual))
+    rungs <- length(beta_manual)
   }
 
   # check inputs
