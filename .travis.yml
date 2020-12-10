@@ -10,5 +10,4 @@ addons:
       - libgdal-dev
       - libharfbuzz-dev 
       - libfribidi-dev
-sudo: false
 cache: packages
