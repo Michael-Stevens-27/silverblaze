@@ -81,7 +81,7 @@
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -90,7 +90,6 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider"></li>
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -100,7 +99,15 @@
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
     <li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
@@ -152,7 +159,7 @@
   coordinates.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>lonlat_to_bearing</span>(<span class='no'>origin_lon</span>, <span class='no'>origin_lat</span>, <span class='no'>dest_lon</span>, <span class='no'>dest_lat</span>)</pre>
+    <pre class="usage"><span class='fu'>lonlat_to_bearing</span><span class='op'>(</span><span class='va'>origin_lon</span>, <span class='va'>origin_lat</span>, <span class='va'>dest_lon</span>, <span class='va'>dest_lat</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -178,7 +185,8 @@
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># one degree longitude should equal approximately 111km at the equator</span>
-<span class='fu'>lonlat_to_bearing</span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>0</span>)</div><div class='output co'>#&gt; $bearing
+<span class='fu'>lonlat_to_bearing</span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>0</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; $bearing
 #&gt; [1] 90
 #&gt; 
 #&gt; $gc_dist
@@ -199,7 +207,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

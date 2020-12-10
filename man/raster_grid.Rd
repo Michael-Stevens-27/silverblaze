@@ -4,8 +4,13 @@
 \alias{raster_grid}
 \title{Make raster grid}
 \usage{
-raster_grid(range_lon = c(-0.2, 0), range_lat = c(51.45, 51.55),
-  cells_lon = 100, cells_lat = 100, guard_rail = 0.05)
+raster_grid(
+  range_lon = c(-0.2, 0),
+  range_lat = c(51.45, 51.55),
+  cells_lon = 100,
+  cells_lat = 100,
+  guard_rail = 0.05
+)
 }
 \arguments{
 \item{range_lon}{min and max longitude}

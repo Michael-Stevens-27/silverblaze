@@ -50,7 +50,8 @@ col_tim <- function(n = 10) {
 #' @importFrom grDevices colorRampPalette
 #' @export
 
-more_colours <- function(n = 5, raw_cols = brewer.pal(12, "Paired")) {
+more_colours <- function(n = 5, 
+                         raw_cols = brewer.pal(12, "Paired")) {
 
   # check inputs
   assert_single_pos_int(n, zero_allowed = FALSE)
@@ -282,7 +283,9 @@ plot_coupling <- function(project,
 #' # Similarly, plot the allocation structure for every K.
 #' plot_structure(project = p, divide_ind_on = TRUE)
 
-plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
+plot_structure <- function(project, 
+                           K = NULL, 
+                           divide_ind_on = FALSE) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -377,7 +380,8 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_sigma(project = p)
 
-plot_sigma <- function(project, K = NULL) {
+plot_sigma <- function(project, 
+                       K = NULL) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -435,7 +439,8 @@ plot_sigma <- function(project, K = NULL) {
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_expected_popsize(project = p, K = 1)
 
-plot_expected_popsize <- function(project, K = NULL) {
+plot_expected_popsize <- function(project, 
+                                  K = NULL) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -486,7 +491,8 @@ plot_expected_popsize <- function(project, K = NULL) {
 #' # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' # plot_alpha(project = p)
 
-plot_alpha <- function(project, K = NULL) {
+plot_alpha <- function(project, 
+                       K = NULL) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -530,7 +536,11 @@ plot_alpha <- function(project, K = NULL) {
 #' # Similarly, plot the trace for every K value.
 #' plot_trace(project = p)
 
-plot_trace <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
+plot_trace <- function(project, 
+                       K = NULL, 
+                       rung = NULL, 
+                       col = "black", 
+                       phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -592,7 +602,11 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black", phase = "s
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_acf(project = p)
 
-plot_acf <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
+plot_acf <- function(project, 
+                     K = NULL, 
+                     rung = NULL, 
+                     col = "black", 
+                     phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -660,7 +674,11 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black", phase = "sam
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_density(project = p)
 
-plot_density <- function(project, K = NULL, rung = NULL, col = "black", phase = "sampling") {
+plot_density <- function(project, 
+                         K = NULL, 
+                         rung = NULL, 
+                         col = "black", 
+                         phase = "sampling") {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -713,6 +731,7 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black", phase = 
 #'   \code{rgeoprofile_project()}.
 #' @param K which value of K to plot.
 #' @param rung which rung to plot. Defaults to the cold chain.
+#' @param phase check the burnin or sampling phase of the MCMC chain
 #' @param col colour of the trace.
 #'
 #' @import ggplot2
@@ -723,7 +742,11 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black", phase = 
 #' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 #' plot_loglike_diagnostic(project = p, K = 2)
 
-plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black") {
+plot_loglike_diagnostic <- function(project, 
+                                    K = NULL, 
+                                    rung = NULL, 
+                                    phase = "sampling", 
+                                    col = "black") {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -733,6 +756,7 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   if (!is.null(rung)) {
     assert_single_pos_int(rung)
   }
+  assert_in(phase, c("sampling", "burnin"))
   
   # get active set and check non-zero
   s <- project$active_set
@@ -751,7 +775,8 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   }
   
   # get output
-  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
+  mcmc_phase <- paste0("loglike_", phase)
+  loglike_sampling <- get_output(project, mcmc_phase, K, "raw")
   
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
@@ -759,13 +784,13 @@ plot_loglike_diagnostic <- function(project, K = NULL, rung = NULL, col = "black
   assert_leq(rung, rungs)
   
   # produce individual diagnostic plots and add features
-  plot1 <- plot_trace(project, K = K, rung = rung, col = col)
+  plot1 <- plot_trace(project, K = K, rung = rung, col = col, phase = phase)
   plot1 <- plot1 + ggtitle("MCMC trace")
   
-  plot2 <- plot_acf(project, K = K, rung = rung, col = col)
+  plot2 <- plot_acf(project, K = K, rung = rung, col = col, phase = phase)
   plot2 <- plot2 + ggtitle("autocorrelation")
   
-  plot3 <- plot_density(project, K = K, rung = rung, col = col)
+  plot3 <- plot_density(project, K = K, rung = rung, col = col, phase = phase)
   plot3 <- plot3 + ggtitle("density")
   
   # produce grid of plots
@@ -858,7 +883,9 @@ plot_DIC_gelman <- function(project) {
 #' \dontshow{hs <- rgeoprofile_file("tutorial1_hitscore.rds")}
 #' plot_lorenz(hs)
 
-plot_lorenz <- function(hs, col = NULL, counts = NULL) {
+plot_lorenz <- function(hs, 
+                        col = NULL, 
+                        counts = NULL) {
 
   # check inputs
   assert_dataframe(hs)
@@ -1219,7 +1246,12 @@ overlay_trial_sites <- function(myplot,
 #' plot1 <- overlay_points(myplot = plot1, all_records$longitude, all_records$latitude)
 #' show(plot1)
 
-overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 1.0) {
+overlay_points <- function(myplot, 
+                           lon, 
+                           lat, 
+                           col = "black", 
+                           size = 1, 
+                           opacity = 1.0) {
 
   # check inputs
   assert_custom_class(myplot, "leaflet")

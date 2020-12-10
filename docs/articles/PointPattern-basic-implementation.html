@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -48,7 +48,6 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider">
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -58,8 +57,16 @@
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
-    <li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
     <li>
@@ -97,7 +104,8 @@
 
       
 
-      </header><script src="PointPattern-basic-implementation_files/htmlwidgets-1.5.1/htmlwidgets.js"></script><script src="PointPattern-basic-implementation_files/jquery-1.12.4/jquery.min.js"></script><link href="PointPattern-basic-implementation_files/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+      </header><link href="PointPattern-basic-implementation_files/anchor-sections-1.0/anchor-sections.css" rel="stylesheet">
+<script src="PointPattern-basic-implementation_files/anchor-sections-1.0/anchor-sections.js"></script><script src="PointPattern-basic-implementation_files/htmlwidgets-1.5.2/htmlwidgets.js"></script><script src="PointPattern-basic-implementation_files/jquery-1.12.4/jquery.min.js"></script><link href="PointPattern-basic-implementation_files/leaflet-1.3.1/leaflet.css" rel="stylesheet">
 <script src="PointPattern-basic-implementation_files/leaflet-1.3.1/leaflet.js"></script><link href="PointPattern-basic-implementation_files/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
 <script src="PointPattern-basic-implementation_files/Proj4Leaflet-1.0.1/proj4-compressed.js"></script><script src="PointPattern-basic-implementation_files/Proj4Leaflet-1.0.1/proj4leaflet.js"></script><link href="PointPattern-basic-implementation_files/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
 <script src="PointPattern-basic-implementation_files/leaflet-binding-2.0.3/leaflet.js"></script><script src="PointPattern-basic-implementation_files/leaflet-providers-1.9.0/leaflet-providers_1.9.0.js"></script><script src="PointPattern-basic-implementation_files/leaflet-providers-plugin-2.0.3/leaflet-providers-plugin.js"></script><div class="row">
@@ -106,7 +114,7 @@
       <h1 data-toc-skip>Point pattern data</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-08-24</h4>
+            <h4 class="date">2020-12-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/PointPattern-basic-implementation.Rmd"><code>vignettes/PointPattern-basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>PointPattern-basic-implementation.Rmd</code></div>
@@ -130,22 +138,24 @@
 <h2 class="hasAnchor">
 <a href="#simulating-data" class="anchor"></a>Simulating data</h2>
 <p>We start by defining area over which we are simulating our data.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">lon_range</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(-<span class="fl">0.2</span>,<span class="fl">0</span>)
-<span class="no">lat_range</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">51.45</span>, <span class="fl">51.55</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">lon_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>,<span class="fl">0</span><span class="op">)</span>
+<span class="va">lat_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">51.45</span>, <span class="fl">51.55</span><span class="op">)</span></code></pre></div>
 <p>We can generate our data from a given model using <code><a href="../reference/sim_data.html">sim_data()</a></code>.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">mysim</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/sim_data.html">sim_data</a></span>(<span class="kw">data_type</span> <span class="kw">=</span> <span class="st">"point-pattern"</span>,
-                  <span class="kw">K</span> <span class="kw">=</span> <span class="fl">2</span>,
-                  <span class="kw">dispersal_model</span> <span class="kw">=</span> <span class="st">"normal"</span>,
-                  <span class="kw">sigma_model</span> <span class="kw">=</span> <span class="st">"single"</span>,
-                  <span class="kw">sigma_mean</span> <span class="kw">=</span> <span class="fl">0.5</span>,
-                  <span class="kw">sigma_var</span> <span class="kw">=</span> <span class="fl">0</span>,
-                  <span class="kw">N</span> <span class="kw">=</span> <span class="fl">150</span>,
-                  <span class="kw">source_lon_min</span> <span class="kw">=</span> <span class="no">lon_range</span>[<span class="fl">1</span>],
-                  <span class="kw">source_lon_max</span> <span class="kw">=</span> <span class="no">lon_range</span>[<span class="fl">2</span>],
-                  <span class="kw">source_lat_min</span> <span class="kw">=</span> <span class="no">lat_range</span>[<span class="fl">1</span>],
-                  <span class="kw">source_lat_max</span> <span class="kw">=</span> <span class="no">lat_range</span>[<span class="fl">2</span>])
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mysim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_data.html">sim_data</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"point-pattern"</span>,
+                  K <span class="op">=</span> <span class="fl">2</span>,
+                  dispersal_model <span class="op">=</span> <span class="st">"normal"</span>, 
+                  sigma_model <span class="op">=</span> <span class="st">"single"</span>,
+                  sigma_mean <span class="op">=</span> <span class="fl">0.5</span>,
+                  sigma_var <span class="op">=</span> <span class="fl">0</span>,
+                  N <span class="op">=</span> <span class="fl">150</span>,      
+                  source_lon_min <span class="op">=</span> <span class="va">lon_range</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,
+                  source_lon_max <span class="op">=</span> <span class="va">lon_range</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,
+                  source_lat_min <span class="op">=</span> <span class="va">lat_range</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,
+                  source_lat_max <span class="op">=</span> <span class="va">lat_range</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>
 
-<span class="no">true_source</span> <span class="kw">&lt;-</span> <span class="no">mysim</span>$<span class="no">record</span>$<span class="no">true_source</span></pre></body></html></div>
+<span class="va">true_source</span> <span class="op">&lt;-</span> <span class="va">mysim</span><span class="op">$</span><span class="va">record</span><span class="op">$</span><span class="va">true_source</span></code></pre></div>
 <p>These parameters describe the underlying behaviour of the data in question:</p>
 <ul>
 <li>
@@ -161,8 +171,9 @@
 <li>
 <code>N</code> tells us how many individuals we there are over our search area.</li>
 </ul>
-<p>Let’s view our point-pattern data.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(<span class="no">mysim</span>$<span class="no">data</span>)</pre></body></html></div>
+<p>Let's view our point-pattern data.</p>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mysim</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></code></pre></div>
 <pre><code>##     longitude latitude
 ## 1 -0.10161279 51.49437
 ## 2 -0.10610024 51.49748
@@ -176,36 +187,40 @@
 <h2 class="hasAnchor">
 <a href="#creating-a-project" class="anchor"></a>Creating a project</h2>
 <p>We initialise a blank project <code>p</code> using the <code><a href="../reference/rgeoprofile_project.html">rgeoprofile_project()</a></code> function.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_project.html">rgeoprofile_project</a></span>()</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_project.html">rgeoprofile_project</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>We then add in our simulated data using <code><a href="../reference/bind_data.html">bind_data()</a></code>.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/bind_data.html">bind_data</a></span>(<span class="no">p</span>,
-               <span class="kw">df</span> <span class="kw">=</span> <span class="no">mysim</span>$<span class="no">data</span>,
-               <span class="kw">data_type</span> <span class="kw">=</span> <span class="st">"point-pattern"</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bind_data.html">bind_data</a></span><span class="op">(</span><span class="va">p</span>,
+               df <span class="op">=</span> <span class="va">mysim</span><span class="op">$</span><span class="va">data</span>,
+               data_type <span class="op">=</span> <span class="st">"point-pattern"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="simple-spatial-prior" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simple-spatial-prior" class="anchor"></a>Simple spatial prior</h2>
 <p>We wish to impose a spatial prior on our model. Here we implement a very simple one by instructing the model to restrict the area of interest to to that which contains our points plus some <code>guard_rail</code>. We can produce a uniform spatial prior with <code><a href="../reference/raster_grid.html">raster_grid()</a></code>.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">uniform_prior</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/raster_grid.html">raster_grid</a></span>(<span class="kw">range_lon</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(-<span class="fl">0.2</span>, <span class="fl">0</span>),
-                             <span class="kw">range_lat</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">51.45</span>, <span class="fl">51.55</span>),
-                             <span class="kw">cells_lon</span> <span class="kw">=</span> <span class="fl">100</span>,
-                             <span class="kw">cells_lat</span> <span class="kw">=</span> <span class="fl">100</span>,
-                             <span class="kw">guard_rail</span> <span class="kw">=</span> <span class="fl">0.1</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">uniform_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/raster_grid.html">raster_grid</a></span><span class="op">(</span>range_lon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>, <span class="fl">0</span><span class="op">)</span>, 
+                             range_lat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">51.45</span>, <span class="fl">51.55</span><span class="op">)</span>,
+                             cells_lon <span class="op">=</span> <span class="fl">100</span>, 
+                             cells_lat <span class="op">=</span> <span class="fl">100</span>, 
+                             guard_rail <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></code></pre></div>
 <div id="htmlwidget-540694c039357939eda4" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
 <script type="application/json" data-for="htmlwidget-540694c039357939eda4">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABAElEQVR4nO3RQQ0AIBDAsAP/nuGNAvZoFSzZOjNnyNi/A3gZEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIzAXsTALGT7m3PwAAAABJRU5ErkJggg==",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.2,null,null,null]}],"limits":{"lat":[51.445,51.555],"lng":[-0.210000000000012,0.00999999999999939]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="parameter-sets" class="section level2">
 <h2 class="hasAnchor">
 <a href="#parameter-sets" class="anchor"></a>Parameter sets</h2>
-<p>Next we define the various priors on the variables we wish to estimate when running the model. We define these parameters via <code><a href="../reference/new_set.html">new_set()</a></code>. Notice the project <code>p</code> is one of the function’s arguments. This is such that the parameter set we define is added into our project.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/new_set.html">new_set</a></span>(<span class="kw">project</span> <span class="kw">=</span> <span class="no">p</span>,
-             <span class="kw">spatial_prior</span> <span class="kw">=</span> <span class="no">uniform_prior</span>,
-             <span class="kw">dispersal_model</span> <span class="kw">=</span> <span class="st">"normal"</span>,
-             <span class="kw">sigma_model</span> <span class="kw">=</span> <span class="st">"single"</span>,
-             <span class="kw">sigma_prior_mean</span> <span class="kw">=</span> <span class="fl">0.5</span>,
-             <span class="kw">sigma_prior_sd</span> <span class="kw">=</span> <span class="fl">2</span>,
-             <span class="kw">name</span> <span class="kw">=</span> <span class="st">"Tutorial Parameters"</span>)
-<span class="no">p</span></pre></body></html></div>
+<p>Next we define the various priors on the variables we wish to estimate when running the model. We define these parameters via <code><a href="../reference/new_set.html">new_set()</a></code>. Notice the project <code>p</code> is one of the function's arguments. This is such that the parameter set we define is added into our project.</p>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_set.html">new_set</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">p</span>,
+             spatial_prior <span class="op">=</span> <span class="va">uniform_prior</span>,
+             dispersal_model <span class="op">=</span> <span class="st">"normal"</span>,
+             sigma_model <span class="op">=</span> <span class="st">"single"</span>,
+             sigma_prior_mean <span class="op">=</span> <span class="fl">0.5</span>,
+             sigma_prior_sd <span class="op">=</span> <span class="fl">2</span>,
+             name <span class="op">=</span> <span class="st">"Tutorial Parameters"</span><span class="op">)</span>
+<span class="va">p</span></code></pre></div>
 <pre><code>## DATA:
 ##    type: point-pattern
 ##    total observations = 150
@@ -230,67 +245,70 @@
 <h2 class="hasAnchor">
 <a href="#running-the-model" class="anchor"></a>Running the model</h2>
 <p>We are now ready to run the MCMC algorithm on our data. The arguments in <code><a href="../reference/run_mcmc.html">run_mcmc()</a></code> are similar to many other MCMC implementations. The algorithm will start in the burn-in phase, checking for convergence at each <code>convergence_test</code> iterations and move into the sample phase once the conditions for convergence have been met or the number of burn-in iterations has been reached. The argument <code>K</code> governs how many sources the model should search for. Although we simulated the data, and know the true underlying number of sources, this will rarely be the case with a real-world data set. Hence <code>K</code> can take a single value or a sequence of values. We choose <code>1:5</code> as our data was generated with three sources. The <code>pb_markdown = TRUE</code> argument ensures a neater version of the console output is printed below, this should be removed when run by you.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">K_model</span> <span class="kw">&lt;-</span> <span class="fl">1</span>:<span class="fl">5</span>
-<span class="no">beta_list</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>()
-<span class="no">n_rungs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="fl">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">K_model</span>))
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">K_model</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>
+<span class="va">beta_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
+<span class="va">n_rungs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">K_model</span><span class="op">)</span><span class="op">)</span>
 
-<span class="kw">for</span>(<span class="no">i</span> <span class="kw">in</span> <span class="no">K_model</span>){
-  <span class="no">beta_k</span> <span class="kw">&lt;-</span> <span class="kw pkg">silverblaze</span><span class="kw ns">:::</span> <span class="fu"><a href="../reference/optimise_beta.html">optimise_beta</a></span>(<span class="kw">proj</span> <span class="kw">=</span> <span class="no">p</span>,
-                                         <span class="kw">K</span> <span class="kw">=</span> <span class="no">i</span>,
-                                         <span class="kw">create_maps</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
-                                         <span class="kw">target_acceptance</span> <span class="kw">=</span> <span class="fl">0.5</span>,
-                                         <span class="kw">max_iterations</span> <span class="kw">=</span> <span class="fl">20</span>,
-                                         <span class="kw">beta_init</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">1</span>, <span class="kw">l</span> <span class="kw">=</span> <span class="fl">5</span>),
-                                         <span class="kw">silent</span> <span class="kw">=</span> <span class="fl">FALSE</span>,
-                                         <span class="kw">burnin</span> <span class="kw">=</span> <span class="fl">1e1</span>,
-                                         <span class="kw">samples</span> <span class="kw">=</span> <span class="fl">10</span>,
-                                         <span class="kw">converge_test</span> <span class="kw">=</span> <span class="fl">1e1</span>,
-                                         <span class="kw">coupling_on</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
-                                         <span class="kw">pb_markdown</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
-
-  <span class="no">beta_list</span><span class="kw">[[</span><span class="no">i</span>]] <span class="kw">&lt;-</span> <span class="no">beta_k</span>$<span class="no">beta_vec</span>[<span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">beta_k</span>$<span class="no">beta_vec</span>)]
-  <span class="no">n_rungs</span>[<span class="no">i</span>] <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span>(<span class="no">beta_list</span><span class="kw">[[</span><span class="no">i</span>]]))
-}
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">K_model</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">beta_k</span> <span class="op">&lt;-</span> <span class="fu">silverblaze</span><span class="fu">:::</span> <span class="fu"><a href="../reference/optimise_beta.html">optimise_beta</a></span><span class="op">(</span>proj <span class="op">=</span> <span class="va">p</span>, 
+                                         K <span class="op">=</span> <span class="va">i</span>, 
+                                         create_maps <span class="op">=</span> <span class="cn">FALSE</span>,
+                                         target_acceptance <span class="op">=</span> <span class="fl">0.5</span>, 
+                                         max_iterations <span class="op">=</span> <span class="fl">20</span>,
+                                         beta_init <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, 
+                                         silent <span class="op">=</span> <span class="cn">FALSE</span>,
+                                         burnin <span class="op">=</span> <span class="fl">1e1</span>,
+                                         samples <span class="op">=</span> <span class="fl">10</span>,
+                                         converge_test <span class="op">=</span> <span class="fl">1e1</span>,
+                                         coupling_on <span class="op">=</span> <span class="cn">TRUE</span>, 
+                                         pb_markdown <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+  
+  <span class="va">beta_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">beta_k</span><span class="op">$</span><span class="va">beta_vec</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">beta_k</span><span class="op">$</span><span class="va">beta_vec</span><span class="op">)</span><span class="op">]</span>
+  <span class="va">n_rungs</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">beta_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
 
 <span class="co">#------------------------------------------------------------------</span>
 
 <span class="co"># RUN MCMC</span>
-<span class="kw">for</span>(<span class="no">i</span> <span class="kw">in</span> <span class="no">K_model</span>){
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">K_model</span><span class="op">)</span><span class="op">{</span>
 
-  <span class="no">beta_vals</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span>(<span class="no">beta_list</span><span class="kw">[[</span><span class="no">i</span>]])
+  <span class="va">beta_vals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">beta_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
 
-  <span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(<span class="kw">project</span> <span class="kw">=</span> <span class="no">p</span>,
-                <span class="kw">K</span> <span class="kw">=</span> <span class="no">i</span>,
-                <span class="kw">rungs</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span>(<span class="no">beta_list</span><span class="kw">[[</span><span class="no">i</span>]]),
-                <span class="kw">coupling_on</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
-                <span class="kw">burnin</span> <span class="kw">=</span> <span class="fl">5e3</span>,
-                <span class="kw">samples</span> <span class="kw">=</span> <span class="fl">5e3</span>,
-                <span class="kw">converge_test</span> <span class="kw">=</span> <span class="fl">1000</span>,
-                <span class="kw">auto_converge</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
-                <span class="kw">beta_manual</span> <span class="kw">=</span> <span class="no">beta_vals</span>,
-                <span class="kw">pb_markdown</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
+  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_mcmc.html">run_mcmc</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">p</span>,
+                K <span class="op">=</span> <span class="va">i</span>,
+                rungs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">beta_list</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,
+                coupling_on <span class="op">=</span> <span class="cn">TRUE</span>,
+                burnin <span class="op">=</span> <span class="fl">5e3</span>,
+                samples <span class="op">=</span> <span class="fl">5e3</span>,
+                converge_test <span class="op">=</span> <span class="fl">1000</span>,
+                auto_converge <span class="op">=</span> <span class="cn">TRUE</span>,
+                beta_manual <span class="op">=</span> <span class="va">beta_vals</span>,
+                pb_markdown <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
-}
+<span class="op">}</span>
 
 
 
-<span class="no">p</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/run_mcmc.html">run_mcmc</a></span>(<span class="kw">project</span> <span class="kw">=</span> <span class="no">p</span>,
-              <span class="kw">K</span> <span class="kw">=</span> <span class="fl">1</span>:<span class="fl">5</span>,
-              <span class="kw">burnin</span> <span class="kw">=</span> <span class="fl">4e4</span>,
-              <span class="kw">samples</span> <span class="kw">=</span> <span class="fl">1e4</span>,
-              <span class="kw">converge_test</span> <span class="kw">=</span> <span class="fl">1e4</span>,
-              <span class="kw">auto_converge</span> <span class="kw">=</span> <span class="fl">TRUE</span>,
-              <span class="kw">pb_markdown</span> <span class="kw">=</span> <span class="fl">TRUE</span>)</pre></body></html></div>
-<p>Before plotting any geoprofiles let’s makes sure the MCMC is indeed mixing well.</p>
+<span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_mcmc.html">run_mcmc</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">p</span>,
+              K <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,
+              burnin <span class="op">=</span> <span class="fl">4e4</span>,
+              samples <span class="op">=</span> <span class="fl">1e4</span>,
+              converge_test <span class="op">=</span> <span class="fl">1e4</span>,
+              auto_converge <span class="op">=</span> <span class="cn">TRUE</span>,
+              pb_markdown <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<p>Before plotting any geoprofiles let's makes sure the MCMC is indeed mixing well.</p>
 </div>
 <div id="diagnosing-the-model" class="section level2">
 <h2 class="hasAnchor">
 <a href="#diagnosing-the-model" class="anchor"></a>Diagnosing the model</h2>
-<p>Firstly we question the MCMC’s ability by producing diagnostic plots of the log-likelihood. This can be done for each value of <code>K</code> to ensure the algorithm is behaving properly.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">2</span>)</pre></body></html></div>
+<p>Firstly we question the MCMC's ability by producing diagnostic plots of the log-likelihood. This can be done for each value of <code>K</code> to ensure the algorithm is behaving properly.</p>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="PointPattern-basic-implementation_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/get_ESS.html">get_ESS</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">2</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, name <span class="op">=</span> <span class="st">"ESS"</span>, K <span class="op">=</span> <span class="fl">2</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span></code></pre></div>
 <pre><code>##    rung1 
 ## 819.3797</code></pre>
 </div>
@@ -301,28 +319,32 @@
 <h3 class="hasAnchor">
 <a href="#mapping" class="anchor"></a>Mapping</h3>
 <p>Now the model has run, we can start to visualise different aspects of the project. Plotting objects in silverblaze follow a similar structure to <a href="https://rstudio.github.io/leaflet/">Leaflet</a> and <a href="https://ggplot2.tidyverse.org/">ggplot2</a>. We start with a base layer</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">plot1</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/plot_map.html">plot_map</a></span>()</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">plot1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_map.html">plot_map</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>and overlay different parts of our project using the set of overlay functions. Lets start with the underlying sources locations and our spatial prior.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">plot2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/overlay_spatial_prior.html">overlay_spatial_prior</a></span>(<span class="no">plot1</span>, <span class="no">p</span>, <span class="kw">col</span> <span class="kw">=</span> <span class="st">"red"</span>, <span class="kw">opacity</span> <span class="kw">=</span> <span class="fl">0.2</span>)
-<span class="no">plot2</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/overlay_sources.html">overlay_sources</a></span>(<span class="no">plot2</span>, <span class="no">true_source</span>$<span class="no">longitude</span>, <span class="no">true_source</span>$<span class="no">latitude</span>)
-<span class="no">plot2</span></pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">plot2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/overlay_spatial_prior.html">overlay_spatial_prior</a></span><span class="op">(</span><span class="va">plot1</span>, <span class="va">p</span>, col <span class="op">=</span> <span class="st">"red"</span>, opacity <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>
+<span class="va">plot2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/overlay_sources.html">overlay_sources</a></span><span class="op">(</span><span class="va">plot2</span>, <span class="va">true_source</span><span class="op">$</span><span class="va">longitude</span>, <span class="va">true_source</span><span class="op">$</span><span class="va">latitude</span><span class="op">)</span>
+<span class="va">plot2</span></code></pre></div>
 <div id="htmlwidget-7a90f4f6d5917ad45237" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7a90f4f6d5917ad45237">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABAElEQVR4nO3RQQ0AIBDAsAP/nuGNAvZoFSzZOjNnyNi/A3gZEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIzAXsTALGT7m3PwAAAABJRU5ErkJggg==",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.2,null,null,null]},{"method":"addMarkers","args":[[51.4926907666493,51.5193102080841],[-0.0985043593682349,-0.138646298786625],{"iconUrl":{"data":"https://github.com/Michael-Stevens-27/silverblaze/raw/master/R_ignore/icons/black_cross.png","index":0},"iconWidth":20,"iconHeight":20,"iconAnchorX":10,"iconAnchorY":10},null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[51.445,51.555],"lng":[-0.210000000000012,0.00999999999999939]}},"evals":[],"jsHooks":[]}</script><p>This isn’t too interesting yet, so let’s add to this the point-pattern data.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">plot3</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/overlay_points.html">overlay_points</a></span>(<span class="no">plot2</span>,
-                        <span class="kw">lon</span> <span class="kw">=</span> <span class="no">mysim</span>$<span class="no">data</span>$<span class="no">longitude</span>,
-                        <span class="kw">lat</span> <span class="kw">=</span> <span class="no">mysim</span>$<span class="no">data</span>$<span class="no">latitude</span>,
-                        <span class="kw">col</span> <span class="kw">=</span> <span class="st">"purple"</span>)
-<span class="no">plot3</span></pre></body></html></div>
+<script type="application/json" data-for="htmlwidget-7a90f4f6d5917ad45237">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABAElEQVR4nO3RQQ0AIBDAsAP/nuGNAvZoFSzZOjNnyNi/A3gZEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIzAXsTALGT7m3PwAAAABJRU5ErkJggg==",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.2,null,null,null]},{"method":"addMarkers","args":[[51.4926907666493,51.5193102080841],[-0.0985043593682349,-0.138646298786625],{"iconUrl":{"data":"https://github.com/Michael-Stevens-27/silverblaze/raw/master/R_ignore/icons/black_cross.png","index":0},"iconWidth":20,"iconHeight":20,"iconAnchorX":10,"iconAnchorY":10},null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[51.445,51.555],"lng":[-0.210000000000012,0.00999999999999939]}},"evals":[],"jsHooks":[]}</script><p>This isn't too interesting yet, so let's add to this the point-pattern data.</p>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">plot3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/overlay_points.html">overlay_points</a></span><span class="op">(</span><span class="va">plot2</span>, 
+                        lon <span class="op">=</span> <span class="va">mysim</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">longitude</span>,
+                        lat <span class="op">=</span> <span class="va">mysim</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">latitude</span>,
+                        col <span class="op">=</span> <span class="st">"purple"</span><span class="op">)</span>
+<span class="va">plot3</span></code></pre></div>
 <div id="htmlwidget-1b587e3e3375e2b82904" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
 <script type="application/json" data-for="htmlwidget-1b587e3e3375e2b82904">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABAElEQVR4nO3RQQ0AIBDAsAP/nuGNAvZoFSzZOjNnyNi/A3gZEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIzAXsTALGT7m3PwAAAABJRU5ErkJggg==",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.2,null,null,null]},{"method":"addMarkers","args":[[51.4926907666493,51.5193102080841],[-0.0985043593682349,-0.138646298786625],{"iconUrl":{"data":"https://github.com/Michael-Stevens-27/silverblaze/raw/master/R_ignore/icons/black_cross.png","index":0},"iconWidth":20,"iconHeight":20,"iconAnchorX":10,"iconAnchorY":10},null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addCircleMarkers","args":[[51.4943655876769,51.4974833629274,51.4950763769582,51.4931492682908,51.4987062390302,51.4930829145021,51.4909320104537,51.4915671675316,51.4978848143294,51.4888023306762,51.4887925604969,51.4822537520623,51.4954284360625,51.4978618546307,51.4872966379962,51.4855861214973,51.4956275029549,51.4902202135486,51.4950332976347,51.4895452527787,51.4907169866902,51.4896451223956,51.4970033147157,51.4860888379878,51.4935170418402,51.4862372325073,51.4875762128604,51.4908261802277,51.4933379123868,51.497466176879,51.4901235205755,51.4984335162087,51.4937170120828,51.4913017919251,51.4970064593842,51.4951585579702,51.4946041101311,51.4955841445996,51.4865740018022,51.4917979226742,51.4954754059699,51.5019903448866,51.4913178202467,51.4939553665394,51.4957993406076,51.4928992356409,51.4931986983825,51.4971662976742,51.4896277103935,51.4869483270586,51.4860863581854,51.4912811672653,51.4850297546812,51.4866175786817,51.4877349944004,51.4877456685687,51.4981563525417,51.4941785415698,51.4989420745564,51.4966119657072,51.4878306393321,51.4949201832423,51.497423817978,51.4869585430992,51.4918196011792,51.4868664285024,51.4933282669598,51.5210404534818,51.5240363026313,51.5245066387539,51.514658718466,51.5181655613185,51.5250373557928,51.5260665248887,51.5219650038675,51.5164740222102,51.5228730693133,51.5198739955929,51.5207614691687,51.5173065740435,51.5227584039651,51.5129990857117,51.5140219845899,51.5216100664166,51.5252311155666,51.5300698071414,51.5190054583606,51.5183935103365,51.5282873774896,51.5262494535377,51.5137868236935,51.5312012933268,51.5227140451076,51.5240546018816,51.5236174282888,51.5230594359446,51.5185484703025,51.5174915055095,51.5206392475162,51.5182675246523,51.5172953183754,51.5194105276573,51.5195101581871,51.5214717943036,51.5221683127129,51.5103134189855,51.5162043431141,51.5187225551537,51.5177617690858,51.519074345921,51.5197423369275,51.5205078852626,51.5218047904478,51.5248652386309,51.5205920751549,51.5172469683886,51.5221137069954,51.5160546352823,51.5265908940167,51.5165372694174,51.521039125138,51.528818237231,51.5146851406309,51.5153213524238,51.5250260531868,51.5120927429826,51.5243566161422,51.5290158324953,51.5212358138497,51.5247114268143,51.5239480033133,51.5222499272688,51.5283576369306,51.5242322809915,51.5225764886572,51.5130153243097,51.5135194742058,51.5149556223666,51.5115007247586,51.5230497157727,51.5158974930618,51.5290004176139,51.5174069776154,51.5192847878349,51.5211104620452,51.5176654708786,51.5173805081938,51.5204104372679,51.5292915188352,51.5207233220144],[-0.101612794057692,-0.106100238056344,-0.0875074541383341,-0.0942228298892023,-0.1001126638925,-0.0933556937583898,-0.0933291684340521,-0.0953249499405203,-0.0973571318822667,-0.0937398576624014,-0.0824688295217724,-0.107053017788867,-0.0990385107381375,-0.101511671701872,-0.0998871077957519,-0.0980021755752491,-0.0901597360210799,-0.0942077277567237,-0.10875776011362,-0.110107204684521,-0.0920558038967863,-0.0974343413365424,-0.0896417517468281,-0.10400541930524,-0.0954755171351606,-0.10601391150501,-0.0933658500036869,-0.103077324528851,-0.0944369761074429,-0.0937301217349132,-0.110478358314451,-0.0910778520895342,-0.0903579385532766,-0.107749531764159,-0.090350744567636,-0.101856584753406,-0.100784919105073,-0.0918285623726612,-0.0979472842193404,-0.0909940339716948,-0.0931460269929775,-0.0894347900439405,-0.091636897550436,-0.101980944975511,-0.0970390191124996,-0.0987335892476555,-0.107139102309818,-0.0939996047251716,-0.105110760321872,-0.0967080208149958,-0.106177656909839,-0.101133008349219,-0.107219978958153,-0.0881837613361941,-0.0939300947830995,-0.112924074582346,-0.103429236346635,-0.101827052273907,-0.105605195174518,-0.094926697311265,-0.0932629635154981,-0.0936847996916964,-0.0916080432974694,-0.110602319544718,-0.107208209079776,-0.112681429910351,-0.0878822336663978,-0.129528346314733,-0.141764798725559,-0.15181937762011,-0.136098949704101,-0.148390448260181,-0.133531645678268,-0.141615984808795,-0.141869769334568,-0.146169599612969,-0.141025580943638,-0.140690094704072,-0.135521311060791,-0.14086908032956,-0.139055604075257,-0.133346387355524,-0.137943171718946,-0.12686029422087,-0.134594597802228,-0.129036115823785,-0.140661164009233,-0.147799971586356,-0.140447089522344,-0.138516288233659,-0.135921766267898,-0.132892552756876,-0.144721789772715,-0.154585490228712,-0.146798807505261,-0.148339884246269,-0.127047362266964,-0.133267040407527,-0.132416401386326,-0.135790826336771,-0.134967387018436,-0.139531891954183,-0.137977245941746,-0.141232590313859,-0.141245459703386,-0.131214945332279,-0.130857590975758,-0.13191299999465,-0.149202160988301,-0.145193892370994,-0.143562783180794,-0.13096327716486,-0.143650198956633,-0.146839303073354,-0.146556605645745,-0.145965572502425,-0.135681304982334,-0.135194221555649,-0.155485537227251,-0.138528838109488,-0.131561643225342,-0.132818119871865,-0.137782107573887,-0.15625261630869,-0.138422091094623,-0.141072140573568,-0.14055265129074,-0.141218364603391,-0.142123443159051,-0.137036541398983,-0.121085105748461,-0.127832813231386,-0.143830132646119,-0.142021762796699,-0.13385543226305,-0.122026691479102,-0.136279893770686,-0.138184842455767,-0.146879763607607,-0.130115530293329,-0.138347233198544,-0.147418028121086,-0.138117381923026,-0.140505817672564,-0.136718183635691,-0.128618466584819,-0.137251095124026,-0.134365902764128,-0.144645307567666,-0.135809335255191],1,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":5,"opacity":0.5,"fill":true,"fillColor":"purple","fillOpacity":1},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[51.445,51.555],"lng":[-0.210000000000012,0.00999999999999939]}},"evals":[],"jsHooks":[]}</script><p>Finally, we add in the geoprofile produced by running the MCMC.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">plot4</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/overlay_geoprofile.html">overlay_geoprofile</a></span>(<span class="no">plot3</span>,
-                            <span class="kw">project</span> <span class="kw">=</span> <span class="no">p</span>,
-                            <span class="kw">threshold</span> <span class="kw">=</span> <span class="fl">0.1</span>,
-                            <span class="kw">opacity</span> <span class="kw">=</span> <span class="fl">0.8</span>,
-                            <span class="kw">K</span> <span class="kw">=</span> <span class="fl">3</span>,
-                            <span class="kw">col</span> <span class="kw">=</span> <span class="no">plasma</span>,
-                            <span class="kw">legend</span> <span class="kw">=</span> <span class="fl">TRUE</span>)
-<span class="no">plot4</span></pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">plot4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/overlay_geoprofile.html">overlay_geoprofile</a></span><span class="op">(</span><span class="va">plot3</span>, 
+                            project <span class="op">=</span> <span class="va">p</span>, 
+                            threshold <span class="op">=</span> <span class="fl">0.1</span>, 
+                            opacity <span class="op">=</span> <span class="fl">0.8</span>, 
+                            K <span class="op">=</span> <span class="fl">3</span>, 
+                            col <span class="op">=</span> <span class="va">plasma</span>, 
+                            legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">plot4</span></code></pre></div>
 <div id="htmlwidget-5544e9c1be78e1a64d6a" style="width:700px;height:432.632880098888px;" class="leaflet html-widget"></div>
 <script type="application/json" data-for="htmlwidget-5544e9c1be78e1a64d6a">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABAElEQVR4nO3RQQ0AIBDAsAP/nuGNAvZoFSzZOjNnyNi/A3gZEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIjCExhsQYEmNIzAXsTALGT7m3PwAAAABJRU5ErkJggg==",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.2,null,null,null]},{"method":"addMarkers","args":[[51.4926907666493,51.5193102080841],[-0.0985043593682349,-0.138646298786625],{"iconUrl":{"data":"https://github.com/Michael-Stevens-27/silverblaze/raw/master/R_ignore/icons/black_cross.png","index":0},"iconWidth":20,"iconHeight":20,"iconAnchorX":10,"iconAnchorY":10},null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addCircleMarkers","args":[[51.4943655876769,51.4974833629274,51.4950763769582,51.4931492682908,51.4987062390302,51.4930829145021,51.4909320104537,51.4915671675316,51.4978848143294,51.4888023306762,51.4887925604969,51.4822537520623,51.4954284360625,51.4978618546307,51.4872966379962,51.4855861214973,51.4956275029549,51.4902202135486,51.4950332976347,51.4895452527787,51.4907169866902,51.4896451223956,51.4970033147157,51.4860888379878,51.4935170418402,51.4862372325073,51.4875762128604,51.4908261802277,51.4933379123868,51.497466176879,51.4901235205755,51.4984335162087,51.4937170120828,51.4913017919251,51.4970064593842,51.4951585579702,51.4946041101311,51.4955841445996,51.4865740018022,51.4917979226742,51.4954754059699,51.5019903448866,51.4913178202467,51.4939553665394,51.4957993406076,51.4928992356409,51.4931986983825,51.4971662976742,51.4896277103935,51.4869483270586,51.4860863581854,51.4912811672653,51.4850297546812,51.4866175786817,51.4877349944004,51.4877456685687,51.4981563525417,51.4941785415698,51.4989420745564,51.4966119657072,51.4878306393321,51.4949201832423,51.497423817978,51.4869585430992,51.4918196011792,51.4868664285024,51.4933282669598,51.5210404534818,51.5240363026313,51.5245066387539,51.514658718466,51.5181655613185,51.5250373557928,51.5260665248887,51.5219650038675,51.5164740222102,51.5228730693133,51.5198739955929,51.5207614691687,51.5173065740435,51.5227584039651,51.5129990857117,51.5140219845899,51.5216100664166,51.5252311155666,51.5300698071414,51.5190054583606,51.5183935103365,51.5282873774896,51.5262494535377,51.5137868236935,51.5312012933268,51.5227140451076,51.5240546018816,51.5236174282888,51.5230594359446,51.5185484703025,51.5174915055095,51.5206392475162,51.5182675246523,51.5172953183754,51.5194105276573,51.5195101581871,51.5214717943036,51.5221683127129,51.5103134189855,51.5162043431141,51.5187225551537,51.5177617690858,51.519074345921,51.5197423369275,51.5205078852626,51.5218047904478,51.5248652386309,51.5205920751549,51.5172469683886,51.5221137069954,51.5160546352823,51.5265908940167,51.5165372694174,51.521039125138,51.528818237231,51.5146851406309,51.5153213524238,51.5250260531868,51.5120927429826,51.5243566161422,51.5290158324953,51.5212358138497,51.5247114268143,51.5239480033133,51.5222499272688,51.5283576369306,51.5242322809915,51.5225764886572,51.5130153243097,51.5135194742058,51.5149556223666,51.5115007247586,51.5230497157727,51.5158974930618,51.5290004176139,51.5174069776154,51.5192847878349,51.5211104620452,51.5176654708786,51.5173805081938,51.5204104372679,51.5292915188352,51.5207233220144],[-0.101612794057692,-0.106100238056344,-0.0875074541383341,-0.0942228298892023,-0.1001126638925,-0.0933556937583898,-0.0933291684340521,-0.0953249499405203,-0.0973571318822667,-0.0937398576624014,-0.0824688295217724,-0.107053017788867,-0.0990385107381375,-0.101511671701872,-0.0998871077957519,-0.0980021755752491,-0.0901597360210799,-0.0942077277567237,-0.10875776011362,-0.110107204684521,-0.0920558038967863,-0.0974343413365424,-0.0896417517468281,-0.10400541930524,-0.0954755171351606,-0.10601391150501,-0.0933658500036869,-0.103077324528851,-0.0944369761074429,-0.0937301217349132,-0.110478358314451,-0.0910778520895342,-0.0903579385532766,-0.107749531764159,-0.090350744567636,-0.101856584753406,-0.100784919105073,-0.0918285623726612,-0.0979472842193404,-0.0909940339716948,-0.0931460269929775,-0.0894347900439405,-0.091636897550436,-0.101980944975511,-0.0970390191124996,-0.0987335892476555,-0.107139102309818,-0.0939996047251716,-0.105110760321872,-0.0967080208149958,-0.106177656909839,-0.101133008349219,-0.107219978958153,-0.0881837613361941,-0.0939300947830995,-0.112924074582346,-0.103429236346635,-0.101827052273907,-0.105605195174518,-0.094926697311265,-0.0932629635154981,-0.0936847996916964,-0.0916080432974694,-0.110602319544718,-0.107208209079776,-0.112681429910351,-0.0878822336663978,-0.129528346314733,-0.141764798725559,-0.15181937762011,-0.136098949704101,-0.148390448260181,-0.133531645678268,-0.141615984808795,-0.141869769334568,-0.146169599612969,-0.141025580943638,-0.140690094704072,-0.135521311060791,-0.14086908032956,-0.139055604075257,-0.133346387355524,-0.137943171718946,-0.12686029422087,-0.134594597802228,-0.129036115823785,-0.140661164009233,-0.147799971586356,-0.140447089522344,-0.138516288233659,-0.135921766267898,-0.132892552756876,-0.144721789772715,-0.154585490228712,-0.146798807505261,-0.148339884246269,-0.127047362266964,-0.133267040407527,-0.132416401386326,-0.135790826336771,-0.134967387018436,-0.139531891954183,-0.137977245941746,-0.141232590313859,-0.141245459703386,-0.131214945332279,-0.130857590975758,-0.13191299999465,-0.149202160988301,-0.145193892370994,-0.143562783180794,-0.13096327716486,-0.143650198956633,-0.146839303073354,-0.146556605645745,-0.145965572502425,-0.135681304982334,-0.135194221555649,-0.155485537227251,-0.138528838109488,-0.131561643225342,-0.132818119871865,-0.137782107573887,-0.15625261630869,-0.138422091094623,-0.141072140573568,-0.14055265129074,-0.141218364603391,-0.142123443159051,-0.137036541398983,-0.121085105748461,-0.127832813231386,-0.143830132646119,-0.142021762796699,-0.13385543226305,-0.122026691479102,-0.136279893770686,-0.138184842455767,-0.146879763607607,-0.130115530293329,-0.138347233198544,-0.147418028121086,-0.138117381923026,-0.140505817672564,-0.136718183635691,-0.128618466584819,-0.137251095124026,-0.134365902764128,-0.144645307567666,-0.135809335255191],1,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":5,"opacity":0.5,"fill":true,"fillColor":"purple","fillOpacity":1},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addRasterImage","args":["data:image/png;base64,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",[[51.555,-0.210000000000012],[51.445,0.00999999999999939]],0.8,null,null,null]},{"method":"addRectangles","args":[51.445,-0.21,51.555,0.00999999999999998,null,null,{"interactive":true,"className":"","stroke":true,"color":"#333333","weight":2,"opacity":0.5,"fill":false,"fillColor":"#333333","fillOpacity":0.2,"smoothFactor":1,"noClip":false},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addLegend","args":[{"colors":["#F0F921 , #F0F921 0%, #FBA738 20%, #E16562 40%, #B12B90 60%, #6B01A6 80%, #0D0887 100%, #0D0887 "],"labels":["0.00","0.02","0.04","0.06","0.08","0.10"],"na_color":null,"na_label":"NA","opacity":1,"position":"bottomright","type":"numeric","title":"Hit score","extra":{"p_1":0,"p_n":1},"layerId":null,"className":"info legend","group":null}]}],"limits":{"lat":[51.445,51.555],"lng":[-0.210000000000012,0.00999999999999998]}},"evals":[],"jsHooks":[]}</script>
 </div>
@@ -330,11 +352,13 @@
 <h3 class="hasAnchor">
 <a href="#other-parameter-estimation" class="anchor"></a>Other Parameter Estimation</h3>
 <p>We can also plot the posterior 95% credible intervals of each sigma. The <code>"single"</code> model will produce a sinle interval. Note the true value of 0.5 km.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_sigma.html">plot_sigma</a></span>(<span class="no">p</span>, <span class="kw">K</span> <span class="kw">=</span> <span class="fl">2</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_sigma.html">plot_sigma</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="PointPattern-basic-implementation_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>The model-testing metric used consistently through the geographic profiling literature is the hitscore. This is calculated by computing the area searched before finding a source divided by the total search area (where a search is defined by starting at the top of the geoprofile and working your way down). Hence a lower hitscore indicates a better performing model. We use <code>get_hitscores</code> to produce these.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="no">hs</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/get_hitscores.html">get_hitscores</a></span>(<span class="no">p</span>, <span class="no">true_source</span>$<span class="no">longitude</span>, <span class="no">true_source</span>$<span class="no">latitude</span>, <span class="kw">ring_search</span> <span class="kw">=</span> <span class="fl">FALSE</span>)
-<span class="no">hs</span></pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">hs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_hitscores.html">get_hitscores</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">true_source</span><span class="op">$</span><span class="va">longitude</span>, <span class="va">true_source</span><span class="op">$</span><span class="va">latitude</span>, ring_search <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="va">hs</span></code></pre></div>
 <pre><code>##     longitude latitude hs_geoprofile_K1 hs_geoprofile_K2 hs_geoprofile_K3
 ## 1 -0.09850436 51.49269             8.60             0.01             0.00
 ## 2 -0.13864630 51.51931             5.23             0.04             0.03
@@ -342,15 +366,17 @@
 ## 1             0.32             0.57
 ## 2             0.02             2.44</code></pre>
 <p>Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/plot_lorenz.html">plot_lorenz</a></span>(<span class="no">hs</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_lorenz.html">plot_lorenz</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></code></pre></div>
 <p><img src="PointPattern-basic-implementation_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.</p>
-<div class="sourceCode"><html><body><pre class="r"><span class="fu"><a href="../reference/gini.html">gini</a></span>(<span class="no">hs</span>)</pre></body></html></div>
+<div class="sourceCode"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/gini.html">gini</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></code></pre></div>
 <pre><code>## hs_geoprofile_K1 hs_geoprofile_K2 hs_geoprofile_K3 hs_geoprofile_K4 
 ##          0.90470          0.99970          0.99985          0.99820 
 ## hs_geoprofile_K5 
 ##          0.98210</code></pre>
-<p>Both the <code><a href="../reference/gini.html">gini()</a></code> and <code><a href="../reference/get_hitscores.html">get_hitscores()</a></code> functions refer to a “ringsearch” strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to.</p>
+<p>Both the <code><a href="../reference/gini.html">gini()</a></code> and <code><a href="../reference/get_hitscores.html">get_hitscores()</a></code> functions refer to a "ringsearch" strategy. This is used to compare the model to a naive search strategy that requires you to search radially outwards from each positive sentinel site until sources are found. This gives us a bottom line non-trivial search strategy to compare hitscores to.</p>
 </div>
 </div>
   </div>
@@ -370,7 +396,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

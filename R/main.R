@@ -1457,7 +1457,9 @@ gini <- function(hs) {
 #'
 #' @export
 
-realised_sources <- function(proj, n_samples = 20, K = 2) {
+realised_sources <- function(proj, 
+                             n_samples = 20, 
+                             K = 2) {
 
   # check inputs
   assert_custom_class(proj, "rgeoprofile_project")

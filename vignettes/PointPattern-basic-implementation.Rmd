@@ -4,7 +4,7 @@ author: "Michael Stevens"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Point Pattern - Basic Implementation}
+  %\VignetteIndexEntry{Point pattern data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -200,7 +200,7 @@ plot_loglike_diagnostic(p, K = 2)
 Another useful metric for assessing the MCMC is its effective sampling size (ESS). If we have 10,000 sampling iterations but an ESS of 80 then we really only have 80 samples from the posterior, and so we should run it out for longer.
 
 ```{r}
-get_ESS(p, K = 2)
+get_output(p, name = "ESS", K = 2, type = "summary")
 ```
 
 ## Results

@@ -81,7 +81,7 @@
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -90,7 +90,6 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider"></li>
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -100,7 +99,15 @@
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
     <li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
@@ -152,13 +159,23 @@
   parameter set becomes the active set once created.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>new_set</span>(<span class='no'>project</span>, <span class='kw'>spatial_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>source_model</span> <span class='kw'>=</span> <span class='st'>"uniform"</span>,
-  <span class='kw'>name</span> <span class='kw'>=</span> <span class='st'>"(no name)"</span>, <span class='kw'>sigma_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
-  <span class='kw'>dispersal_model</span> <span class='kw'>=</span> <span class='st'>"normal"</span>, <span class='kw'>sigma_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>sigma_prior_sd</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>expected_popsize_model</span> <span class='kw'>=</span> <span class='st'>"single"</span>,
-  <span class='kw'>expected_popsize_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>expected_popsize_prior_sd</span> <span class='kw'>=</span> <span class='fl'>20</span>,
-  <span class='kw'>sentinel_radius</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>n_binom</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>alpha_prior_mean</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>alpha_prior_sd</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>dirichlet_scale</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
+    <pre class="usage"><span class='fu'>new_set</span><span class='op'>(</span>
+  <span class='va'>project</span>,
+  spatial_prior <span class='op'>=</span> <span class='cn'>NULL</span>,
+  source_model <span class='op'>=</span> <span class='st'>"uniform"</span>,
+  name <span class='op'>=</span> <span class='st'>"(no name)"</span>,
+  sigma_model <span class='op'>=</span> <span class='st'>"single"</span>,
+  dispersal_model <span class='op'>=</span> <span class='st'>"normal"</span>,
+  sigma_prior_mean <span class='op'>=</span> <span class='fl'>1</span>,
+  sigma_prior_sd <span class='op'>=</span> <span class='fl'>1</span>,
+  expected_popsize_model <span class='op'>=</span> <span class='st'>"single"</span>,
+  expected_popsize_prior_mean <span class='op'>=</span> <span class='fl'>1000</span>,
+  expected_popsize_prior_sd <span class='op'>=</span> <span class='fl'>20</span>,
+  sentinel_radius <span class='op'>=</span> <span class='fl'>0.2</span>,
+  n_binom <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  alpha_prior_mean <span class='op'>=</span> <span class='fl'>1</span>,
+  alpha_prior_sd <span class='op'>=</span> <span class='fl'>100</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -238,11 +255,6 @@ be run for a set of count data.</p></td>
       <th>alpha_prior_sd</th>
       <td><p>the prior standard deviation of alpha.</p></td>
     </tr>
-    <tr>
-      <th>dirichlet_scale</th>
-      <td><p>a value to scale the concentration parameters for the 
-dirichlet proposal on source weights</p></td>
-    </tr>
     </table>
 
 
@@ -261,7 +273,7 @@ dirichlet proposal on source weights</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
