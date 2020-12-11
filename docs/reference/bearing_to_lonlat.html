@@ -83,7 +83,7 @@
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -92,7 +92,6 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider"></li>
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -102,7 +101,15 @@
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
     <li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
@@ -155,7 +162,7 @@
   distance of travel, and a bearing.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>bearing_to_lonlat</span>(<span class='no'>origin_lon</span>, <span class='no'>origin_lat</span>, <span class='no'>bearing</span>, <span class='no'>gc_dist</span>)</pre>
+    <pre class="usage"><span class='fu'>bearing_to_lonlat</span><span class='op'>(</span><span class='va'>origin_lon</span>, <span class='va'>origin_lat</span>, <span class='va'>bearing</span>, <span class='va'>gc_dist</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -183,7 +190,8 @@
     <pre class="examples"><div class='input'><span class='co'># one degree longitude is approximately 111km at the equator. Therefore if we</span>
 <span class='co'># travel 111km due east from the coordinate {0,0} we can verify that we have</span>
 <span class='co'># moved approximately 1 degree longitude and zero degrees latitude</span>
-<span class='fu'>bearing_to_lonlat</span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>90</span>, <span class='fl'>111</span>)</div><div class='output co'>#&gt; $longitude
+<span class='fu'>bearing_to_lonlat</span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>90</span>, <span class='fl'>111</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; $longitude
 #&gt; [1] 0.998247
 #&gt; 
 #&gt; $latitude
@@ -204,7 +212,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

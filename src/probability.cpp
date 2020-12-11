@@ -7,6 +7,18 @@
 using namespace std;
 
 //------------------------------------------------
+// draw a value from an exponential distribution with set rate parameter
+double exp1(double rate){
+  return R::rexp(rate);               
+}
+
+//------------------------------------------------
+// draw a value from a chi squared distribution with set degrees of freedom
+double rchisq1(double df){
+  return R::rchisq(df);
+}
+
+//------------------------------------------------
 // draw from continuous uniform distribution on interval [0,1)
 double runif_0_1() {
   return R::runif(0,1);
@@ -49,10 +61,11 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   // draw raw value relative to a
   double ret = rnorm1(mean, sd) - a;
   double interval_difference = b - a;
+  // std::cout << "Value " << ret << std::endl;
   
   // reflect off boundries at 0 and (b-a)
   if (ret < 0 || ret > interval_difference) {
-    // use multiple reflections to bring into range [-(b-a), 2(b-a)]
+    // use multiple reflections to bring into range [-2(b-a), 2(b-a)]
     double modded = std::fmod(ret, 2*interval_difference);
     
     // use one more reflection to bring into range [0, (b-a)]
@@ -74,7 +87,7 @@ double rnorm1_interval(double mean, double sd, double a, double b) {
   } else if (ret == b) {
     ret -= UNDERFLO;
   }
-
+  
   return ret;
 }
 
@@ -113,7 +126,10 @@ int sample2(int a, int b) {
 // DEFINED IN HEADER
 
 //------------------------------------------------
-// draw from gamma(shape,rate) distribution
+// draw from gamma(shape,rate) distribution 
+// note all gamma functions from RCPP use a scale parameter in place of a rate, 
+// for more info see: https://teuder.github.io/rcpp4everyone_en/310_Rmath.html
+// this is why all rates are inversed
 double rgamma1(double shape, double rate) {
   double x = R::rgamma(shape, 1/rate);
   
@@ -180,21 +196,36 @@ vector<double> rdirichlet1(vector<double> &shapeVec) {
 // draw from dirichlet distribution using bespoke inputs. Outputs are stored in
 // x, passed by reference for speed. Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
-void rdirichlet2(std::vector<double> &x, std::vector<int> &alpha, double beta) {
+void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double scale_factor) {
 
   int n = x.size();
   double xSum = 0;
-  for (int i=0; i<n; i++) {
-    x[i] = rgamma1(alpha[i]+beta, 1.0);
+
+  for (int i = 0; i < n; i++) {
+    x[i] = rgamma1(scale_factor*alpha[i], 1.0);
     xSum += x[i];
   }
   double xSumInv = 1.0/xSum;
-  for (int i=0; i<n; i++) {
+  for (int i = 0; i < n; i++) {
     x[i] *= xSumInv;
     if (x[i] <= UNDERFLO) {
       x[i] = UNDERFLO;
     }
   }
+}
+
+//------------------------------------------------
+// density of a dirichlet distribution in log space
+double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double scale_factor) {
+
+  int n = x.size();
+  double logSum = 0;
+
+  for (int i = 0; i < n; i++) {
+    logSum += (scale_factor*alpha[i] - 1)*log(x[i]) - lgamma(scale_factor*alpha[i]);
+  }
+  
+  return logSum;
 }
 
 //------------------------------------------------

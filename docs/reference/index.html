@@ -79,7 +79,7 @@
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -88,7 +88,6 @@
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider"></li>
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -98,7 +97,15 @@
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
     <li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
@@ -154,8 +161,8 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
+          <h2 id="section-main" class="hasAnchor"><a href="#section-main" class="anchor"></a>Main</h2>
+          <p class="section-desc"><p>Main functions for running different models</p></p>
         </th>
       </tr>
       
@@ -166,10 +173,9 @@
       <tr>
         
         <td>
-          <p><code><a href="bearing_to_lonlat.html">bearing_to_lonlat()</a></code> </p>
+          <p><code><a href="sim_data.html">sim_data()</a></code> </p>
         </td>
-        <td><p>Get spatial coordinate given an origin, a great circle distance and a
-  bearing</p></td>
+        <td><p>Simulate data</p></td>
       </tr><tr>
         
         <td>
@@ -179,9 +185,9 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="check_silverblaze_loaded.html">check_silverblaze_loaded()</a></code> </p>
+          <p><code><a href="new_set.html">new_set()</a></code> </p>
         </td>
-        <td><p>Check that silverblaze package has loaded successfully</p></td>
+        <td><p>Create new parameter set</p></td>
       </tr><tr>
         
         <td>
@@ -191,27 +197,15 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="dispersal_sphere.html">dispersal_sphere()</a></code> </p>
+          <p><code><a href="optimise_beta.html">optimise_beta()</a></code> </p>
         </td>
-        <td><p>Draw from spherical distribution</p></td>
+        <td><p>Optimise beta values for MCMC rungs</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="dist_gc.html">dist_gc()</a></code> </p>
+          <p><code><a href="run_mcmc.html">run_mcmc()</a></code> </p>
         </td>
-        <td><p>Calculate pairwise great circle distance between points</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_ESS.html">get_ESS()</a></code> </p>
-        </td>
-        <td><p>Get ESS</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_hitscores.html">get_hitscores()</a></code> </p>
-        </td>
-        <td><p>Get hitscores</p></td>
+        <td><p>Run main MCMC</p></td>
       </tr><tr>
         
         <td>
@@ -221,112 +215,29 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="get_hitscores.html">get_hitscores()</a></code> </p>
+        </td>
+        <td><p>Get hitscores</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="gini.html">gini()</a></code> </p>
         </td>
         <td><p>Calculate Gini coefficient</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="is.rgeoprofile_project.html">is.rgeoprofile_project()</a></code> </p>
-        </td>
-        <td><p>Determine if object is of class rgeoprofile_project</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="kernel_smooth.html">kernel_smooth()</a></code> </p>
-        </td>
-        <td><p>Produce a smooth surface using 2D kernel density smoothing</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="lonlat_to_bearing.html">lonlat_to_bearing()</a></code> </p>
-        </td>
-        <td><p>Calculate great circle distance and bearing between coordinates</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="lonlat_to_cartesian.html">lonlat_to_cartesian()</a></code> </p>
-        </td>
-        <td><p>Convert lon/lat to cartesian coordinates</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="more_colours.html">more_colours()</a></code> </p>
-        </td>
-        <td><p>Expand series of colours by interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="new_set.html">new_set()</a></code> </p>
-        </td>
-        <td><p>Create new parameter set</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="optimise_beta.html">optimise_beta()</a></code> </p>
-        </td>
-        <td><p>Optimise beta values for MCMC rungs</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_geoprofile.html">overlay_geoprofile()</a></code> </p>
-        </td>
-        <td><p>Add geoprofile to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_piecharts.html">overlay_piecharts()</a></code> </p>
-        </td>
-        <td><p>Add pie charts to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_points.html">overlay_points()</a></code> </p>
-        </td>
-        <td><p>Add points to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_ringsearch.html">overlay_ringsearch()</a></code> </p>
-        </td>
-        <td><p>Add ring-search geoprofile to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_risk_map.html">overlay_risk_map()</a></code> </p>
-        </td>
-        <td><p>Add risk surface to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_sentinels.html">overlay_sentinels()</a></code> </p>
-        </td>
-        <td><p>Add sentinel sites to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_sources.html">overlay_sources()</a></code> </p>
-        </td>
-        <td><p>Add sources to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_spatial_prior.html">overlay_spatial_prior()</a></code> </p>
-        </td>
-        <td><p>Add spatial prior to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_surface.html">overlay_surface()</a></code> </p>
-        </td>
-        <td><p>Add posterior probability surface to dynamic map</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="overlay_trial_sites.html">overlay_trial_sites()</a></code> </p>
-        </td>
-        <td><p>Add trial sites to dynamic map</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-plotting" class="hasAnchor"><a href="#section-plotting" class="anchor"></a>Plotting</h2>
+          <p class="section-desc"><p>Functions for visulaising model output</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
         
         <td>
           <p><code><a href="plot_DIC_gelman.html">plot_DIC_gelman()</a></code> </p>
@@ -404,12 +315,98 @@
           <p><code><a href="plot_trace.html">plot_trace()</a></code> </p>
         </td>
         <td><p>Produce MCMC trace plot</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-mapping" class="hasAnchor"><a href="#section-mapping" class="anchor"></a>Mapping</h2>
+          <p class="section-desc"><p>Functions for mapping model output</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="overlay_geoprofile.html">overlay_geoprofile()</a></code> </p>
+        </td>
+        <td><p>Add geoprofile to dynamic map</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="print_full.html">print_full()</a></code> </p>
+          <p><code><a href="overlay_piecharts.html">overlay_piecharts()</a></code> </p>
         </td>
-        <td><p>Ordinary print function for class rgeoprofile_project</p></td>
+        <td><p>Add pie charts to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_points.html">overlay_points()</a></code> </p>
+        </td>
+        <td><p>Add points to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_ringsearch.html">overlay_ringsearch()</a></code> </p>
+        </td>
+        <td><p>Add ring-search geoprofile to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_risk_map.html">overlay_risk_map()</a></code> </p>
+        </td>
+        <td><p>Add risk surface to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_sentinels.html">overlay_sentinels()</a></code> </p>
+        </td>
+        <td><p>Add sentinel sites to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_sources.html">overlay_sources()</a></code> </p>
+        </td>
+        <td><p>Add sources to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_spatial_prior.html">overlay_spatial_prior()</a></code> </p>
+        </td>
+        <td><p>Add spatial prior to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_surface.html">overlay_surface()</a></code> </p>
+        </td>
+        <td><p>Add posterior probability surface to dynamic map</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="overlay_trial_sites.html">overlay_trial_sites()</a></code> </p>
+        </td>
+        <td><p>Add trial sites to dynamic map</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-misc" class="hasAnchor"><a href="#section-misc" class="anchor"></a>Misc</h2>
+          <p class="section-desc"><p>Miscellaneous functions</p></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
+        
+        <td>
+          <p><code><a href="raster_grid.html">raster_grid()</a></code> </p>
+        </td>
+        <td><p>Make raster grid</p></td>
       </tr><tr>
         
         <td>
@@ -419,15 +416,70 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="raster_grid.html">raster_grid()</a></code> </p>
+          <p><code><a href="bearing_to_lonlat.html">bearing_to_lonlat()</a></code> </p>
         </td>
-        <td><p>Make raster grid</p></td>
+        <td><p>Get spatial coordinate given an origin, a great circle distance and a
+  bearing</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="lonlat_to_bearing.html">lonlat_to_bearing()</a></code> </p>
+        </td>
+        <td><p>Calculate great circle distance and bearing between coordinates</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="lonlat_to_cartesian.html">lonlat_to_cartesian()</a></code> </p>
+        </td>
+        <td><p>Convert lon/lat to cartesian coordinates</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="dist_gc.html">dist_gc()</a></code> </p>
+        </td>
+        <td><p>Calculate pairwise great circle distance between points</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="dispersal_sphere.html">dispersal_sphere()</a></code> </p>
+        </td>
+        <td><p>Draw from spherical distribution</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="kernel_smooth.html">kernel_smooth()</a></code> </p>
+        </td>
+        <td><p>Produce a smooth surface using 2D kernel density smoothing</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="more_colours.html">more_colours()</a></code> </p>
+        </td>
+        <td><p>Expand series of colours by interpolation</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="realised_sources.html">realised_sources()</a></code> </p>
         </td>
         <td><p>Calculate realised sources</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="print_full.html">print_full()</a></code> </p>
+        </td>
+        <td><p>Ordinary print function for class rgeoprofile_project</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="is.rgeoprofile_project.html">is.rgeoprofile_project()</a></code> </p>
+        </td>
+        <td><p>Determine if object is of class rgeoprofile_project</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="check_silverblaze_loaded.html">check_silverblaze_loaded()</a></code> </p>
+        </td>
+        <td><p>Check that silverblaze package has loaded successfully</p></td>
       </tr><tr>
         
         <td>
@@ -449,21 +501,9 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="run_mcmc.html">run_mcmc()</a></code> </p>
-        </td>
-        <td><p>Run main MCMC</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="silverblaze.html">silverblaze</a></code> </p>
         </td>
         <td><p>Bayesian Geographic Profiling from Presence-Absence Data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="sim_data.html">sim_data()</a></code> </p>
-        </td>
-        <td><p>Simulate data</p></td>
       </tr>
     </tbody>
     </table>
@@ -483,7 +523,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

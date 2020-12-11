@@ -27,7 +27,8 @@ public:
   // source locations
   std::vector<double> source_lon;
   std::vector<double> source_lat;
-  
+  std::vector<double> source_prop;
+
   // standard deviation of sources (km)
   std::vector<double> sigma;
   
@@ -40,6 +41,7 @@ public:
   // weights for each souce in the case of point pattern data
   std::vector<double> source_weights;
   std::vector<double> source_weight_prop;
+  std::vector<double> source_weight_prior;
   
   // parameter controlling the nbinom variance = mean + alpha*mean^2 
   double alpha; 
@@ -65,8 +67,6 @@ public:
   int counts_total;
   int tested_total;
   double log_K;
-  double ep_total;
-  double weight_total;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;
@@ -117,15 +117,18 @@ public:
   // calculate hazrad based on dispersal kernel
   double calculate_hazard(double dist, double single_scale);
   
+  // propose new source location based on dispersal kernel choice
+  void propose_source(std::vector<double> &source_prop, double center_lon, double center_lat, double prop_scale);
+    
   // switch for sources
-  double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source(std::vector<double> &source_prop, int k);
   
   // loglikelihood functions for sources
-  double calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k);
-  double calculate_loglike_source_negative_binomial_indpendent_lambda(double source_lon_prop, double source_lat_prop, int k);
+  double calculate_loglike_source_pois(std::vector<double> &source_prop, int k);
+  double calculate_loglike_source_ind_exp_pop(std::vector<double> &source_prop, int k);
+  double calculate_loglike_source_binom(std::vector<double> &source_prop, int k);
+  double calculate_loglike_source_points(std::vector<double> &source_prop, int k);
+  double calculate_loglike_source_negative_binomial_indpendent_lambda(std::vector<double> &source_prop, int k);
   
   double calculate_logprior_source(double source_longitude, double source_latitude);
     

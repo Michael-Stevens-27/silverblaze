@@ -43,12 +43,14 @@ void Lookup::recalc() {
 //------------------------------------------------
 // get distance in km of a data point (indexed by data_index) from a given 
 // source lon/lat
-double Lookup::get_data_dist(double source_lon, double source_lat, int data_index) {
+double Lookup::get_data_dist(std::vector<double> source_prop, int data_index) {
   
   // convert lon/lat to index
-  int lon_index = floor((source_lon - p->min_lon)/p->res_lon);
-  int lat_index = floor((source_lat - p->min_lat)/p->res_lat);
+  int lon_index = floor((source_prop[0] - p->min_lon)/p->res_lon);
+  int lat_index = floor((source_prop[1] - p->min_lat)/p->res_lat);
+
+  double val = lookup_dist[(lon_index*p->n_lat + lat_index)*d->n + data_index]; 
   
   // lookup value
-  return lookup_dist[(lon_index*p->n_lat + lat_index)*d->n + data_index];
+  return val;
 }

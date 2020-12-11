@@ -4,7 +4,13 @@
 \alias{plot_loglike_diagnostic}
 \title{Produce diagnostic plots of log-likelihood}
 \usage{
-plot_loglike_diagnostic(project, K = NULL, rung = NULL, col = "black")
+plot_loglike_diagnostic(
+  project,
+  K = NULL,
+  rung = NULL,
+  phase = "sampling",
+  col = "black"
+)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -13,6 +19,8 @@ plot_loglike_diagnostic(project, K = NULL, rung = NULL, col = "black")
 \item{K}{which value of K to plot.}
 
 \item{rung}{which rung to plot. Defaults to the cold chain.}
+
+\item{phase}{check the burnin or sampling phase of the MCMC chain}
 
 \item{col}{colour of the trace.}
 }

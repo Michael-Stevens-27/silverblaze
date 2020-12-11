@@ -4,6 +4,14 @@
 #include <random>
 
 //------------------------------------------------
+// draw a value from an exponential distribution with set rate parameter
+double exp1(double rate);
+
+//------------------------------------------------
+// draw a value from a chi squared distribution with set degrees of freedom
+double rchisq1(double df);
+
+//------------------------------------------------
 // draw from continuous uniform distribution on interval [0,1)
 double runif_0_1();
 
@@ -78,10 +86,14 @@ double dbeta1(double x, double shape1, double shape2, bool return_log=true);
 std::vector<double> rdirichlet1(std::vector<double> &shapeVec);
 
 //------------------------------------------------
+// density of dirichlet distribution using vector of shape parameters
+double ddirichlet(std::vector<double> &x, std::vector<double> &alpha, double scale_factor);
+
+//------------------------------------------------
 // draw from dirichlet distribution using bespoke inputs. Outputs are given in x
 // (passed by reference for speed). Shape parameters are equal to alpha+beta,
 // where alpha is an integer vector, and beta is a single double.
-void rdirichlet2(std::vector<double> &x, std::vector<int> &alpha, double beta);
+void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double scale_factor);
 
 //------------------------------------------------
 // draw from Poisson(rate) distribution

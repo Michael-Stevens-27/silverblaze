@@ -9,17 +9,18 @@ run_mcmc(
   K = 3,
   burnin = 100,
   samples = 1000,
-  rungs = 1,
   auto_converge = TRUE,
   converge_test = 100,
   coupling_on = TRUE,
   GTI_pow = 1,
-  beta_manual = NULL,
   cluster = NULL,
   pb_markdown = FALSE,
   store_raw = TRUE,
   create_maps = TRUE,
-  silent = !is.null(cluster)
+  silent = !is.null(cluster),
+  bugged = FALSE,
+  beta_manual = NULL,
+  rung_store = NULL
 )
 }
 \arguments{
@@ -31,8 +32,6 @@ run_mcmc(
 \item{burnin}{the number of burn-in iterations.}
 
 \item{samples}{the number of sampling iterations.}
-
-\item{rungs}{the number of temperature rungs used.}
 
 \item{auto_converge}{whether convergence should be assessed automatically
 every \code{converge_test} iterations, leading to termination of the
@@ -46,9 +45,6 @@ iterations if \code{auto_converge} is being used.}
 
 \item{GTI_pow}{power applied to thermodynamic rungs. Higher values lead to
 rungs clustered around zero.}
-
-\item{beta_manual}{if defined, allows manual specification of thermodynamic
-powers used. Overrides \code{rungs} and \code{GTI_pow}.}
 
 \item{cluster}{option to pass in a cluster environment (see package
 "parallel").}
@@ -64,6 +60,13 @@ geoprofile. Usually will want to create these maps, but the code runs much
 faster without this step, hence the option.}
 
 \item{silent}{whether to suppress all console output.}
+
+\item{bugged}{Turn the spatial prior indexing bug on or off}
+
+\item{beta_manual}{if defined, allows manual specification of thermodynamic
+powers used. Overrides \code{rungs} and \code{GTI_pow}.}
+
+\item{rung_store}{Pick a rung whose output will be stored}
 }
 \description{
 Run the main RgeoProfile MCMC. Model parameters are taken from

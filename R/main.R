@@ -463,7 +463,6 @@ delete_set <- function(project,
 #' @param K the number of sources.
 #' @param burnin the number of burn-in iterations.
 #' @param samples the number of sampling iterations.
-#' @param rungs the number of temperature rungs used.
 #' @param auto_converge whether convergence should be assessed automatically
 #'   every \code{converge_test} iterations, leading to termination of the
 #'   burn-in phase. If \code{FALSE} then the full \code{burnin} iterations are
@@ -485,6 +484,8 @@ delete_set <- function(project,
 #'   geoprofile. Usually will want to create these maps, but the code runs much
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
+#' @param bugged Turn the spatial prior indexing bug on or off
+#' @param rung_store Pick a rung whose output will be stored 
 #'
 #' @import parallel
 #' @import coda
@@ -499,21 +500,36 @@ run_mcmc <- function(project,
                      K = 3,
                      burnin = 1e2,
                      samples = 1e3,
-                     rungs = 1,
                      auto_converge = TRUE,
                      converge_test = 1e2,
                      coupling_on = TRUE,
                      GTI_pow = 1,
-                     beta_manual = NULL,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
                      create_maps = TRUE,
-                     silent = !is.null(cluster)) {
+                     silent = !is.null(cluster),
+                     bugged = FALSE,
+                     beta_manual = NULL,
+                     rung_store = NULL) {
   
   # start timer
   t0 <- Sys.time()
   
+  assert_single_logical(bugged)
+  
+  if(is.null(rung_store)){
+    if(is.null(beta_manual)){
+      rung_store <- rungs <- 1
+    } else {
+      rung_store <- rungs <- length(beta_manual)
+    }
+  } else {
+    assert_pos_int(rung_store, zero_allowed = FALSE)
+    assert_leq(rung_store, length(beta_manual))
+    rungs <- length(beta_manual)
+  }
+
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_pos_int(K, zero_allowed = FALSE)
@@ -592,7 +608,9 @@ run_mcmc <- function(project,
                       converge_test = converge_test,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
-                      silent = silent)
+                      silent = silent,
+                      bugged = bugged,
+                      rung_store = rung_store)
   
   # extract spatial prior object
   spatial_prior <- project$parameter_sets[[s]]$spatial_prior
@@ -834,7 +852,7 @@ run_mcmc <- function(project,
       
       # add as raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
-      raster::values(prob_surface_split_k)[is.na(raster::values(spatial_prior))] <- NA
+      raster::values(prob_surface_split_k)[raster::values(spatial_prior) == 0] <- NA
       prob_surface_split <- raster::addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
@@ -893,13 +911,13 @@ run_mcmc <- function(project,
     geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
     geoprofile_mat <- 100 * (1 - geoprofile_mat / max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
-    values(geoprofile)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile)[raster::values(spatial_prior) == 0] <- NA
     
     # get groprofile over realised sources only
     geoprofile_realised_mat <- rank(values(prob_surface_realised), ties.method = "first", na.last = FALSE)
     geoprofile_realised_mat <- 100 * (1 - geoprofile_realised_mat / max(geoprofile_realised_mat, na.rm = TRUE))
     geoprofile_realised <- setValues(raster_empty, geoprofile_realised_mat)
-    values(geoprofile_realised)[is.na(values(spatial_prior))] <- NA
+    values(geoprofile_realised)[raster::values(spatial_prior) == 0] <- NA
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
@@ -1439,7 +1457,9 @@ gini <- function(hs) {
 #'
 #' @export
 
-realised_sources <- function(proj, n_samples = 20, K = 2) {
+realised_sources <- function(proj, 
+                             n_samples = 20, 
+                             K = 2) {
 
   # check inputs
   assert_custom_class(proj, "rgeoprofile_project")

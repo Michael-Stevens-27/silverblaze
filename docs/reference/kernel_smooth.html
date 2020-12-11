@@ -86,7 +86,7 @@ likelihood method." />
       <ul class="nav navbar-nav">
         <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Vignettes
+    Basic tutorials
      
     <span class="caret"></span>
   </a>
@@ -95,7 +95,6 @@ likelihood method." />
       <a href="../articles/installation.html">Installation</a>
     </li>
     <li class="divider"></li>
-    <li class="dropdown-header">Basic Tutorials</li>
     <li>
       <a href="../articles/Poisson-basic-implementation.html">Poisson model and count data</a>
     </li>
@@ -105,7 +104,15 @@ likelihood method." />
     <li>
       <a href="../articles/PointPattern-basic-implementation.html">Point pattern data</a>
     </li>
-    <li class="dropdown-header">Other topics</li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Advanced tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
     <li>
       <a href="../articles/model-validation.html">Model Validation</a>
     </li>
@@ -162,14 +169,14 @@ value of lambda is chosen automatically using the leave-one-out maximum
 likelihood method.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>kernel_smooth</span>(
-  <span class='no'>longitude</span>,
-  <span class='no'>latitude</span>,
-  <span class='no'>breaks_lon</span>,
-  <span class='no'>breaks_lat</span>,
-  <span class='kw'>lambda</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nu</span> <span class='kw'>=</span> <span class='fl'>3</span>
-)</pre>
+    <pre class="usage"><span class='fu'>kernel_smooth</span><span class='op'>(</span>
+  <span class='va'>longitude</span>,
+  <span class='va'>latitude</span>,
+  <span class='va'>breaks_lon</span>,
+  <span class='va'>breaks_lat</span>,
+  lambda <span class='op'>=</span> <span class='cn'>NULL</span>,
+  nu <span class='op'>=</span> <span class='fl'>3</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -222,7 +229,7 @@ bandwidth is chosen automatically by maximum-likelihood</p></td>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
