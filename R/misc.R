@@ -558,16 +558,20 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   }
   
   # find best lambda using optim
-  lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
-  optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
-                        error = function(e) e, warning = function(w) w)
-  if (is(optim_try, "warning")) {
-    warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
-    lambda_ml <- lambda_step
+  if(is.null(lambda)){
+    lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
+    optim_try <- tryCatch(optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100),
+    error = function(e) e, warning = function(w) w)
+    if (is(optim_try, "warning")) {
+      warning("unable to find bandwith by maximum likelihood, using 1/5th minimum cell size by default")
+      lambda_ml <- lambda_step
+    } else {
+      lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)$par
+    }
   } else {
-    lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)$par
+    lambda_ml <- lambda
   }
-  
+
   # get smoothed surface
   f4 <- loss(lambda_ml, return_loss = FALSE)
   
@@ -577,55 +581,6 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   
   # return surface
   return(f4)
-}
-
-#------------------------------------------------
-#' @title Get ESS
-#'
-#' @description Returns effective sample size (ESS) of chosen model run.
-#'
-#' @param project an RgeoProfile project, as produced by the function
-#'   \code{rgeoprofile_project()}
-#' @param K get ESS for this value of K
-#'
-#' @export
-#' @examples
-#' \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
-#' get_ESS(project = p, K = 1)
-#' get_ESS(project = p, K = 2)
-#' get_ESS(project = p, K = 3)
-
-get_ESS <- function(project, K = NULL) {
-
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$ESS)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no ESS output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-
-  # check output exists for chosen K
-  ESS <- project$output$single_set[[s]]$single_K[[K]]$summary$ESS
-  if (is.null(ESS)) {
-    stop(sprintf("no ESS output for K = %s of active set", K))
-  }
-
-  return(ESS)
 }
 
 #------------------------------------------------
@@ -640,7 +595,6 @@ get_ESS <- function(project, K = NULL) {
 #' @param type the type of output ("summary" or "raw")
 #'
 #' @export
-
 
 get_output <- function(project, name, K = NULL, type = "summary") {
 

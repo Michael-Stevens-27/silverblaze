@@ -22,18 +22,18 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // source locations
   source_lon = vector<double>(p->K);
   source_lat = vector<double>(p->K);
+  source_prop = vector<double>(2);
   
   // standard deviation of sources (km)
   sigma = vector<double>(p->K, 1);
   
   // expected population size for each soure
   expected_popsize = vector<double>(p->K, 100);
-  ep_total = 0;
-  weight_total = 1;
     
   // weights for each soure
-  source_weights = vector<double>(p->K, 1/(p->K));
-  source_weight_prop = vector<double>(p->K, 1/(p->K));
+  source_weights = vector<double>(p->K, 1/double(p->K));
+  source_weight_prop = vector<double>(p->K, 1/double(p->K));
+  source_weight_prior = vector<double>(p->K, 1);
   
   // alpha param for nbinom variance
   alpha = 1;
@@ -45,7 +45,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 100.0);
+  ep_propSD = vector<double>(p->K, 100);
   alpha_propSD = 1;
   
   // Robbins-Monro stepsize constants
@@ -109,43 +109,44 @@ void Particle::reset(double beta) {
      source_lon[k] = p->source_init_lon[k];
      source_lat[k] = p->source_init_lat[k];
   }
+  source_prop[0] = p->source_init_lon[0];
+  source_prop[1] = p->source_init_lat[0];
   
   // draw sigma from prior
-  if (p->sigma_prior_sdlog == 0) {
+  if (p->sigma_prior_sdlog == 0) { // if fixed sigma
     sigma = vector<double>(p->K, exp(p->sigma_prior_meanlog));
   } else {
-    if (p->sigma_model == 1) {
+    if (p->sigma_model == 1) { // if single sigma
       sigma = vector<double>(p->K, exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog)) );
     } else if (p->sigma_model == 2) {
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) { // if independent sigma
         sigma[k] = exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog));
       }
     }
   }
   
   // draw expected popsize from prior
-  if (p->ep_prior_sd <= 0) {
+  if (p->ep_prior_sd <= 0) { // if fixed ep
     expected_popsize = vector<double>(p->K, p->ep_prior_mean);
   } else {
     if(d->data_type == 1){
-      if(p->ep_model == 1){
+      if(p->ep_model == 1){  // if single ep 
         expected_popsize = vector<double>(p->K, rgamma1(p->ep_prior_shape, p->ep_prior_rate));
-      } else if(p->ep_model == 2){
+      } else if(p->ep_model == 2){  // if independent ep
         for (int k = 0; k < p->K; ++k) {
           expected_popsize[k] = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
         }
       }
     } else if(d->data_type == 2){
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) {  // independent ep
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
       } 
     } else if(d->data_type == 3){
-      for (int k = 0; k < p->K; ++k) {
+      for (int k = 0; k < p->K; ++k) { // independent ep
         expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
-        ep_total += expected_popsize[k];
       }
-      for (int k = 0; k < p->K; ++k) { // build source weights based on expected pop size
-        source_weights[k] = expected_popsize[k]/ep_total;
+      for (int k = 0; k < p->K; ++k) { // independent weights
+        source_weights[k] = 1/double(p->K);
       }
     }
   }
@@ -156,7 +157,7 @@ void Particle::reset(double beta) {
   // initialise proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
   sigma_propSD = vector<double>(p->K, 1.0);
-  ep_propSD = vector<double>(p->K, 1.0);
+  ep_propSD = vector<double>(p->K, 100);
   alpha_propSD = 1; 
   
   // calculate initial likelihood. Calling calculate_loglike_source() on each
@@ -165,7 +166,7 @@ void Particle::reset(double beta) {
   // equivalent to running a Metropolis-Hastings step in which the move is
   // guaranteed to be accepted
   for (int k = 0; k < p->K; ++k) {
-    loglike = calculate_loglike_source(source_lon[k], source_lat[k], k);
+    loglike = calculate_loglike_source(source_prop, k);
     
     for (int i = 0; i < d->n; ++i) {
       dist_source_data[i][k] = dist_source_data_prop[i];
@@ -187,24 +188,24 @@ void Particle::reset(double beta) {
 
 //------------------------------------------------
 // calculate log-likelihood given new proposed source
-double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source(std::vector<double> &source_prop, int k) {
   
   // update source based on binomial or poisson model
   double ret = 0.0;
   if (d->data_type == 1) { // count data
     if(p->count_type == 1) { // negative binomial count data
-      ret = calculate_loglike_source_negative_binomial_indpendent_lambda(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_negative_binomial_indpendent_lambda(source_prop, k);
     } else {
       if(p->ep_model == 1){ // single expected pop size
-      ret = calculate_loglike_source_pois(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_pois(source_prop, k);
     } else if(p->ep_model == 2){ // independent expected pop size
-      ret = calculate_loglike_source_ind_exp_pop(source_lon_prop, source_lat_prop, k);
+      ret = calculate_loglike_source_ind_exp_pop(source_prop, k);
     } 
   }
   } else if (d->data_type == 2) { // prevalence data
-    ret = calculate_loglike_source_binom(source_lon_prop, source_lat_prop, k);
+    ret = calculate_loglike_source_binom(source_prop, k);
   } else if (d->data_type == 3){ // point pattern data
-    ret = calculate_loglike_source_points(source_lon_prop, source_lat_prop, k);
+    ret = calculate_loglike_source_points(source_prop, k);
   }
   
   return ret;
@@ -291,7 +292,7 @@ double Particle::calculate_logprior_source(double source_longitude, double sourc
 
 //------------------------------------------------
 // calculate log-likelihood under Poisson model given new proposed source
-double Particle::calculate_loglike_source_pois(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_pois(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -301,7 +302,7 @@ double Particle::calculate_loglike_source_pois(double source_lon_prop, double so
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -344,7 +345,7 @@ double Particle::calculate_loglike_source_pois(double source_lon_prop, double so
 
 //------------------------------------------------
 // calculate log-likelihood given new proposed source
-double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_ind_exp_pop(std::vector<double> &source_prop, int k) {
   
   // initialise new likelihood
   double loglike_prop = 0;
@@ -353,7 +354,7 @@ double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, do
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -385,7 +386,7 @@ double Particle::calculate_loglike_source_ind_exp_pop(double source_lon_prop, do
 
 //------------------------------------------------
 // calculate log-likelihood under a binomial model given new proposed source
-double Particle::calculate_loglike_source_binom(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_binom(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -394,7 +395,7 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -428,7 +429,7 @@ double Particle::calculate_loglike_source_binom(double source_lon_prop, double s
 
 //------------------------------------------------
 // calculate log-likelihood under point pattern model given new proposed source
-double Particle::calculate_loglike_source_points(double source_lon_prop, double source_lat_prop, int k){
+double Particle::calculate_loglike_source_points(std::vector<double> &source_prop, int k){
 
   // initialise running values
   double loglike_prop = 0;
@@ -437,7 +438,7 @@ double Particle::calculate_loglike_source_points(double source_lon_prop, double 
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -471,12 +472,11 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
   for (int k = 0; k < p->K; ++k) {
     
     // propose new source location
-    double source_lon_prop = rnorm1(source_lon[k], source_propSD[k]);
-    double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
+    propose_source(source_prop, source_lon[k], source_lat[k], source_propSD[k]);
     
     // check proposed source within defined range
-    if (source_lon_prop <= p->min_lon || source_lon_prop >= p->max_lon ||
-        source_lat_prop <= p->min_lat || source_lat_prop >= p->max_lat) {
+    if (source_prop[0] <= p->min_lon || source_prop[0] >= p->max_lon ||
+        source_prop[1] <= p->min_lat || source_prop[1] >= p->max_lat) {
       
       // auto-reject proposed move
       if (robbins_monro_on) {
@@ -487,11 +487,12 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     
     // calculate new logprior and loglikelihood
     double logprior = calculate_logprior_source(source_lon[k], source_lat[k]);
-    double logprior_prop = calculate_logprior_source(source_lon_prop, source_lat_prop);
+    double logprior_prop = calculate_logprior_source(source_prop[0], source_prop[1]);
+    
     double loglike_prop;
     
     // update source
-    loglike_prop = calculate_loglike_source(source_lon_prop, source_lat_prop, k);
+    loglike_prop = calculate_loglike_source(source_prop, k);
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -500,8 +501,8 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     if (log(runif_0_1()) < MH_ratio) {
       
       // update source
-      source_lon[k] = source_lon_prop;
-      source_lat[k] = source_lat_prop;
+      source_lon[k] = source_prop[0];
+      source_lat[k] = source_prop[1];
       
       // update stored distances and hazard values
       for (int i = 0; i < d->n; ++i) {
@@ -1094,8 +1095,8 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
     }
     
     // calculate priors
-    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape / double(p->K), p->ep_prior_rate));
-    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape / double(p->K), p->ep_prior_rate));
+    double logprior = log(dgamma1(expected_popsize[k], p->ep_prior_shape / double(pow(p->K, 2)), p->ep_prior_rate/ double(p->K)));
+    double logprior_prop = log(dgamma1(ep_prop, p->ep_prior_shape / double(pow(p->K, 2)), p->ep_prior_rate/ double(p->K)));
     
     // Metropolis-Hastings ratio
     double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
@@ -1152,28 +1153,9 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
 void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration) {
   
   // loop through sources
-  for (int k = 0; k < p->K; ++k) {
-    
-    // propose new value
-    double single_source_weight_prop = rnorm1_interval(source_weights[k], ep_propSD[k], 0, 1);
-    
-    // catch zero weights 
-    if (single_source_weight_prop == UNDERFLO){
-      single_source_weight_prop = 1/(p->K);
-    }
+    // propse new weights in one go via current weights 
+    rdirichlet2(source_weight_prop, source_weights, 1/double(ep_propSD[0]));
 
-    // get weight total for normalising later
-    double prop_total = weight_total - source_weights[k] + single_source_weight_prop; 
-
-    // update/normalise all source weights
-    for (int l = 0; l < p->K; ++l) {
-      if (l == k) {
-        source_weight_prop[l] = single_source_weight_prop/prop_total; 
-      } else{
-        source_weight_prop[l] = source_weights[l]/prop_total; 
-        } 
-    }
-    
     // initialise running values
     double loglike_prop = 0;
     
@@ -1202,37 +1184,24 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 
     }
 
-    // calculate priors (uniform prior on weights)
-    // define beta prior variance
-    double X = 0.01;
-    // double logprior = 0;
-    double logprior = dbeta1(source_weights[k], 
-                             pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-                             pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)), 
-                             TRUE);
+    // calculate priors (currently uniform prior on weights)
+    double logprior = ddirichlet(source_weights, source_weight_prior, 1);
+    double logprior_prop = ddirichlet(source_weight_prop, source_weight_prior, 1);
     
-    // double logprior_prop = 0;
-    double logprior_prop = dbeta1(source_weight_prop[k], 
-                                  pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)/X, 
-                                  pow(X, -1)*(1 - pow(p->K, -1)*(pow(p->K, -1) - pow(p->K, -2) - X)),  
-                                  TRUE);
+    // get MH ratio correction terms
+    double prop_density = ddirichlet(source_weight_prop, source_weights, 1/double(ep_propSD[0]));
+    double current_density = ddirichlet(source_weights, source_weight_prop, 1/double(ep_propSD[0]));
     
     // Metropolis-Hastings ratio
-    double MH_ratio = beta*(loglike_prop - loglike) + (logprior_prop - logprior);
+    double MH_ratio = beta*(loglike_prop - loglike) + (current_density - prop_density) + (logprior_prop - logprior);
     
     // Metropolis-Hastings step
     if (log(runif_0_1()) < MH_ratio) {
-
-      // update the weights for each source
-      // and update weight total 
-      // (should be 1, but calculate anyway due to precision error)
-      double weight_sum = 0;
       
+      // update the weights for each source
       for (int j = 0; j < p->K; ++j) {
         source_weights[j] = source_weight_prop[j];
-        weight_sum += source_weights[j];
       }
-      weight_total = weight_sum;
 
       // update stored hazard values
       for (int i = 0; i < d->n; ++i) {
@@ -1246,23 +1215,22 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[k] = exp(log(ep_propSD[k]) + ep_rm_stepsize*(1 - 0.44)/sqrt(iteration));
-        ep_accept_burnin[k]++;
+        ep_propSD[0] = exp(log(ep_propSD[0]) + 5*(1 - 0.44)/sqrt(iteration));
+        ep_accept_burnin[0]++;
       } else {
-        ep_accept_sampling[k]++;
+        ep_accept_sampling[0]++;
       }
       
     } else {
-      
+
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[k] = exp(log(ep_propSD[k]) - ep_rm_stepsize*0.44/sqrt(iteration));
+        ep_propSD[0] = exp(log(ep_propSD[0]) - 5*0.44/sqrt(iteration));
+
       }
       
     }  // end Metropolis-Hastings step
     
-  }  // end loop over sources
-  
 }
 
 //------------------------------------------------
@@ -1349,7 +1317,7 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
 
 //------------------------------------------------
 // calculate log-likelihood under Poisson model given new proposed source
-double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(double source_lon_prop, double source_lat_prop, int k) {
+double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(std::vector<double> &source_prop, int k) {
   
   // initialise running values
   double loglike_prop = 0;
@@ -1358,7 +1326,7 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
   for (int i = 0; i < d->n; ++i) {
     
     // get distance from proposed source to data point i
-    double dist = l->get_data_dist(source_lon_prop, source_lat_prop, i);
+    double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
     // calculate bivariate height of data point i from proposed source.
@@ -1379,10 +1347,10 @@ double Particle::calculate_loglike_source_negative_binomial_indpendent_lambda(do
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+    loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                     d->counts[i]*log_theta_i - 
-                    (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                    (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
   }
   
   return loglike_prop;
@@ -1425,10 +1393,10 @@ void Particle::update_sigma_negative_binomial_ind_exp_pop(bool robbins_monro_on,
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+      loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                       d->counts[i]*log_theta_i - 
-                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                      (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1522,10 +1490,10 @@ void Particle::update_expected_popsize_negative_binomial_independent(bool robbin
       
       // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
       double log_theta_i = log_sentinel_area + log_hazard_sum;
-      loglike_prop += lgamma(1/alpha + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                      lgamma(1/alpha) + (1/alpha)*log(1/alpha) + 
+      loglike_prop += lgamma(1/double(alpha) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                      lgamma(1/double(alpha)) + (1/double(alpha))*log(1/double(alpha)) + 
                       d->counts[i]*log_theta_i - 
-                      (1/alpha + d->counts[i])*log(1/alpha + exp(log_theta_i));
+                      (1/double(alpha) + d->counts[i])*log(1/double(alpha) + exp(log_theta_i));
     }
     
     //-----------------------------------------------------------------------------------------------------------------------
@@ -1608,10 +1576,10 @@ void Particle::update_alpha_negative_binomial(bool robbins_monro_on, int iterati
     
     // define theta_i as the sentinel area * the mean hazard. Calculate log(theta_i) 
     double log_theta_i = log_sentinel_area + log_hazard_sum;
-    loglike_prop += lgamma(1/alpha_prop + d->counts[i]) - lgamma(d->counts[i] + 1) -
-                    lgamma(1/alpha_prop) + (1/alpha_prop)*log(1/alpha_prop) + 
+    loglike_prop += lgamma(1/double(alpha_prop) + d->counts[i]) - lgamma(d->counts[i] + 1) -
+                    lgamma(1/double(alpha_prop)) + (1/double(alpha_prop))*log(1/double(alpha_prop)) + 
                     d->counts[i]*log_theta_i - 
-                    (1/alpha_prop + d->counts[i])*log(1/alpha_prop + exp(log_theta_i));
+                    (1/double(alpha_prop) + d->counts[i])*log(1/double(alpha_prop) + exp(log_theta_i));
   }
   
   //-----------------------------------------------------------------------------------------------------------------------
@@ -1670,6 +1638,7 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // calculate bivariate CAUCHY height 
     hazard_height = - log(2*M_PI) + 0.5*log(single_scale) - 1.5*log(pow(dist, 2) + single_scale);
     
+    
   } else if (p->dispersal_model == 3) {
     
     // calculate bivariate LAPLACE height
@@ -1685,6 +1654,50 @@ double Particle::calculate_hazard(double dist, double single_scale) {
   }
   
   return hazard_height;
+}
+
+//------------------------------------------------
+// propose new source location based on dispersal kernel choice
+void Particle::propose_source(std::vector<double> &source_prop, double center_lon, double center_lat, double prop_scale) {
+  
+    // update source based on dispersal kernel model
+  if (p->dispersal_model == 1) { // NORMAL proposal
+    
+    source_prop[0] = rnorm1(center_lon, prop_scale);
+    source_prop[1] = rnorm1(center_lat, prop_scale);
+    
+  } else if (p->dispersal_model == 2) { // CAUCHY proposal 
+    
+    // create chi squared random variable
+    double chi_val = rchisq1(1);
+    if(chi_val == 0){
+      chi_val = UNDERFLO;
+    }
+    
+    // draw values from a normal distribution
+    double z_lon = rnorm1(0, prop_scale);
+    double z_lat = rnorm1(0, prop_scale);
+    
+    // return bi-variate Cauchy random variable
+    source_prop[0] = center_lon + z_lon/double(pow(chi_val, 0.5));
+    source_prop[1] = center_lat + z_lat/double(pow(chi_val, 0.5));    
+    
+  } else if (p->dispersal_model == 3) { // LAPLACE proposal
+    // create exponential random value
+    double exp_val = exp1(1);
+    
+    // draw values from a normal distribution
+    double z_lon = rnorm1(0, prop_scale);
+    double z_lat = rnorm1(0, prop_scale);
+    
+    // return bi-variate Laplace random value
+    source_prop[0] = center_lon + z_lon*pow(exp_val, 0.5);
+    source_prop[1] = center_lat + z_lat*pow(exp_val, 0.5);
+    
+  } else if (p->dispersal_model == 4) { // OTHER proposal
+
+  }
+  
 }
 
 // // //------------------------------------------------

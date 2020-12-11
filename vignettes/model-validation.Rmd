@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{Model Validation}
+  %\VignetteIndexEntry{Model Choice and Validation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -60,7 +60,7 @@ plot_loglike_diagnostic(p, K = 3)
 Although we ran our MCMC chain for 50,000 iterations, this doesn't necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the \emph{effective sample size}, ESS. This is a function of the number of sampling iterations $n$, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is $$ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(l)}.$$ Where $acf(l)$ is the auto-correlation at lag $l$.  
 
 ```{r}
-ESS <- get_ESS(p, K = 3)
+ESS <- get_output(p, name = "ESS", K = 3, type = "summary")
 ```
 
 ```{r, echo = FALSE}

@@ -16,9 +16,11 @@ bind_data(project, df, data_type, name = NULL, check_delete_output = TRUE)
   "longitude", "latitude" and "counts".
   \item for \code{data_type = "prevalence"}, data must have columns
   "longitude", "latitude", "tested" and "positive"
+  \item for \code{data_type = "point-pattern"}, data must have columns
+  "longitude", "latitude"
   }}
 
-\item{data_type}{the type of data, either "counts" or "prevalence".}
+\item{data_type}{the type of data, either "counts", "prevalence" or "point-pattern"}
 
 \item{name}{optional name of the data set to aid in record keeping}
 

@@ -4,22 +4,86 @@ template:
   params:
     bootswatch: flatly
 
+
+reference:
+  - title: Main
+    desc: Main functions for running different models
+    contents:
+      - '`sim_data`' 
+      - '`bind_data`' 
+      - '`new_set`' 
+      - '`delete_set`' 
+      - '`optimise_beta`' 
+      - '`run_mcmc`' 
+      - '`get_output`'      
+      - '`get_hitscores`' 
+      - '`gini`'
+  - title: Plotting
+    desc: Functions for visulaising model output
+    contents:
+      - '`plot_DIC_gelman`' 
+      - '`plot_acf`' 
+      - '`plot_alpha`' 
+      - '`plot_coupling`' 
+      - '`plot_density`' 
+      - '`plot_expected_popsize`' 
+      - '`plot_loglike`' 
+      - '`plot_loglike_diagnostic`' 
+      - '`plot_lorenz`' 
+      - '`plot_map`' 
+      - '`plot_sigma`' 
+      - '`plot_structure`' 
+      - '`plot_trace`'
+  - title: Mapping
+    desc: Functions for mapping model output
+    contents:
+      - '`overlay_geoprofile`'
+      - '`overlay_piecharts`' 
+      - '`overlay_points`' 
+      - '`overlay_ringsearch`' 
+      - '`overlay_risk_map`' 
+      - '`overlay_sentinels`' 
+      - '`overlay_sources`' 
+      - '`overlay_spatial_prior`' 
+      - '`overlay_surface`' 
+      - '`overlay_trial_sites`' 
+  - title: Misc
+    desc: Miscellaneous functions
+    contents:
+      - '`raster_grid`' 
+      - '`raster_from_shapefile`' 
+      - '`bearing_to_lonlat`' 
+      - '`lonlat_to_bearing`' 
+      - '`lonlat_to_cartesian`' 
+      - '`dist_gc`' 
+      - '`dispersal_sphere`' 
+      - '`kernel_smooth`' 
+      - '`more_colours`' 
+      - '`realised_sources`' 
+      - '`print_full`' 
+      - '`is.rgeoprofile_project`' 
+      - '`check_silverblaze_loaded`' 
+      - '`rgeoprofile_file`' 
+      - '`rgeoprofile_project`' 
+      - '`rgeoprofile_shapefile`' 
+      - '`silverblaze`' 
+
 navbar:
   title: "silverblaze"
   left:
-    - text: "Vignettes"
+    - text: "Basic tutorials"
       menu:
         - text: "Installation"
           href: articles/installation.html
         - text: -------
-        - text: "Basic Tutorials"
         - text: "Poisson model and count data"
           href: articles/Poisson-basic-implementation.html
         - text: "Binomial model and prevalence data"
           href: articles/Binomial-basic-implementation.html
         - text: "Point pattern data"
           href: articles/PointPattern-basic-implementation.html  
-        - text: "Other topics"
+    - text: "Advanced tutorials"
+      menu:  
         - text: "Model Validation"
           href: articles/model-validation.html
         - text: "Metropolis-Hastings Coupling"

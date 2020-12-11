@@ -25,6 +25,6 @@ public:
   
   // other methods
   void recalc();
-  double get_data_dist(double source_lon, double source_lat, int data_index);
+  double get_data_dist(  std::vector<double> source_prop, int data_index);
   
 };
