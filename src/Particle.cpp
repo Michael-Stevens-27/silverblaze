@@ -117,10 +117,10 @@ void Particle::reset(double beta) {
     sigma = vector<double>(p->K, exp(p->sigma_prior_meanlog));
   } else {
     if (p->sigma_model == 1) { // if single sigma
-      sigma = vector<double>(p->K, exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog)) );
+      sigma = vector<double>(p->K, exp(rnorm1(p->sigma_prior_meanlog, 100*p->sigma_prior_sdlog)) );
     } else if (p->sigma_model == 2) {
       for (int k = 0; k < p->K; ++k) { // if independent sigma
-        sigma[k] = exp(rnorm1(p->sigma_prior_meanlog, p->sigma_prior_sdlog));
+        sigma[k] = exp(rnorm1(p->sigma_prior_meanlog, 100*p->sigma_prior_sdlog));
       }
     }
   }
@@ -131,19 +131,19 @@ void Particle::reset(double beta) {
   } else {
     if(d->data_type == 1){
       if(p->ep_model == 1){  // if single ep 
-        expected_popsize = vector<double>(p->K, rgamma1(p->ep_prior_shape, p->ep_prior_rate));
+        expected_popsize = vector<double>(p->K, rgamma1(100*p->ep_prior_shape, p->ep_prior_rate));
       } else if(p->ep_model == 2){  // if independent ep
         for (int k = 0; k < p->K; ++k) {
-          expected_popsize[k] = rgamma1(p->ep_prior_shape, p->ep_prior_rate);
+          expected_popsize[k] = rgamma1(100*p->ep_prior_shape, p->ep_prior_rate);
         }
       }
     } else if(d->data_type == 2){
       for (int k = 0; k < p->K; ++k) {  // independent ep
-        expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
+        expected_popsize[k] = rgamma1(100*p->ep_prior_shape / double(p->K), p->ep_prior_rate);
       } 
     } else if(d->data_type == 3){
       for (int k = 0; k < p->K; ++k) { // independent ep
-        expected_popsize[k] = rgamma1(p->ep_prior_shape / double(p->K), p->ep_prior_rate);
+        expected_popsize[k] = rgamma1(100*p->ep_prior_shape / double(p->K), p->ep_prior_rate);
       }
       for (int k = 0; k < p->K; ++k) { // independent weights
         source_weights[k] = 1/double(p->K);
@@ -152,7 +152,7 @@ void Particle::reset(double beta) {
   }
   
   // draw alpha (negative binomial parameter) from prior
-  alpha = exp(rnorm1(p->alpha_prior_meanlog, p->alpha_prior_sdlog));
+  alpha = exp(rnorm1(p->alpha_prior_meanlog, 100*p->alpha_prior_sdlog));
   
   // initialise proposal standard deviations
   source_propSD = vector<double>(p->K, 0.01);
