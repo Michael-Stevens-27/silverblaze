@@ -861,7 +861,7 @@ run_mcmc <- function(project,
     
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
-    values(prob_surface)[is.na(values(spatial_prior))] <- NA
+    values(prob_surface)[raster::values(spatial_prior) == 0] <- NA
     
     # get probability surface over realised sources only
     prob_surface_realised_mat <- 0
@@ -884,7 +884,8 @@ run_mcmc <- function(project,
     
     # make raster
     prob_surface_realised <- setValues(raster_empty, prob_surface_realised_mat)
-    
+    values(prob_surface_realised)[raster::values(spatial_prior) == 0] <- NA
+
     # produce geoprofile rasters
     geoprofile_split <- raster()
     geoprofile_mat <- 0
