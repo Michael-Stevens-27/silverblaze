@@ -18,7 +18,6 @@ run_mcmc(
   store_raw = TRUE,
   create_maps = TRUE,
   silent = !is.null(cluster),
-  bugged = FALSE,
   beta_manual = NULL,
   rung_store = NULL
 )
@@ -60,8 +59,6 @@ geoprofile. Usually will want to create these maps, but the code runs much
 faster without this step, hence the option.}
 
 \item{silent}{whether to suppress all console output.}
-
-\item{bugged}{Turn the spatial prior indexing bug on or off}
 
 \item{beta_manual}{if defined, allows manual specification of thermodynamic
 powers used. Overrides \code{rungs} and \code{GTI_pow}.}

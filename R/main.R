@@ -484,7 +484,6 @@ delete_set <- function(project,
 #'   geoprofile. Usually will want to create these maps, but the code runs much
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
-#' @param bugged Turn the spatial prior indexing bug on or off
 #' @param rung_store Pick a rung whose output will be stored 
 #'
 #' @import parallel
@@ -509,14 +508,11 @@ run_mcmc <- function(project,
                      store_raw = TRUE,
                      create_maps = TRUE,
                      silent = !is.null(cluster),
-                     bugged = FALSE,
                      beta_manual = NULL,
                      rung_store = NULL) {
   
   # start timer
   t0 <- Sys.time()
-  
-  assert_single_logical(bugged)
   
   if(is.null(rung_store)){
     if(is.null(beta_manual)){
@@ -609,7 +605,6 @@ run_mcmc <- function(project,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
                       silent = silent,
-                      bugged = bugged,
                       rung_store = rung_store)
   
   # extract spatial prior object

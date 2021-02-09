@@ -305,7 +305,7 @@ double Particle::calculate_loglike_source_pois(std::vector<double> &source_prop,
     double dist = l->get_data_dist(source_prop, i);
     dist_source_data_prop[i] = dist;
     
-    // calculate bivariate height of data point i from proposed source.
+    // calculate bivariate height of dat a point i from proposed source.
     log_hazard_height_prop[i] = calculate_hazard(dist, sigma[k]); 
     
     // sum hazard over sources while remaining in log space
@@ -1240,14 +1240,8 @@ void Particle::update_qmatrix() {
   for (int i = 0; i < d->n; ++i) {
     
     // dependent on data type - skip if no observation at this site
-    if(d->data_type == 1){
-      if (d->counts[i] == 0) {
+    if (d->positive[i] == 0 | d->counts[i] == 0) {
         continue;
-      }     
-    } else if(d->data_type == 2){
-      if (d->positive[i] == 0) {
-        continue;
-      }
     }
     
     // sum hazard over sources while remaining in log space
