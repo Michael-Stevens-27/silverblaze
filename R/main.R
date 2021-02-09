@@ -865,7 +865,7 @@ run_mcmc <- function(project,
     
     # get probability surface over realised sources only
     prob_surface_realised_mat <- 0
-    if (create_maps & K[i] > 1 & project$data$data_type == "prevalence") { 
+    if (create_maps & K[i] > 1) { 
       
       # get prob surface by smoothing
       prob_surface_realised_mat <- kernel_smooth(source_lon_sampling[source_realised_sampling == TRUE],
