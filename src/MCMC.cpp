@@ -421,22 +421,28 @@ void MCMC::metropolis_coupling(bool burnin_phase) {
 // draw from the posterior allocation of observations to sources
 void MCMC::sample_realised_sources(vector<vector<double>> &qmatrix, vector<int> const &label_order, vector<bool> &source_realised) {
   
-  // currently only applies to prevalence model
-  if (d->data_type != 2) {
-    return;
-  }
+  // // currently only applies to prevalence model
+  // if (d->data_type != 2) {
+  //   return;
+  // }
   
   // sample allocation for each row of qmatrix
   vector<int> rand_multinom(p->K);
   for (int i = 0; i < d->n; ++i) {
     
     // skip if no observation at this site
-    if (d->positive[i] == 0) {
+    if (d->positive[i] == 0 | d->counts[i] == 0) {
       continue;
     }
     
     // sample a source for each positive observation
-    rmultinom1(d->positive[i], qmatrix[i], 1.0, rand_multinom);
+    if(d->data_type == 1){ // for count data
+      rmultinom1(d->counts[i], qmatrix[i], 1.0, rand_multinom);
+    } else if(d->data_type == 2){ // for prevalence data
+      rmultinom1(d->positive[i], qmatrix[i], 1.0, rand_multinom);
+    } else if(d->data_type == 3){ // for point-pattern data
+      rmultinom1(1, qmatrix[i], 1.0, rand_multinom);
+    }
     
     // source is realised if any observation is allocated to ii
     for (int j = 0; j < p->K; ++j) {

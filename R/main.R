@@ -484,7 +484,6 @@ delete_set <- function(project,
 #'   geoprofile. Usually will want to create these maps, but the code runs much
 #'   faster without this step, hence the option.
 #' @param silent whether to suppress all console output.
-#' @param bugged Turn the spatial prior indexing bug on or off
 #' @param rung_store Pick a rung whose output will be stored 
 #'
 #' @import parallel
@@ -509,14 +508,11 @@ run_mcmc <- function(project,
                      store_raw = TRUE,
                      create_maps = TRUE,
                      silent = !is.null(cluster),
-                     bugged = FALSE,
                      beta_manual = NULL,
                      rung_store = NULL) {
   
   # start timer
   t0 <- Sys.time()
-  
-  assert_single_logical(bugged)
   
   if(is.null(rung_store)){
     if(is.null(beta_manual)){
@@ -609,7 +605,6 @@ run_mcmc <- function(project,
                       coupling_on = coupling_on,
                       pb_markdown = pb_markdown,
                       silent = silent,
-                      bugged = bugged,
                       rung_store = rung_store)
   
   # extract spatial prior object
@@ -861,11 +856,11 @@ run_mcmc <- function(project,
     
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
-    values(prob_surface)[is.na(values(spatial_prior))] <- NA
+    values(prob_surface)[raster::values(spatial_prior) == 0] <- NA
     
     # get probability surface over realised sources only
     prob_surface_realised_mat <- 0
-    if (create_maps & K[i] > 1 & project$data$data_type == "prevalence") { 
+    if (create_maps & K[i] > 1) { 
       
       # get prob surface by smoothing
       prob_surface_realised_mat <- kernel_smooth(source_lon_sampling[source_realised_sampling == TRUE],
@@ -884,7 +879,8 @@ run_mcmc <- function(project,
     
     # make raster
     prob_surface_realised <- setValues(raster_empty, prob_surface_realised_mat)
-    
+    values(prob_surface_realised)[raster::values(spatial_prior) == 0] <- NA
+
     # produce geoprofile rasters
     geoprofile_split <- raster()
     geoprofile_mat <- 0
