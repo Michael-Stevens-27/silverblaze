@@ -36,48 +36,48 @@ and model choice:
 To check the validity of the model we shall be considering the datagenerated in [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html). Let's start by looking at the trace of the log-likelihood.  
 
 ```{r}
-plot_trace(p, K = 3)
+plot_trace(p, K = 2)
 ```
 
 The trace resembles the form of a "hairy caterpillar," in that the log-likelihood appears to have converged around a particular value. Whether or not an MCMC chain has converged is decided via Geweke's convergence metric (@Cowles1996). Essentially this metric will take the first $a$ iterations in an MCMC chain and compare them with the last $b$ iterations in a similar manner to a two sample t-test. In addition to the MCMC trace we can also visualise the auto-correlation in our log-likelihood.   
 
 ```{r}
-plot_acf(p, K = 3)
+plot_acf(p, K = 2)
 ```
 
-This plot is promising, the MCMC chain ran for 50,000 sampling iterations and the auto-correlation reduces to zero after a lag of about 30 iterations. Finally, we can plot the density of the log-likelihood too. 
+This plot is promising, the MCMC chain ran for 50,000 sampling iterations and the auto-correlation reduces to zero after a lag of about 40 iterations. Finally, we can plot the density of the log-likelihood too. 
 
 ```{r}
-plot_density(p, K = 3)
+plot_density(p, K = 2)
 ```
 
 The density it unimodal, if we were to see a bi-modal density plot, this would indicate the MCMC chain is getting stuck somewhere in the parameter space, so a longer burnin may be needed. Conveniently we can plot all three of the above using the `plot_loglike_diagnostic()` function.  
 
 ```{r}
-plot_loglike_diagnostic(p, K = 3)
+plot_loglike_diagnostic(p, K = 2)
 ```
 
 Although we ran our MCMC chain for 50,000 iterations, this doesn't necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the \emph{effective sample size}, ESS. This is a function of the number of sampling iterations $n$, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is $$ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(l)}.$$ Where $acf(l)$ is the auto-correlation at lag $l$.  
 
 ```{r}
-ESS <- get_output(p, name = "ESS", K = 3, type = "summary")
+ESS <- get_output(p, name = "ESS", K = 2, type = "summary")
 ```
 
 ```{r, echo = FALSE}
 paste("ESS =", round(ESS, 1), "or", round(ESS/5e4, 4) , "independent samples per iteration (50,000 sampling iterations)")
 ```
 
-So we've approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it's 0.08. 
+So we've approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it's 0.06. 
 
 Another indicator of a healthy MCMC algorithm is the acceptance rates of proposed steps during the Metropolis-Hastings part of the process. In this case, source locations and sigma values are estimated using a Metropolis-Hastings step. We are aiming for an acceptance rate of 23% for sources and 44% for sigma (see @Garthwaite2016 for more information). 
 
 ```{r}
-acceptance_source <- get_output(p, "source_accept_sampling", K = 3, type = "summary")
+acceptance_source <- get_output(p, "source_accept_sampling", K = 2, type = "summary")
 print(acceptance_source)
 ```
 
 ```{r}
-acceptance_sigma <- get_output(p, "sigma_accept_sampling", K = 3, type = "summary")
+acceptance_sigma <- get_output(p, "sigma_accept_sampling", K = 2, type = "summary")
 acceptance_sigma <- unlist(acceptance_sigma)
 acceptance_sigma <- acceptance_sigma[which(acceptance_sigma > 0)]
 print(acceptance_sigma)
@@ -95,6 +95,6 @@ This DIC can be visualised using the `plot_DIC_gelman()` function. Let's have a 
 plot_DIC_gelman(p)
 ```
 
-As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where `K = 3`. 
+As we can see the model with the lowest DIC is the one fitting 2 sources. This is exactly what we would expect given we simulated under a model where `K = 2`. 
 
 ## References

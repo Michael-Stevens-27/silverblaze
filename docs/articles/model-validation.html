@@ -111,7 +111,7 @@
       <h1 data-toc-skip>Model Choice and Validation</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2020-12-10</h4>
+            <h4 class="date">2021-02-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/model-validation.Rmd"><code>vignettes/model-validation.Rmd</code></a></small>
       <div class="hidden name"><code>model-validation.Rmd</code></div>
@@ -142,38 +142,37 @@
 <a href="#model-validity" class="anchor"></a>Model validity</h2>
 <p>To check the validity of the model we shall be considering the datagenerated in <a href="https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html">tutorial 1</a>. Let's start by looking at the trace of the log-likelihood.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <p>The trace resembles the form of a "hairy caterpillar," in that the log-likelihood appears to have converged around a particular value. Whether or not an MCMC chain has converged is decided via Geweke's convergence metric (<span class="citation">Cowles and Carlin (1996)</span>). Essentially this metric will take the first <span class="math inline">\(a\)</span> iterations in an MCMC chain and compare them with the last <span class="math inline">\(b\)</span> iterations in a similar manner to a two sample t-test. In addition to the MCMC trace we can also visualise the auto-correlation in our log-likelihood.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/plot_acf.html">plot_acf</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_acf.html">plot_acf</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
-<p>This plot is promising, the MCMC chain ran for 50,000 sampling iterations and the auto-correlation reduces to zero after a lag of about 30 iterations. Finally, we can plot the density of the log-likelihood too.</p>
+<p>This plot is promising, the MCMC chain ran for 50,000 sampling iterations and the auto-correlation reduces to zero after a lag of about 40 iterations. Finally, we can plot the density of the log-likelihood too.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/plot_density.html">plot_density</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_density.html">plot_density</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 <p>The density it unimodal, if we were to see a bi-modal density plot, this would indicate the MCMC chain is getting stuck somewhere in the parameter space, so a longer burnin may be needed. Conveniently we can plot all three of the above using the <code><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic()</a></code> function.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/plot_loglike_diagnostic.html">plot_loglike_diagnostic</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <p>Although we ran our MCMC chain for 50,000 iterations, this doesn't necessarily mean we have 50,000 independent draws from our posterior distribution. We measure the true number of independent samples using the , ESS. This is a function of the number of sampling iterations <span class="math inline">\(n\)</span>, with a penalty dependent on the auto-correlation in samples. The expression for the ESS is <span class="math display">\[ESS = \frac{n}{1 + 2\sum_{l = 1}^{\infty}acf(l)}.\]</span> Where <span class="math inline">\(acf(l)\)</span> is the auto-correlation at lag <span class="math inline">\(l\)</span>.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">ESS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, name <span class="op">=</span> <span class="st">"ESS"</span>, K <span class="op">=</span> <span class="fl">3</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span></code></pre></div>
-<pre><code>## [1] "ESS = 4054.7 or 0.0811 independent samples per iteration (50,000 sampling iterations)"</code></pre>
-<p>So we've approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it's 0.08.</p>
+<code class="sourceCode R"><span class="va">ESS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, name <span class="op">=</span> <span class="st">"ESS"</span>, K <span class="op">=</span> <span class="fl">2</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span></code></pre></div>
+<pre><code>## [1] "ESS = 3187.8 or 0.0638 independent samples per iteration (50,000 sampling iterations)"</code></pre>
+<p>So we've approximately four thousand independent posterior samples, this is useful if we know a certain number we need to obtain, but this can also be expressed as the number of independent samples per iteration. Here it's 0.06.</p>
 <p>Another indicator of a healthy MCMC algorithm is the acceptance rates of proposed steps during the Metropolis-Hastings part of the process. In this case, source locations and sigma values are estimated using a Metropolis-Hastings step. We are aiming for an acceptance rate of 23% for sources and 44% for sigma (see <span class="citation">Garthwaite, Fan, and Sisson (2016)</span> for more information).</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">acceptance_source</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"source_accept_sampling"</span>, K <span class="op">=</span> <span class="fl">3</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">acceptance_source</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"source_accept_sampling"</span>, K <span class="op">=</span> <span class="fl">2</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">acceptance_source</span><span class="op">)</span></code></pre></div>
-<pre><code>##  group1  group2  group3 
-## 0.23370 0.22902 0.16164</code></pre>
+<pre><code>##        group1  group2
+## rung1 0.22052 0.13216</code></pre>
 <div class="sourceCode"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">acceptance_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"sigma_accept_sampling"</span>, K <span class="op">=</span> <span class="fl">3</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">acceptance_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_output.html">get_output</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"sigma_accept_sampling"</span>, K <span class="op">=</span> <span class="fl">2</span>, type <span class="op">=</span> <span class="st">"summary"</span><span class="op">)</span>
 <span class="va">acceptance_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">acceptance_sigma</span><span class="op">)</span>
 <span class="va">acceptance_sigma</span> <span class="op">&lt;-</span> <span class="va">acceptance_sigma</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">acceptance_sigma</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">acceptance_sigma</span><span class="op">)</span></code></pre></div>
-<pre><code>##  group3 
-## 0.34546</code></pre>
+<pre><code>## [1] 0.47562</code></pre>
 <p>These values aren't awful, but there is clearly room for improvement, especially in the third source and sigma.</p>
 </div>
 <div id="model-choice" class="section level2">
@@ -184,7 +183,7 @@
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_DIC_gelman.html">plot_DIC_gelman</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></code></pre></div>
 <p><img src="model-validation_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<p>As we can see the model with the lowest DIC is the one fitting 3 sources. This is exactly what we would expect given we simulated under a model where <code>K = 3</code>.</p>
+<p>As we can see the model with the lowest DIC is the one fitting 2 sources. This is exactly what we would expect given we simulated under a model where <code>K = 2</code>.</p>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2 class="hasAnchor">
