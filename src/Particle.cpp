@@ -1274,20 +1274,11 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
     for (int k2 = 0; k2 < p->K; ++k2) {
       for (int i = 0; i < d->n; ++i) {
         // update cost matrix based on data type and assuming data is positive
-        if (d->data_type == 1 && d->counts[i] > 0) { 
-          // count data
-          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
-                              - log_qmatrix_running[i][k2]);
-        } else if(d->data_type == 2 && d->positive[i] > 0){ 
-          // prevalence data
-          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
-                              - log_qmatrix_running[i][k2]);
-        } else if(d->data_type == 3){ 
-          // point pattern  
-          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] 
-                              - log_qmatrix_running[i][k2]);
+        if (d->positive[i] == 0 | d->counts[i] == 0) { 
+          continue;
+        } else { 
+          cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] - log_qmatrix_running[i][k2]);
         }
-      
       }
     }
   }
@@ -1640,10 +1631,9 @@ double Particle::calculate_hazard(double dist, double single_scale) {
     // hazard_height = -log(M_PI) - 2*log(single_scale) + log(bessel(sqrt(2)*dist*pow(single_scale, -1), 0));
     hazard_height = - 0.5*log(M_PI) - 0.75*log(2*single_scale) - 0.5*log(dist) - dist*sqrt(2*pow(single_scale, -1));
     
-  } else if (p->dispersal_model == 4) {
+  } else { // default to normal 
     
-    // calculate bivariate Student's t height
-    // hazard_height = log(cell_area);
+      hazard_height = dnorm1(dist, 0, single_scale, true) + dnorm1(0, 0, single_scale, true); 
   }
   
   return hazard_height;
@@ -1687,8 +1677,9 @@ void Particle::propose_source(std::vector<double> &source_prop, double center_lo
     source_prop[0] = center_lon + z_lon*pow(exp_val, 0.5);
     source_prop[1] = center_lat + z_lat*pow(exp_val, 0.5);
     
-  } else if (p->dispersal_model == 4) { // OTHER proposal
-
+  } else { // OTHER proposal
+    source_prop[0] = rnorm1(center_lon, prop_scale);
+    source_prop[1] = rnorm1(center_lat, prop_scale);
   }
   
 }
