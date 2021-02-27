@@ -431,7 +431,9 @@ void MCMC::sample_realised_sources(vector<vector<double>> &qmatrix, vector<int> 
   for (int i = 0; i < d->n; ++i) {
     
     // skip if no observation at this site
-    if (d->positive[i] == 0 | d->counts[i] == 0) {
+    if(d->data_type == 1 && d->counts[i] == 0){ // count data
+      continue;
+    } else if(d->data_type == 2 && d->positive[i] == 0){ // prevalence data
       continue;
     }
     

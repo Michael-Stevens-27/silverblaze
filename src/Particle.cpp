@@ -1235,15 +1235,17 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 //------------------------------------------------
 // update qmatrix
 void Particle::update_qmatrix() {
-  
+
   // loop through sentinel sites
   for (int i = 0; i < d->n; ++i) {
     
     // dependent on data type - skip if no observation at this site
-    if (d->positive[i] == 0 | d->counts[i] == 0) {
-        continue;
+    if(d->data_type == 1 && d->counts[i] == 0){ // count data
+      continue;
+    } else if(d->data_type == 2 && d->positive[i] == 0){ // prevalence data
+      continue;
     }
-    
+
     // sum hazard over sources while remaining in log space
     double log_hazard_sum = -OVERFLO;
     for (int j = 0; j < p->K; ++j) {
@@ -1274,7 +1276,9 @@ void Particle::solve_label_switching(const vector<vector<double>> &log_qmatrix_r
     for (int k2 = 0; k2 < p->K; ++k2) {
       for (int i = 0; i < d->n; ++i) {
         // update cost matrix based on data type and assuming data is positive
-        if (d->positive[i] == 0 | d->counts[i] == 0) { 
+        if(d->data_type == 1 && d->counts[i] == 0){ // count data
+          continue;
+        } else if(d->data_type == 2 && d->positive[i] == 0){ // prevalence data
           continue;
         } else { 
           cost_mat[k1][k2] += qmatrix[i][label_order[k1]]*(log_qmatrix[i][label_order[k1]] - log_qmatrix_running[i][k2]);
