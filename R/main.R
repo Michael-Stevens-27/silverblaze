@@ -470,8 +470,6 @@ delete_set <- function(project,
 #' @param converge_test test for convergence every \code{convergence_test}
 #'   iterations if \code{auto_converge} is being used.
 #' @param coupling_on whether to implement Metropolis coupling.
-#' @param GTI_pow power applied to thermodynamic rungs. Higher values lead to
-#'   rungs clustered around zero.
 #' @param beta_manual if defined, allows manual specification of thermodynamic
 #'   powers used. Overrides \code{rungs} and \code{GTI_pow}.
 #' @param cluster option to pass in a cluster environment (see package
@@ -502,7 +500,6 @@ run_mcmc <- function(project,
                      auto_converge = TRUE,
                      converge_test = 1e2,
                      coupling_on = TRUE,
-                     GTI_pow = 1,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
@@ -553,15 +550,7 @@ run_mcmc <- function(project,
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
   
-  # define beta_vec manually or from rungs and GTI_pow
   beta_vec <- beta_manual
-  if (is.null(beta_vec)) {
-    if (rungs == 1) {
-      beta_vec <- 1
-    } else {
-      beta_vec <- seq(0, 1, l = rungs)^GTI_pow
-    }
-  }
   rungs <- length(beta_vec)
   
   # get active set
