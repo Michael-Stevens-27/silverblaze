@@ -12,7 +12,6 @@ run_mcmc(
   auto_converge = TRUE,
   converge_test = 100,
   coupling_on = TRUE,
-  GTI_pow = 1,
   cluster = NULL,
   pb_markdown = FALSE,
   store_raw = TRUE,
@@ -41,9 +40,6 @@ used.}
 iterations if \code{auto_converge} is being used.}
 
 \item{coupling_on}{whether to implement Metropolis coupling.}
-
-\item{GTI_pow}{power applied to thermodynamic rungs. Higher values lead to
-rungs clustered around zero.}
 
 \item{cluster}{option to pass in a cluster environment (see package
 "parallel").}
