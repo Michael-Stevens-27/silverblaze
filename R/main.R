@@ -530,7 +530,6 @@ run_mcmc <- function(project,
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
   assert_single_logical(coupling_on)
-  assert_single_pos(GTI_pow)
   
   if (!is.null(beta_manual)) {
     assert_vector(beta_manual)
@@ -969,7 +968,6 @@ run_mcmc <- function(project,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         pb_markdown = pb_markdown,
-                        GTI_pow = GTI_pow,
                         rungs = rungs,
                         silent = silent)
     
@@ -1004,8 +1002,7 @@ run_mcmc <- function(project,
                                                                     alpha_accept_sampling = alpha_accept_sampling,
                                                                     coupling_accept_burnin = coupling_accept_burnin,
                                                                     coupling_accept_sampling = coupling_accept_sampling,
-                                                                    beta_vec = beta_vec,
-                                                                    GTI_pow = GTI_pow)
+                                                                    beta_vec = beta_vec)
                                                                     
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
