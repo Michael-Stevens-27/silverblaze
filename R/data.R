@@ -2,8 +2,7 @@
 #------------------------------------------------
 #' @title Simulate data
 #'
-#' @description Simulate data from the same presence-absence model used in the
-#'   inference step.
+#' @description Simulate data under a specified model
 #'
 #' @param sentinel_lon vector giving longitudes of sentinel sites.
 #' @param sentinel_lat vector giving latitudes of sentinel sites.
@@ -21,15 +20,16 @@
 #'   then drawn uniformly from limits specified in \code{source_lat_min} and
 #'   \code{source_lat_max}.
 #' @param sigma_model set as "single" to use the same dispersal distance for all
-#'   sources, or "separate" to use an independently drawn dispersal distance for
+#'   sources, or "independent" to use an independently drawn dispersal distance for
 #'   each source.
 #' @param sigma_mean the prior mean of the parameter sigma (km).
 #' @param sigma_var the prior variance of the parameter sigma (km). Set to zero
 #'   to use a fixed distance.
 #' @param expected_popsize the expected total number of observations (observed
 #'   and unobserved) in the study area.
-#' @param data_type what model we wish to simulate under - a poisson or binomial
-#'   corresponding to "counts" or "prevalence"
+#' @param data_type what model we wish to simulate under - a poisson, binomial
+#'   or vanilla finitre mixture corresponding to "counts", "prevalence" or 
+#'   "point-pattern" respectively
 #' @param test_rate The rate of the Poisson distribution with which we draw the 
 #'   number of individuals tested at each sentinel site
 #' @param N the number of events to distributed under a point-pattern model
@@ -49,6 +49,7 @@
 #' names(sentinal_grid) <- c("longitude", "latitude")
 #' # Set their sentinel radius (this constant times true sigma)
 #' sentinel_radius <- 0.25
+#' # sim count data under a Poisson model
 #' sim1 <- sim_data(sentinal_grid$longitude,
 #'                 sentinal_grid$latitude,
 #'                 sigma_model = "single",

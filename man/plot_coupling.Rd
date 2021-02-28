@@ -15,5 +15,5 @@ plot_coupling(project, K = 1, phase = "sampling")
 \item{phase}{which phase to plot. Must be either "burnin" or "sampling".}
 }
 \description{
-TODO
+For each pair of rungs, plot the acceptance rate between them.
 }

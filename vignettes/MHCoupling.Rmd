@@ -19,7 +19,9 @@ set.seed(9)
 
 ## Introduction
 
-Through the previous tutorials we have shown how parameters of interest associated with geographic profiling, such as source locations and dispersal patterns, can be inferred using count, prevalence and point-pattern data. The examples were cherry picked such that the MCMC algorithm converges on the correct answer. This is not always the case though. In this tutorial we will show an example of a difficult data set that is a real challenge for the MCMC algorithm.     
+Through the previous tutorials we have shown how parameters of interest associated with geographic profiling, such as source locations and dispersal patterns, can be inferred using count, prevalence and point-pattern data. 
+
+These examples were cherry picked such that the MCMC algorithm converged on the correct answer. This is not always the case though. In this tutorial we will show an example of a difficult data set that is a real challenge for the MCMC algorithm.     
 
 ## A difficult data set
 
@@ -52,12 +54,17 @@ sim1 <- sim_data(sentinel_lon = sentinal_grid$Var1,
 data_all <- sim1$record$data_all
 true_source <- sim1$record$true_source
 K_model <- 1:5
+```
 
+Now we've simulated some count data let's build the geoprofiling project `p`.
+
+```{r}
 # ------------------------------------------------------------------
 # create project and bind data
 p <- rgeoprofile_project()
 p <- bind_data(p, sim1$data, data_type = "counts")
 
+# define model settings
 p <- new_set(project = p,
              spatial_prior = uniform_prior,
              sentinel_radius = 0.3,
@@ -67,7 +74,11 @@ p <- new_set(project = p,
              expected_popsize_prior_mean = 1500, 
              expected_popsize_prior_sd = 500,
              expected_popsize_model = "single")
-             
+```
+
+Let's also visualise the data set through the standard procedure below. 
+
+```{r}
 # plot data             
 plot1 <- plot_map()
 
@@ -91,7 +102,7 @@ plot2 <- overlay_sentinels(plot2,
 plot2             
 ```
 
-As we can see there is overlap in the clusters and sentinel sites have sparse coverage of the underlying data. 
+As we can see there is a lot of spatial overlap in the clusters and sentinel sites have sparse coverage of the underlying data. So we believe that this will be incredibly tricky for the MCMC algorithm to produce accurate estimates for.   
 
 ## Poor mixing 
 
@@ -100,7 +111,6 @@ Let's run the MCMC algorithm to see how it fairs against this count data.
 ```{r, eval = FALSE}
 p1 <- run_mcmc(project = p,
                K = K_model,
-               rungs = 1,
                create_maps = FALSE,
                burnin = 5e3,
                samples = 5e3,
@@ -128,7 +138,6 @@ attach(projects)
 set.seed(126)
 p1 <- run_mcmc(project = p,
                K = K_model,
-               rungs = 1,
                create_maps = FALSE,
                burnin = 5e3,
                samples = 5e3,
@@ -138,7 +147,6 @@ p1 <- run_mcmc(project = p,
 set.seed(360)
 p2 <- run_mcmc(project = p,
                K = K_model,
-               rungs = 1,
                create_maps = FALSE,
                burnin = 5e3,
                samples = 5e3,
@@ -148,17 +156,15 @@ p2 <- run_mcmc(project = p,
 set.seed(520)
 p3 <- run_mcmc(project = p,
               K = K_model,
-              rungs = 1,
               create_maps = FALSE,
               burnin = 5e3,
               samples = 5e3,
               converge_test = 1e3,
               auto_converge = TRUE)
 #
-set.seed(19)
+set.seed(22)
 p4 <- run_mcmc(project = p,
               K = K_model,
-              rungs = 1,
               create_maps = FALSE,
               burnin = 5e3,
               samples = 5e3,
@@ -168,7 +174,6 @@ p4 <- run_mcmc(project = p,
 set.seed(129)
 p5 <- run_mcmc(project = p,
               K = K_model,
-              rungs = 1,
               create_maps = FALSE,
               burnin = 5e3,
               samples = 5e3,
@@ -176,10 +181,10 @@ p5 <- run_mcmc(project = p,
               auto_converge = TRUE)
 ```
 
-Now the MCMC has finished running let's plot a few of the outputs. Here we plot the log-likelihood, the DIC and the estimates for sigma and the expected population size. 
+Now the MCMC has finished running let's plot a few of the outputs. Here we plot the log-likelihood and the DIC values for each models.
 
-```{r, echo = FALSE, fig.height = 10, fig.width = 10}
-
+```{r, echo = FALSE, fig.height = 8, fig.width = 8}
+# 
 # HS1 <- do.call(rbind, lapply(FUN =function(X){get_output(p1, "loglike_intervals_sampling", X)}, X = K_model))
 # HS2 <- do.call(rbind, lapply(FUN =function(X){get_output(p2, "loglike_intervals_sampling", X)}, X = K_model))
 # HS3 <- do.call(rbind, lapply(FUN =function(X){get_output(p3, "loglike_intervals_sampling", X)}, X = K_model))
@@ -228,50 +233,55 @@ Loglikeplot <- ggplot(logLikes, aes(x = source + jittering, y = Q50, col = as.ch
                 xlab("Source") +
                 theme(legend.position = "none") +
                 theme(text = element_text(size = 10))
-
-popSizePlot <- ggplot(populationSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
-                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
-                geom_abline(slope = 0, intercept = 1.5, col = "red") + 
-                ylab("Expected population size (thousands)") +
-                xlab("Source") + 
-                theme(legend.position = "none") +
-                theme(text = element_text(size = 10)) #+ 
-                # ylim(c(9,23))
-
-sigmaPlot <- ggplot(sigmaSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
-              geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
-              geom_abline(slope = 0, intercept = 1.5, col = "red") +
-              ylab("Sigma") +
-              xlab("Source") +
-              theme(legend.position = "none") +
-              theme(text = element_text(size = 10))# +
-              # ylim(c(0.4,1.8))
-
+# 
+# popSizePlot <- ggplot(populationSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+#                 geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+#                 geom_abline(slope = 0, intercept = 1.5, col = "red") + 
+#                 ylab("Expected population size (thousands)") +
+#                 xlab("Source") + 
+#                 theme(legend.position = "none") +
+#                 theme(text = element_text(size = 10)) #+ 
+#                 # ylim(c(9,23))
+# 
+# sigmaPlot <- ggplot(sigmaSize, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+#               geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+#               geom_abline(slope = 0, intercept = 1.5, col = "red") +
+#               ylab("Sigma") +
+#               xlab("Source") +
+#               theme(legend.position = "none") +
+#               theme(text = element_text(size = 10))# +
+#               # ylim(c(0.4,1.8))
+# 
 DICPlot <- ggplot(DICSize, aes(x = source, y = DIC, col = as.character(chain))) + theme_bw() +  
               geom_line(size = 1) +
               ylab("DIC") +
               xlab("Source") +
               theme(legend.position = "none") +
-              theme(text = element_text(size = 10))# +
-              # ylim(c(0.4,1.8))
+              theme(text = element_text(size = 10))
 
 # mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
 Loglikeplot
 DICPlot
-sigmaPlot
-popSizePlot
+# sigmaPlot
+# popSizePlot
 
 ```
 
-In each case we can see the output of the MCMC chains when the mixture is composed of from one to five components. The horizontal line in sigma and expected population size plots indicate the true value. When the model is only searching for one mixture component (`K = 1`) the five MCMC chains agree with one another. However, when we switch to a `K = 2` model the chains start to disagree with one another. Parameter estimates for sigma and the expected population size are failing to reach the correct values. Following our DIC metric (minimum DIC for the appropriate `K`), some chains reach the conclusion that `K = 2` is the best model to use, whereas some conclude that it is the worst. Although we discussed metrics for model validation in the [previous tutorial](https://michael-stevens-27.github.io/silverblaze/articles/model-validation.html), MCMC chains that disagree with one another indicates that the algorithm is failing to mix properly.
+In each case we can see the output of the MCMC chains when the mixture is composed of one to five components. When the model is only searching for one mixture component (`K = 1`) the five MCMC chains agree with one another. However, when we switch to a `K = 2` model the chains start to disagree with one another.
+
+Following our DIC metric (minimum DIC for the appropriate `K`), some chains reach the conclusion that `K = 2` is the best model to use, where as some conclude that it is the worst. Although we discussed metrics for model validation in the [previous tutorial](https://michael-stevens-27.github.io/silverblaze/articles/model-validation.html), MCMC chains that disagree with one another indicates that the algorithm is failing to mix properly.
 
 ## Metropolis-Hastings coupling
 
+Full details regarding the Metropolis-Hastings coupling algorithm can found in @Atchade2011 but I will briefly describe it here. The idea behind Metropolis-Hastings coupling is to improve MCMC mixing by running multiple MCMC chains at once. The likelihood of each MCMC is "heated" by raising that chain's likelihood to a power between zero and one. 
 
+The coldest chain corresponds to a value of one and the hottest to the power of zero. This way, each MCMC chain samples a different distribution, starting with the posterior (the coldest) and ending with the prior (the hottest). By raising the likelihood to a certain power between zero and one, we are essentially smoothing out all the peaks and troughs of the posterior distribution such that it is easier for the MCMC algorithm to traverse.
 
-## Revisiting a difficult problem
+Once each chain has updated its parameter set, a swap is proposed between each heated chain similarly to a regular Metropolis-Hastings update step. Via this procedure, we produce samples from the target posterior density by retaining the values of the cold chain at each MCMC iteration.   
 
-Now that we have a process to improve the mixing of our MCMC algorithm, let's return to the difficult data set from earlier. Metropolis-Hastings coupling can be turned on by setting the `coupling_on` argument to `TRUE` in the `run_mcmc()` function. You can set the number of heated rungs using the `rungs` argument. This produces a sequence from zero to one of length `rungs`. The "hotness" of each chain is then controlled using the `GTI_pow`. The sequences of rungs is raised to this power to control the total heat. 
+## Specifying a beta value for each heated chain
+
+Now that we have a process to improve the mixing of our MCMC algorithm, let's return to the difficult data set from earlier. Metropolis-Hastings coupling can be turned on by setting the `coupling_on` argument to `TRUE` in the `run_mcmc()` function. You can set the number of heated rungs using the `beta_manual` argument. 
 
 Let's run the model again using these arguments.   
 
@@ -282,21 +292,18 @@ p1couple <- run_mcmc(project = p,
                samples = 5e3,
                converge_test = 1e3,
                auto_converge = TRUE,
+               beta_manual = seq(0,1, l = 10)^2, # set heated values
                coupling_on = TRUE, # turn coupling on
-               rungs = 10,         # the number of rungs used
-               GTI_pow = 2,        # the thermodynamic power
                create_maps = FALSE)
 ```
 
-Again let's repeat the above five times and compare the same outputs. 
 
 ```{r, echo = F, eval = F}
 set.seed(126)
 p1couple <- run_mcmc(project = p,
                K = K_model,
-               rungs = 10,
                coupling_on = TRUE,
-               GTI_pow = 2,
+               beta_manual = seq(0,1, l = 10)^2,
                burnin = 5e3,
                samples = 5e3,
                converge_test = 1e3,
@@ -306,9 +313,8 @@ p1couple <- run_mcmc(project = p,
 set.seed(360)
 p2couple <- run_mcmc(project = p,
                K = K_model,
-               rungs = 10,
                coupling_on = TRUE,
-               GTI_pow = 2,
+               beta_manual = seq(0,1, l = 10)^2,
                burnin = 5e3,
                samples = 5e3,
                converge_test = 1e3,
@@ -318,9 +324,8 @@ p2couple <- run_mcmc(project = p,
 set.seed(520)
 p3couple <- run_mcmc(project = p,
               K = K_model,
-              rungs = 10,
               coupling_on = TRUE,
-              GTI_pow = 2,
+              beta_manual = seq(0,1, l = 10)^2,
               burnin = 5e3,
               samples = 5e3,
               converge_test = 1e3,
@@ -330,21 +335,19 @@ p3couple <- run_mcmc(project = p,
 set.seed(19)
 p4couple <- run_mcmc(project = p,
               K = K_model,
-              rungs = 10,
               coupling_on = TRUE,
-              GTI_pow = 2,
+              beta_manual = seq(0,1, l = 10)^2,
               burnin = 5e3,
               samples = 5e3,
               converge_test = 1e3,
               auto_converge = TRUE,
               create_maps = FALSE)
 #
-set.seed(129)
+set.seed(222)
 p5couple <- run_mcmc(project = p,
               K = K_model,
-              rungs = 10,
               coupling_on = TRUE,
-              GTI_pow = 2,
+              beta_manual = seq(0,1, l = 10)^2,
               burnin = 5e3,
               samples = 5e3,
               converge_test = 1e3,
@@ -353,8 +356,7 @@ p5couple <- run_mcmc(project = p,
               
 ```
 
-```{r, echo = F, fig.height = 10, fig.width = 10}
-
+```{r, echo = F, fig.height = 8, fig.width = 8}
 # HS1couple <- do.call(rbind, lapply(FUN =function(X){get_output(p1couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
 # HS2couple <- do.call(rbind, lapply(FUN =function(X){get_output(p2couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
 # HS3couple <- do.call(rbind, lapply(FUN =function(X){get_output(p3couple, "loglike_intervals_sampling", X)}, X = K_model))[K_model*10,]
@@ -399,7 +401,6 @@ p5couple <- run_mcmc(project = p,
 # DICSizecouple <- DICSizecouple[complete.cases(DICSizecouple),]
 # DICSizecouple <- data.frame(DIC = DICSizecouple, chain = rep(1:5, each = 5), source = rep(1:5,5))
 
-
 Loglikeplot <- ggplot(logLikescouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
                 geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
                 ylab("Loglikelihood") +
@@ -407,25 +408,26 @@ Loglikeplot <- ggplot(logLikescouple, aes(x = source + jittering, y = Q50, col =
                 theme(legend.position = "none") +
                 theme(text = element_text(size = 10))
 
-popSizePlot <- ggplot(populationSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
-                geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
-                geom_abline(slope = 0, intercept = 1.5, col = "red") + 
-                ylab("Expected population size (thousands)") +
-                xlab("Source") + 
-                theme(legend.position = "none") +
-                theme(text = element_text(size = 10)) #+ 
-                # ylim(c(9,23))
+# popSizePlot <- ggplot(populationSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+#                 geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+#                 geom_abline(slope = 0, intercept = 1.5, col = "red") + 
+#                 ylab("Expected population size (thousands)") +
+#                 xlab("Source") + 
+#                 theme(legend.position = "none") +
+#                 theme(text = element_text(size = 10)) #+ 
+#                 # ylim(c(9,23))
+# 
+# sigmaPlot <- ggplot(sigmaSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
+#               geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
+#               geom_abline(slope = 0, intercept = 1.5, col = "red") +
+#               ylab("Sigma") +
+#               xlab("Source") +
+#               theme(legend.position = "none") +
+#               theme(text = element_text(size = 10))# +
+#               # ylim(c(0.4,1.8))
 
-sigmaPlot <- ggplot(sigmaSizecouple, aes(x = source + jittering, y = Q50, col = as.character(chain))) + theme_bw() +  
-              geom_pointrange(aes(ymin = Q2.5, ymax = Q97.5), size = 0.4) + 
-              geom_abline(slope = 0, intercept = 1.5, col = "red") +
-              ylab("Sigma") +
-              xlab("Source") +
-              theme(legend.position = "none") +
-              theme(text = element_text(size = 10))# +
-              # ylim(c(0.4,1.8))
-
-DICPlot <- ggplot(DICSizecouple, aes(x = source, y = DIC, col = as.character(chain))) + theme_bw() +  
+DICPlot <- ggplot(DICSizecouple, aes(x = source, y = DIC, col = as.character(chain))) +  
+              theme_bw() +  
               geom_line(size = 1) +
               ylab("DIC") +
               xlab("Source") +
@@ -436,8 +438,8 @@ DICPlot <- ggplot(DICSizecouple, aes(x = source, y = DIC, col = as.character(cha
 # mainPlot <- grid.arrange(Loglikeplot, DICPlot, sigmaPlot, popSizePlot, ncol = 2)
 Loglikeplot
 DICPlot
-sigmaPlot
-popSizePlot
+# sigmaPlot
+# popSizePlot
 
 ```
 
@@ -445,33 +447,37 @@ Perfect! Our MCMC chains agree with one another. The DIC line plots are all very
 
 ## Optimising beta values
 
-We may not always know a suitable value for `GTI_pow` or the number of rungs that we need to ensure healthy mixing. Hence, silverblaze offers the `optimise_beta()` function to do this for us. This function will run the model a maximum number of times (`max_iterations`) each time checking if the transition acceptance rate between heated rungs is above a certain threshold, `target_acceptance`. If the transition probability between two rungs is less than the target and each rung has heats $a$ and $b$ then the function will place a new rung between these two, with heat $\frac{a + b}{2}$. The `beta_init` argument allows us to specify where the heat will start. An example of is shown and executed below.  
+We may not always know suitable values for each rung or the number of rungs that we need to ensure healthy mixing. 
 
-```{r, eval = TRUE}
-# beta_k <- silverblaze:::optimise_beta(proj = p, 
-#                                       K = 3, 
-#                                       target_acceptance = 0.5, 
-#                                       max_iterations = 2,
-#                                       beta_init = seq(0,1, l = 10), 
-#                                       coupling_on = TRUE,
-#                                       burnin = 5e2,
-#                                       converge_test = 1e2,
-#                                       samples = 10,
-#                                       create_maps = FALSE,
-#                                       pb_markdown = TRUE)
+Hence, silverblaze offers the `optimise_beta()` function to do this for us. This function will run the model a maximum number of times (`max_iterations`) each time checking if the transition acceptance rate between heated rungs is above a certain threshold, `target_acceptance`. If the transition probability between two rungs is less than the target and each rung has heats $a$ and $b$ then the function will place a new rung between these two, with heat $\frac{a + b}{2}$. The `beta_init` argument allows us to specify where the heat will start. An example of is shown and executed below.  
+
+```{r, eval = F}
+beta_k <- silverblaze:::optimise_beta(proj = p, 
+                                      K = 3, 
+                                      target_acceptance = 0.75, 
+                                      max_iterations = 25,
+                                      beta_init = seq(0,1, l = 10), 
+                                      coupling_on = TRUE,
+                                      burnin = 1e3,
+                                      converge_test = 5e2,
+                                      samples = 10,
+                                      create_maps = FALSE,
+                                      pb_markdown = TRUE)
+
+beta_values <- beta_k$beta_vec[[length(beta_k$beta_vec)]]                                
 ```
 
-As we can see this code will output the `K_model` chosen, the iteration, the number of rungs, each rungs heat and transition probabilities with neighbouring rungs. We start with 10 rungs in the first iteration, and 2 of the probabilities are less than 0.5, hence the total rungs is bumped up by 2 in the next iteration. When running the MCMC algorithm for real, we pass these beta values over to the `run_mcmc()` function as shown here.   
+When running the MCMC algorithm for real, we pass these beta values over to the `run_mcmc()` function as shown here.   
 
 ```{r, eval = F}
 p1couple <- run_mcmc(project = p,
-                     K = K_model,
+                     K = 3,
                      burnin = 5e3,
                      samples = 5e3,
                      converge_test = 1e3,
                      auto_converge = TRUE,
                      coupling_on = TRUE, 
-                     beta_manual = beta_k$beta_vec[[2]])
+                     beta_manual = beta_values)
 ```
 
 ## References

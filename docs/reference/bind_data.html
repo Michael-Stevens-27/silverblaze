@@ -41,10 +41,7 @@
 
 <meta property="og:title" content="Bind data to project — bind_data" />
 <meta property="og:description" content="Load data into a rgeoprofile_project prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways." />
+  Data must be formatted as a dataframe with the formatting described bellow." />
 
 
 
@@ -76,7 +73,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -159,10 +156,7 @@
 
     <div class="ref-description">
     <p>Load data into a <code>rgeoprofile_project</code> prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways.</p>
+  Data must be formatted as a dataframe with the formatting described bellow.</p>
     </div>
 
     <pre class="usage"><span class='fu'>bind_data</span><span class='op'>(</span><span class='va'>project</span>, <span class='va'>df</span>, <span class='va'>data_type</span>, name <span class='op'>=</span> <span class='cn'>NULL</span>, check_delete_output <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>

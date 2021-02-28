@@ -54,7 +54,7 @@ then drawn uniformly from limits specified in \code{source_lat_min} and
 \code{source_lat_max}.}
 
 \item{sigma_model}{set as "single" to use the same dispersal distance for all
-sources, or "separate" to use an independently drawn dispersal distance for
+sources, or "independent" to use an independently drawn dispersal distance for
 each source.}
 
 \item{sigma_mean}{the prior mean of the parameter sigma (km).}
@@ -65,8 +65,9 @@ to use a fixed distance.}
 \item{expected_popsize}{the expected total number of observations (observed
 and unobserved) in the study area.}
 
-\item{data_type}{what model we wish to simulate under - a poisson or binomial
-corresponding to "counts" or "prevalence"}
+\item{data_type}{what model we wish to simulate under - a poisson, binomial
+or vanilla finitre mixture corresponding to "counts", "prevalence" or 
+"point-pattern" respectively}
 
 \item{test_rate}{The rate of the Poisson distribution with which we draw the 
 number of individuals tested at each sentinel site}
@@ -77,8 +78,7 @@ number of individuals tested at each sentinel site}
 "laplace" model}
 }
 \description{
-Simulate data from the same presence-absence model used in the
-  inference step.
+Simulate data under a specified model
 }
 \examples{
 # State the number of sources to be generated
@@ -90,6 +90,7 @@ sentinal_grid <- expand.grid(sentinal_lon, sentinal_lat)
 names(sentinal_grid) <- c("longitude", "latitude")
 # Set their sentinel radius (this constant times true sigma)
 sentinel_radius <- 0.25
+# sim count data under a Poisson model
 sim1 <- sim_data(sentinal_grid$longitude,
                 sentinal_grid$latitude,
                 sigma_model = "single",

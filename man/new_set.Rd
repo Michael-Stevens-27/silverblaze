@@ -62,7 +62,7 @@ total population size. Set to 0 to use a fixed value (fixed at
 \item{sentinel_radius}{the observation radius of sentinel sites.}
 
 \item{n_binom}{set to true or false, decide if a negative binomial model should
-be run for a set of count data.}
+be run for a set of over-dispersed count data.}
 
 \item{alpha_prior_mean}{the prior mean alpha.}
 

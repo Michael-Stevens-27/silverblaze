@@ -217,7 +217,7 @@ plot_loglike <- function(project,
 #------------------------------------------------
 #' @title Plot acceptance rate between rungs
 #'
-#' @description TODO
+#' @description For each pair of rungs, plot the acceptance rate between them. 
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.
@@ -365,9 +365,8 @@ plot_structure <- function(project,
 #------------------------------------------------
 #' @title Plot sigma 95\% credible intervals
 #'
-#' @description TODO
-#'
-#' @details TODO
+#' @description Plot credible intervals for a "single" (1) or "indpendent" (K)
+#'  sigma model.
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.
@@ -424,9 +423,8 @@ plot_sigma <- function(project,
 #------------------------------------------------
 #' @title Plot expected population size 95\% credible intervals
 #'
-#' @description TODO
-#'
-#' @details TODO
+#' @description Plot credible intervals for the entire expected population (single)
+#'  or individulas sources (independent).
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.
@@ -477,8 +475,6 @@ plot_expected_popsize <- function(project,
 #'
 #' @description Plot the over dispersion parameter alpha, in accordance with 
 #'              a negative binomial model
-#'
-#' @details TODO
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'                \code{rgeoprofile_project()}.

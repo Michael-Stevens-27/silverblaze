@@ -40,8 +40,7 @@
 
 
 <meta property="og:title" content="Simulate data — sim_data" />
-<meta property="og:description" content="Simulate data from the same presence-absence model used in the
-  inference step." />
+<meta property="og:description" content="Simulate data under a specified model" />
 
 
 
@@ -73,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -155,8 +154,7 @@
     </div>
 
     <div class="ref-description">
-    <p>Simulate data from the same presence-absence model used in the
-  inference step.</p>
+    <p>Simulate data under a specified model</p>
     </div>
 
     <pre class="usage"><span class='fu'>sim_data</span><span class='op'>(</span>
@@ -235,7 +233,7 @@ then drawn uniformly from limits specified in <code>source_lat_min</code> and
     <tr>
       <th>sigma_model</th>
       <td><p>set as "single" to use the same dispersal distance for all
-sources, or "separate" to use an independently drawn dispersal distance for
+sources, or "independent" to use an independently drawn dispersal distance for
 each source.</p></td>
     </tr>
     <tr>
@@ -254,8 +252,9 @@ and unobserved) in the study area.</p></td>
     </tr>
     <tr>
       <th>data_type</th>
-      <td><p>what model we wish to simulate under - a poisson or binomial
-corresponding to "counts" or "prevalence"</p></td>
+      <td><p>what model we wish to simulate under - a poisson, binomial
+or vanilla finitre mixture corresponding to "counts", "prevalence" or 
+"point-pattern" respectively</p></td>
     </tr>
     <tr>
       <th>test_rate</th>
@@ -284,6 +283,7 @@ number of individuals tested at each sentinel site</p></td>
 <span class='fu'><a href='https://rdrr.io/r/base/names.html'>names</a></span><span class='op'>(</span><span class='va'>sentinal_grid</span><span class='op'>)</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"longitude"</span>, <span class='st'>"latitude"</span><span class='op'>)</span>
 <span class='co'># Set their sentinel radius (this constant times true sigma)</span>
 <span class='va'>sentinel_radius</span> <span class='op'>&lt;-</span> <span class='fl'>0.25</span>
+<span class='co'># sim count data under a Poisson model</span>
 <span class='va'>sim1</span> <span class='op'>&lt;-</span> <span class='fu'>sim_data</span><span class='op'>(</span><span class='va'>sentinal_grid</span><span class='op'>$</span><span class='va'>longitude</span>,
                 <span class='va'>sentinal_grid</span><span class='op'>$</span><span class='va'>latitude</span>,
                 sigma_model <span class='op'>=</span> <span class='st'>"single"</span>,

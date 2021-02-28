@@ -12,7 +12,6 @@ run_mcmc(
   auto_converge = TRUE,
   converge_test = 100,
   coupling_on = TRUE,
-  GTI_pow = 1,
   cluster = NULL,
   pb_markdown = FALSE,
   store_raw = TRUE,
@@ -42,9 +41,6 @@ iterations if \code{auto_converge} is being used.}
 
 \item{coupling_on}{whether to implement Metropolis coupling.}
 
-\item{GTI_pow}{power applied to thermodynamic rungs. Higher values lead to
-rungs clustered around zero.}
-
 \item{cluster}{option to pass in a cluster environment (see package
 "parallel").}
 
@@ -60,14 +56,14 @@ faster without this step, hence the option.}
 
 \item{silent}{whether to suppress all console output.}
 
-\item{beta_manual}{if defined, allows manual specification of thermodynamic
-powers used. Overrides \code{rungs} and \code{GTI_pow}.}
+\item{beta_manual}{allows manual specification of thermodynamic
+powers used.}
 
 \item{rung_store}{Pick a rung whose output will be stored}
 }
 \description{
-Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as
+Run the main geographc profiling MCMC. Model parameters are taken 
+  from the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project.
 }
 \details{
