@@ -13,10 +13,8 @@ plot_expected_popsize(project, K = NULL)
 \item{K}{which value of K to produce the plot for.}
 }
 \description{
-TODO
-}
-\details{
-TODO
+Plot credible intervals for the entire expected population (single)
+ or individulas sources (independent).
 }
 \examples{
 \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}

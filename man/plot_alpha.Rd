@@ -16,9 +16,6 @@ plot_alpha(project, K = NULL)
 Plot the over dispersion parameter alpha, in accordance with 
              a negative binomial model
 }
-\details{
-TODO
-}
 \examples{
 # \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}
 # plot_alpha(project = p)

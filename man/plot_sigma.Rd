@@ -13,10 +13,8 @@ plot_sigma(project, K = NULL)
 \item{K}{which value of K to plot.}
 }
 \description{
-TODO
-}
-\details{
-TODO
+Plot credible intervals for a "single" (1) or "indpendent" (K)
+ sigma model.
 }
 \examples{
 \dontshow{p <- rgeoprofile_file("tutorial1_project.rds")}

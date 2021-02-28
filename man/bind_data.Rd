@@ -29,8 +29,5 @@ existing data}
 }
 \description{
 Load data into a \code{rgeoprofile_project} prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways.
+  Data must be formatted as a dataframe with the formatting described bellow.
 }

@@ -32,6 +32,6 @@ to one}
 \item{...}{extra arguments to be sent to the run_mcmc function}
 }
 \description{
-repeatedly run analysis to find vector of beta values that achieves a required
-             coupling acceptance rate between all rungs
+repeatedly run burn in phase of MCMC to find vector of beta values 
+             that achieve a required coupling acceptance rate between all rungs
 }

@@ -40,8 +40,8 @@
 
 
 <meta property="og:title" content="Run main MCMC — run_mcmc" />
-<meta property="og:description" content="Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as
+<meta property="og:description" content="Run the main geographc profiling MCMC. Model parameters are taken 
+  from the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project." />
 
 
@@ -74,7 +74,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">silverblaze</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -156,8 +156,8 @@
     </div>
 
     <div class="ref-description">
-    <p>Run the main RgeoProfile MCMC. Model parameters are taken from
-  the current active parameter set, and MCMC parameters are passed in as
+    <p>Run the main geographc profiling MCMC. Model parameters are taken 
+  from the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project.</p>
     </div>
 
@@ -169,7 +169,6 @@
   auto_converge <span class='op'>=</span> <span class='cn'>TRUE</span>,
   converge_test <span class='op'>=</span> <span class='fl'>100</span>,
   coupling_on <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  GTI_pow <span class='op'>=</span> <span class='fl'>1</span>,
   cluster <span class='op'>=</span> <span class='cn'>NULL</span>,
   pb_markdown <span class='op'>=</span> <span class='cn'>FALSE</span>,
   store_raw <span class='op'>=</span> <span class='cn'>TRUE</span>,
@@ -216,11 +215,6 @@ iterations if <code>auto_converge</code> is being used.</p></td>
       <td><p>whether to implement Metropolis coupling.</p></td>
     </tr>
     <tr>
-      <th>GTI_pow</th>
-      <td><p>power applied to thermodynamic rungs. Higher values lead to
-rungs clustered around zero.</p></td>
-    </tr>
-    <tr>
       <th>cluster</th>
       <td><p>option to pass in a cluster environment (see package
 "parallel").</p></td>
@@ -247,8 +241,8 @@ faster without this step, hence the option.</p></td>
     </tr>
     <tr>
       <th>beta_manual</th>
-      <td><p>if defined, allows manual specification of thermodynamic
-powers used. Overrides <code>rungs</code> and <code>GTI_pow</code>.</p></td>
+      <td><p>allows manual specification of thermodynamic
+powers used.</p></td>
     </tr>
     <tr>
       <th>rung_store</th>

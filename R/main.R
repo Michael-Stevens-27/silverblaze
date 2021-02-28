@@ -15,10 +15,7 @@ check_silverblaze_loaded <- function() {
 #' @title Bind data to project
 #'
 #' @description Load data into a \code{rgeoprofile_project} prior to analysis.
-#'   Data must be formatted as a dataframe with samples in rows and loci in
-#'   columns. If individuals are polyploid then multiple rows can be used per
-#'   sample. Ploidy is allowed to vary between samples, and can be specified in
-#'   multiple ways.
+#'   Data must be formatted as a dataframe with the formatting described bellow.
 #'
 #' @param project an \code{rgeoprofile_project}, as produced by the function
 #'   \code{rgeoprofile_project()}
@@ -204,7 +201,7 @@ raster_from_shapefile <- function (shp,
 #'   \code{expected_popsize_prior_mean}).
 #' @param sentinel_radius the observation radius of sentinel sites.
 #' @param n_binom set to true or false, decide if a negative binomial model should
-#'   be run for a set of count data.
+#'   be run for a set of over-dispersed count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
 #'
@@ -446,8 +443,8 @@ delete_set <- function(project,
 #------------------------------------------------
 #' @title Run main MCMC
 #'
-#' @description Run the main RgeoProfile MCMC. Model parameters are taken from
-#'   the current active parameter set, and MCMC parameters are passed in as
+#' @description Run the main geographc profiling MCMC. Model parameters are taken 
+#'   from the current active parameter set, and MCMC parameters are passed in as
 #'   arguments. All output is stored within the project.
 #'
 #' @details Both longitude and latitude values can be represented to a given
@@ -470,8 +467,8 @@ delete_set <- function(project,
 #' @param converge_test test for convergence every \code{convergence_test}
 #'   iterations if \code{auto_converge} is being used.
 #' @param coupling_on whether to implement Metropolis coupling.
-#' @param beta_manual if defined, allows manual specification of thermodynamic
-#'   powers used. Overrides \code{rungs} and \code{GTI_pow}.
+#' @param beta_manual allows manual specification of thermodynamic
+#'   powers used. 
 #' @param cluster option to pass in a cluster environment (see package
 #'   "parallel").
 #' @param pb_markdown whether to run progress bars in markdown mode, in which
@@ -1224,8 +1221,8 @@ align_qmatrix <- function(project) {
 #------------------------------------------------
 #' @title Optimise beta values for MCMC rungs
 #'
-#' @description repeatedly run analysis to find vector of beta values that achieves a required
-#'              coupling acceptance rate between all rungs
+#' @description repeatedly run burn in phase of MCMC to find vector of beta values 
+#'              that achieve a required coupling acceptance rate between all rungs
 #'
 #' @param proj An rgeoprofile project
 #' @param K The value or values of K to optimise beta for
