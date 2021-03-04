@@ -204,6 +204,7 @@ raster_from_shapefile <- function (shp,
 #'   be run for a set of over-dispersed count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
+#' @param weight_prior control the prior on weights for a point-pattern model
 #'
 #' @export
 
@@ -221,7 +222,8 @@ new_set <- function(project,
                     sentinel_radius = 0.2,
                     n_binom = FALSE,
                     alpha_prior_mean = 1, 
-                    alpha_prior_sd = 100) {
+                    alpha_prior_sd = 100,
+                    weight_prior = 1) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -237,7 +239,7 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   
-  if (project$data$data_type == "counts"| project$data$data_type == "prevalence") {
+  if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
@@ -247,6 +249,8 @@ new_set <- function(project,
       assert_single_pos(alpha_prior_mean, zero_allowed = FALSE)
       assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
     }
+  } else if(project$data$data_type == "point-pattern"){
+    assert_single_pos(weight_prior, zero_allowed = FALSE)
   }
   
   assert_single_string(name)
@@ -349,7 +353,6 @@ new_set <- function(project,
     print("Using manually specified values in spatial prior")
   }
 
-  
   # get average single cell area and total study area in km^2
   study_area <- sum(raster::area(spatial_prior)[])
   cell_area <- mean(raster::area(spatial_prior)[])
@@ -375,8 +378,9 @@ new_set <- function(project,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd,
                                       n_binom = n_binom,
                                       alpha_prior_mean = alpha_prior_mean,
-                                      alpha_prior_sd = alpha_prior_sd)
-  
+                                      alpha_prior_sd = alpha_prior_sd,
+                                      weight_prior = weight_prior)
+
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
   

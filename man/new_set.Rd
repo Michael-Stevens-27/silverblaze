@@ -19,7 +19,8 @@ new_set(
   sentinel_radius = 0.2,
   n_binom = FALSE,
   alpha_prior_mean = 1,
-  alpha_prior_sd = 100
+  alpha_prior_sd = 100,
+  weight_prior = 1
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ be run for a set of over-dispersed count data.}
 \item{alpha_prior_mean}{the prior mean alpha.}
 
 \item{alpha_prior_sd}{the prior standard deviation of alpha.}
+
+\item{weight_prior}{control the prior on weights for a point-pattern model}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new

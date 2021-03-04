@@ -18,9 +18,7 @@ Parameters::Parameters(const Rcpp::List &args) {
   pb_markdown = rcpp_to_bool(args["pb_markdown"]);
   silent = rcpp_to_bool(args["silent"]);
   coupling_on = rcpp_to_bool(args["coupling_on"]);
-
   chosen_rung = rcpp_to_int(args["rung_store"]);
-  
   
   // model parameters
   K = rcpp_to_int(args["K"]);
@@ -65,4 +63,6 @@ Parameters::Parameters(const Rcpp::List &args) {
   alpha_prior_sdlog = sqrt(alpha_prior_varlog);
   alpha_prior_meanlog = log(alpha_prior_mean) - alpha_prior_varlog / 2.0;
   
+  // get parameter for dirichlet prior on weights
+  weight_prior = rcpp_to_double(args["weight_prior"]);
 }
