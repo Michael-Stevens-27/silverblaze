@@ -11,7 +11,7 @@ run_mcmc(
   samples = 1000,
   auto_converge = TRUE,
   converge_test = 100,
-  coupling_on = TRUE,
+  coupling_on = FALSE,
   cluster = NULL,
   pb_markdown = FALSE,
   store_raw = TRUE,

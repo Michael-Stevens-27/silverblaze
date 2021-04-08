@@ -500,7 +500,7 @@ run_mcmc <- function(project,
                      samples = 1e3,
                      auto_converge = TRUE,
                      converge_test = 1e2,
-                     coupling_on = TRUE,
+                     coupling_on = FALSE,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
@@ -515,6 +515,7 @@ run_mcmc <- function(project,
   if(is.null(rung_store)){
     if(is.null(beta_manual)){
       rung_store <- rungs <- 1
+      beta_manual <- 1
     } else {
       rung_store <- rungs <- length(beta_manual)
     }
@@ -1166,6 +1167,17 @@ align_qmatrix <- function(project) {
         colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_burnin <- sigma_burnin
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_sampling <- sigma_sampling
+      }
+      
+      # reorder expected popsize
+      expected_popsize_burnin <- x[[i]]$raw$expected_popsize_burnin
+      expected_popsize_sampling <- x[[i]]$raw$expected_popsize_sampling
+      if (ncol(expected_popsize_sampling) > 1) {
+        expected_popsize_burnin <- expected_popsize_burnin[, best_perm_order, drop = FALSE]
+        expected_popsize_sampling <- expected_popsize_sampling[, best_perm_order, drop = FALSE]
+        colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
+        project$output$single_set[[s]]$single_K[[i]]$raw$expected_popsize_burnin <- expected_popsize_burnin
+        project$output$single_set[[s]]$single_K[[i]]$raw$expected_popsize_sampling <- expected_popsize_sampling
       }
     }
     
