@@ -114,7 +114,7 @@
       <h1 data-toc-skip>Complex Spatial Priors</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2021-02-28</h4>
+            <h4 class="date">2021-05-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/complex-spatial-priors.Rmd"><code>vignettes/complex-spatial-priors.Rmd</code></a></small>
       <div class="hidden name"><code>complex-spatial-priors.Rmd</code></div>
@@ -184,7 +184,7 @@
 <div id="bi-variate-normal-prior" class="section level2">
 <h2 class="hasAnchor">
 <a href="#bi-variate-normal-prior" class="anchor"></a>Bi-variate normal prior</h2>
-<p>A more informative prior could be a bivariate normal distribution centred on the spatial mean of the positive data. Similarly to <span class="citation">Verity et al. (2014)</span>, the standard deviation of this bivariate normal prior is set to the maximum distance bewteen the mean and the positive data.</p>
+<p>A more informative prior could be a bivariate normal distribution centred on the spatial mean of the positive data. Similarly to <span class="citation">Verity et al. (2014)</span>, the standard deviation of this bivariate normal prior is set to the maximum distance between the mean and the positive data.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># add parameter set to project</span>
 <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_set.html">new_set</a></span><span class="op">(</span>project <span class="op">=</span> <span class="va">p</span>,
@@ -226,7 +226,7 @@
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span><span class="op">(</span><span class="st">"London_north"</span><span class="op">)</span></code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpaqqcVy/temp_libpath26a66eb0f07/silverblaze/extdata/London_north", layer: "boroughs"
+## Source: "/tmp/RtmpSQHaGH/temp_libpath7377217b642d/silverblaze/extdata/London_north", layer: "boroughs"
 ## with 8 features
 ## It has 7 fields</code></pre>
 <div class="sourceCode"><pre class="downlit sourceCode r">
@@ -242,7 +242,7 @@
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">dataStore</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rgeoprofile_shapefile.html">rgeoprofile_shapefile</a></span><span class="op">(</span><span class="st">"London_boundary/ESRI"</span><span class="op">)</span></code></pre></div>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: "/tmp/RtmpaqqcVy/temp_libpath26a66eb0f07/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
+## Source: "/tmp/RtmpSQHaGH/temp_libpath7377217b642d/silverblaze/extdata/London_boundary/ESRI", layer: "MSOA_2011_London_gen_MHW"
 ## with 983 features
 ## It has 12 fields</code></pre>
 <div class="sourceCode"><pre class="downlit sourceCode r">

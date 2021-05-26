@@ -31,7 +31,7 @@ new_set(
 values are taken from this raster if it is defined.}
 
 \item{source_model}{choose prior type for source locations. Pick from "uniform"
-(default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+(default), "normal" (bivariate normal), "kernel" (KDE based on positive data) or
 "manual" (the current value of the raster)}
 
 \item{name}{an optional name for the parameter set.}

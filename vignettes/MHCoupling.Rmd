@@ -118,7 +118,7 @@ p1 <- run_mcmc(project = p,
                auto_converge = TRUE)
 ```
 
- To ensure we are confident that MCMC algorithm is consitently finding the correct answer, let's run the above code five separate times and compare the output of each chain.  
+ To ensure we are confident that MCMC algorithm is consistently finding the correct answer, let's run the above code five separate times and compare the output of each chain.  
 
 ```{r, echo = FALSE}
 # projects <- list(logLikes = logLikes,

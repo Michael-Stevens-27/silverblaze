@@ -32,7 +32,7 @@ set.seed(1)
 
 # Simple two source example
 
-## Setting up and running the indpendent expected population size model
+## Setting up and running the independent expected population size model
 
 Set up an array of sentinel sites and a uniform prior. We'll also specify the sentinel site radius. 
 

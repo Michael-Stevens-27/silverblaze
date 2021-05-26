@@ -180,7 +180,7 @@ raster_from_shapefile <- function (shp,
 #' @param spatial_prior a raster file defining the spatial prior. Precision
 #'   values are taken from this raster if it is defined.
 #' @param source_model choose prior type for source locations. Pick from "uniform"
-#'   (default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+#'   (default), "normal" (bivariate normal), "kernel" (KDE based on positive data) or
 #'   "manual" (the current value of the raster) 
 #' @param dispersal_model distribute points via a "normal", "cauchy" or 
 #'   "laplace" model
@@ -447,7 +447,7 @@ delete_set <- function(project,
 #------------------------------------------------
 #' @title Run main MCMC
 #'
-#' @description Run the main geographc profiling MCMC. Model parameters are taken 
+#' @description Run the main geographic profiling MCMC. Model parameters are taken 
 #'   from the current active parameter set, and MCMC parameters are passed in as
 #'   arguments. All output is stored within the project.
 #'

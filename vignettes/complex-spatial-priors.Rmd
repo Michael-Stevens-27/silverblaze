@@ -104,7 +104,7 @@ plot2
 
 ## Bi-variate normal prior
 
-A more informative prior could be a bivariate normal distribution centred on the spatial mean of the positive data. Similarly to @Verity2014, the standard deviation of this bivariate normal prior is set to the maximum distance bewteen the mean and the positive data.  
+A more informative prior could be a bivariate normal distribution centred on the spatial mean of the positive data. Similarly to @Verity2014, the standard deviation of this bivariate normal prior is set to the maximum distance between the mean and the positive data.  
 
 ```{r}
 # add parameter set to project

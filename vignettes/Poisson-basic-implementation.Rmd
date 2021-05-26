@@ -268,14 +268,14 @@ hs <- get_hitscores(p, true_source$longitude, true_source$latitude)
 hs
 ```
 
-Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.
+Another common metric to use for this analysis is a gini coefficient from a Lorenz plot.
 
 ```{r}
 plot3 <- plot_lorenz(hs)
 plot3
 ```
 
-This `plot_lorenz()` function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.
+This `plot_lorenz()` function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficient is then calculated as the area under these piecewise curves.
 
 ```{r}
 gini(hs)

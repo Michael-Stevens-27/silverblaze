@@ -12,4 +12,4 @@ Silverblaze offers a finite mixture model for Geographic Profiling. Through the 
 * make inferences via count,  prevalence and point pattern data   
 * specify a spatial prior in source locations via shape files
 
-Silverblaze is a toolbox for geographic profiling that utilises different MCMC algorithms (Metropolis-Hastings coupling and Gibbs sampling) to infer the above parameters. The package [RgeoProfile](https://github.com/bobverity/Rgeoprofile) uses a Dirchlet Process Mixture model (DPM) to solve the issue of multiple sources.           
+Silverblaze is a toolbox for geographic profiling that utilises different MCMC algorithms (Metropolis-Hastings coupling and Gibbs sampling) to infer the above parameters. The package [RgeoProfile](https://github.com/bobverity/Rgeoprofile) uses a Dirichlet Process Mixture model (DPM) to solve the issue of multiple sources.           

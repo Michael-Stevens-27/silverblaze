@@ -13,7 +13,7 @@ plot_sigma(project, K = NULL)
 \item{K}{which value of K to plot.}
 }
 \description{
-Plot credible intervals for a "single" (1) or "indpendent" (K)
+Plot credible intervals for a "single" (1) or "independent" (K)
  sigma model.
 }
 \examples{

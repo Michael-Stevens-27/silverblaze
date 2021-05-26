@@ -66,7 +66,7 @@ to use a fixed distance.}
 and unobserved) in the study area.}
 
 \item{data_type}{what model we wish to simulate under - a poisson, binomial
-or vanilla finitre mixture corresponding to "counts", "prevalence" or 
+or vanilla finite mixture corresponding to "counts", "prevalence" or 
 "point-pattern" respectively}
 
 \item{test_rate}{The rate of the Poisson distribution with which we draw the 

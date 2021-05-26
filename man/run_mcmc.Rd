@@ -62,7 +62,7 @@ powers used.}
 \item{rung_store}{Pick a rung whose output will be stored}
 }
 \description{
-Run the main geographc profiling MCMC. Model parameters are taken 
+Run the main geographic profiling MCMC. Model parameters are taken 
   from the current active parameter set, and MCMC parameters are passed in as
   arguments. All output is stored within the project.
 }
