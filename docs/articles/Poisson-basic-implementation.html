@@ -116,7 +116,7 @@
       <h1 data-toc-skip>A Poisson model for count data</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2021-02-28</h4>
+            <h4 class="date">2021-05-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/Poisson-basic-implementation.Rmd"><code>vignettes/Poisson-basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>Poisson-basic-implementation.Rmd</code></div>
@@ -368,12 +368,12 @@
 ##   hs_geoprofile_K3 hs_geoprofile_K4 hs_geoprofile_K5
 ## 1             1.08             2.91             5.33
 ## 2             2.34             0.36             0.12</code></pre>
-<p>Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.</p>
+<p>Another common metric to use for this analysis is a gini coefficient from a Lorenz plot.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">plot3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_lorenz.html">plot_lorenz</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span>
 <span class="va">plot3</span></code></pre></div>
 <p><img src="Poisson-basic-implementation_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
-<p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.</p>
+<p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficient is then calculated as the area under these piecewise curves.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/gini.html">gini</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></code></pre></div>
 <pre><code>##    hs_ringsearch hs_geoprofile_K1 hs_geoprofile_K2 hs_geoprofile_K3 

@@ -27,7 +27,7 @@ auto-chosen lower limit. 3 = double-log scale.}
 
 \item{phase}{which phase to plot. Must be either "burnin" or "sampling".}
 
-\item{legend}{switches the legend for thermondynamic power on or off}
+\item{legend}{switches the legend for thermodynamic power on or off}
 }
 \description{
 Plot loglikelihood 95\% credible intervals of current active set

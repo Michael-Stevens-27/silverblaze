@@ -9,11 +9,12 @@ Authors@R: as.person(c(
     "Michael Stevens <m.stevens@qmul.ac.uk> [aut]"
   ))
 Description: Bayesian geographic profiling model that allows estimation
-    of source locations given presence and absence data.
+    of source locations given count, prevalence and point-pattern data.
 BugReports: https://github.com/Michael-Stevens-27/silverblaze/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Language: EN-gb
 RoxygenNote: 7.1.1
 Depedns: R (>= 3.5.0)
 LinkingTo:

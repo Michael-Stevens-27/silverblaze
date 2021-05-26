@@ -19,7 +19,7 @@ p <- rgeoprofile_file("tutorial1_project.rds")
 
 If you have followed any of the basic tutorials for Silverblaze you would have already seen a few ways to validate the model that has been used. In this tutorial we will walk through an extensive list of ways that ensure the model is behaving as it should be. We are responsible for simulating the data in the basic tutorials, so a good way to know if the model is successful is if it returns the correct parameter values that were used to generate the data. Of course, this will not be the case in a real-world data set. So here we will be focussing on methods of model validity that are independent of parameter estimation. In addition to this, we shall also briefly discuss model choice. Silverblaze offers a finite mixture model for geographic profiling and we require a method for choosing the number of mixture components that best describe the data. 
 
-This tutorial will cover model validty:
+This tutorial will cover model validity:
 
 * A healthy MCMC trace
 * Geweke's metric for single chain MCMC convergence
@@ -33,7 +33,7 @@ and model choice:
 
 ## Model validity
 
-To check the validity of the model we shall be considering the datagenerated in [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html). Let's start by looking at the trace of the log-likelihood.  
+To check the validity of the model we shall be considering the data generated in [tutorial 1](https://michael-stevens-27.github.io/silverblaze/articles/Poisson-basic-implementation.html). Let's start by looking at the trace of the log-likelihood.  
 
 ```{r}
 plot_trace(p, K = 2)

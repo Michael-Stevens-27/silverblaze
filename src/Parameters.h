@@ -49,6 +49,7 @@ public:
   int count_type;
   double alpha_prior_meanlog;
   double alpha_prior_sdlog;
+  double weight_prior;
   
   int chosen_rung;
   

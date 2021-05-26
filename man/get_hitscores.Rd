@@ -4,7 +4,13 @@
 \alias{get_hitscores}
 \title{Get hitscores}
 \usage{
-get_hitscores(project, source_lon, source_lat, ring_search = TRUE)
+get_hitscores(
+  project,
+  source_lon,
+  source_lat,
+  profile_type = "regular",
+  ring_search = TRUE
+)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function
@@ -13,6 +19,8 @@ get_hitscores(project, source_lon, source_lat, ring_search = TRUE)
 \item{source_lon}{longitudes of known sources}
 
 \item{source_lat}{latitudes of known sources}
+
+\item{profile_type}{get hitscores for regular or realised geoprofiles}
 
 \item{ring_search}{Option to compute ring search hitscores}
 }

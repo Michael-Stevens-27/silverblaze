@@ -118,7 +118,7 @@ theme_empty <- function() {
 #' @param y_axis_type how to format the y-axis. 1 = raw values, 2 = truncated at
 #'   auto-chosen lower limit. 3 = double-log scale.
 #' @param phase which phase to plot. Must be either "burnin" or "sampling".
-#' @param legend switches the legend for thermondynamic power on or off
+#' @param legend switches the legend for thermodynamic power on or off
 #' 
 #' @import ggplot2
 #' @importFrom grDevices grey
@@ -365,7 +365,7 @@ plot_structure <- function(project,
 #------------------------------------------------
 #' @title Plot sigma 95\% credible intervals
 #'
-#' @description Plot credible intervals for a "single" (1) or "indpendent" (K)
+#' @description Plot credible intervals for a "single" (1) or "independent" (K)
 #'  sigma model.
 #'
 #' @param project an RgeoProfile project, as produced by the function
@@ -424,7 +424,7 @@ plot_sigma <- function(project,
 #' @title Plot expected population size 95\% credible intervals
 #'
 #' @description Plot credible intervals for the entire expected population (single)
-#'  or individulas sources (independent).
+#'  or individuals sources (independent).
 #'
 #' @param project an RgeoProfile project, as produced by the function
 #'   \code{rgeoprofile_project()}.

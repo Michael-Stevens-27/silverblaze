@@ -174,7 +174,8 @@
   sentinel_radius <span class='op'>=</span> <span class='fl'>0.2</span>,
   n_binom <span class='op'>=</span> <span class='cn'>FALSE</span>,
   alpha_prior_mean <span class='op'>=</span> <span class='fl'>1</span>,
-  alpha_prior_sd <span class='op'>=</span> <span class='fl'>100</span>
+  alpha_prior_sd <span class='op'>=</span> <span class='fl'>100</span>,
+  weight_prior <span class='op'>=</span> <span class='fl'>1</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -193,7 +194,7 @@ values are taken from this raster if it is defined.</p></td>
     <tr>
       <th>source_model</th>
       <td><p>choose prior type for source locations. Pick from "uniform"
-(default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+(default), "normal" (bivariate normal), "kernel" (KDE based on positive data) or
 "manual" (the current value of the raster)</p></td>
     </tr>
     <tr>
@@ -254,6 +255,10 @@ be run for a set of over-dispersed count data.</p></td>
     <tr>
       <th>alpha_prior_sd</th>
       <td><p>the prior standard deviation of alpha.</p></td>
+    </tr>
+    <tr>
+      <th>weight_prior</th>
+      <td><p>control the prior on weights for a point-pattern model</p></td>
     </tr>
     </table>
 

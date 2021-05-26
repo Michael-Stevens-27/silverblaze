@@ -180,7 +180,7 @@ raster_from_shapefile <- function (shp,
 #' @param spatial_prior a raster file defining the spatial prior. Precision
 #'   values are taken from this raster if it is defined.
 #' @param source_model choose prior type for source locations. Pick from "uniform"
-#'   (default), "normal" (bivariate normal), "kernal" (KDE based on positive data) or
+#'   (default), "normal" (bivariate normal), "kernel" (KDE based on positive data) or
 #'   "manual" (the current value of the raster) 
 #' @param dispersal_model distribute points via a "normal", "cauchy" or 
 #'   "laplace" model
@@ -204,6 +204,7 @@ raster_from_shapefile <- function (shp,
 #'   be run for a set of over-dispersed count data.
 #' @param alpha_prior_mean the prior mean alpha.
 #' @param alpha_prior_sd the prior standard deviation of alpha.
+#' @param weight_prior control the prior on weights for a point-pattern model
 #'
 #' @export
 
@@ -221,7 +222,8 @@ new_set <- function(project,
                     sentinel_radius = 0.2,
                     n_binom = FALSE,
                     alpha_prior_mean = 1, 
-                    alpha_prior_sd = 100) {
+                    alpha_prior_sd = 100,
+                    weight_prior = 1) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -237,7 +239,7 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   
-  if (project$data$data_type == "counts"| project$data$data_type == "prevalence") {
+  if (project$data$data_type == "counts" | project$data$data_type == "prevalence") {
     assert_in(expected_popsize_model, c("single", "independent"))
     assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
@@ -247,6 +249,8 @@ new_set <- function(project,
       assert_single_pos(alpha_prior_mean, zero_allowed = FALSE)
       assert_single_pos(alpha_prior_sd, zero_allowed = TRUE)
     }
+  } else if(project$data$data_type == "point-pattern"){
+    assert_single_pos(weight_prior, zero_allowed = FALSE)
   }
   
   assert_single_string(name)
@@ -349,7 +353,6 @@ new_set <- function(project,
     print("Using manually specified values in spatial prior")
   }
 
-  
   # get average single cell area and total study area in km^2
   study_area <- sum(raster::area(spatial_prior)[])
   cell_area <- mean(raster::area(spatial_prior)[])
@@ -375,8 +378,9 @@ new_set <- function(project,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd,
                                       n_binom = n_binom,
                                       alpha_prior_mean = alpha_prior_mean,
-                                      alpha_prior_sd = alpha_prior_sd)
-  
+                                      alpha_prior_sd = alpha_prior_sd,
+                                      weight_prior = weight_prior)
+
   # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
   
@@ -443,7 +447,7 @@ delete_set <- function(project,
 #------------------------------------------------
 #' @title Run main MCMC
 #'
-#' @description Run the main geographc profiling MCMC. Model parameters are taken 
+#' @description Run the main geographic profiling MCMC. Model parameters are taken 
 #'   from the current active parameter set, and MCMC parameters are passed in as
 #'   arguments. All output is stored within the project.
 #'
@@ -496,7 +500,7 @@ run_mcmc <- function(project,
                      samples = 1e3,
                      auto_converge = TRUE,
                      converge_test = 1e2,
-                     coupling_on = TRUE,
+                     coupling_on = FALSE,
                      cluster = NULL,
                      pb_markdown = FALSE,
                      store_raw = TRUE,
@@ -511,6 +515,7 @@ run_mcmc <- function(project,
   if(is.null(rung_store)){
     if(is.null(beta_manual)){
       rung_store <- rungs <- 1
+      beta_manual <- 1
     } else {
       rung_store <- rungs <- length(beta_manual)
     }
@@ -1162,6 +1167,17 @@ align_qmatrix <- function(project) {
         colnames(sigma_burnin) <- colnames(sigma_sampling) <- group_names
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_burnin <- sigma_burnin
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma_sampling <- sigma_sampling
+      }
+      
+      # reorder expected popsize
+      expected_popsize_burnin <- x[[i]]$raw$expected_popsize_burnin
+      expected_popsize_sampling <- x[[i]]$raw$expected_popsize_sampling
+      if (ncol(expected_popsize_sampling) > 1) {
+        expected_popsize_burnin <- expected_popsize_burnin[, best_perm_order, drop = FALSE]
+        expected_popsize_sampling <- expected_popsize_sampling[, best_perm_order, drop = FALSE]
+        colnames(expected_popsize_burnin) <- colnames(expected_popsize_sampling) <- group_names
+        project$output$single_set[[s]]$single_K[[i]]$raw$expected_popsize_burnin <- expected_popsize_burnin
+        project$output$single_set[[s]]$single_K[[i]]$raw$expected_popsize_sampling <- expected_popsize_sampling
       }
     }
     

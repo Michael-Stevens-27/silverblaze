@@ -638,12 +638,17 @@ get_output <- function(project, name, K = NULL, type = "summary") {
 #'   \code{rgeoprofile_project()}
 #' @param source_lon longitudes of known sources
 #' @param source_lat latitudes of known sources
+#' @param profile_type get hitscores for regular or realised geoprofiles
 #' @param ring_search Option to compute ring search hitscores
 #'
 #' @importFrom raster extract
 #' @export
 
-get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
+get_hitscores <- function(project, 
+                          source_lon, 
+                          source_lat,
+                          profile_type = "regular",
+                          ring_search = TRUE) {
 
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -652,12 +657,20 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   assert_numeric(source_lat)
   assert_vector(source_lat)
   assert_same_length(source_lon, source_lat)
+  assert_in(profile_type, c("regular", "realised"))
   assert_single_logical(ring_search)
   
   # get active set and check non-zero
   s <- project$active_set
   if (s == 0) {
     stop("  no active parameter set")
+  }
+  
+  # set geoprofile type
+  if(profile_type == "regular") {
+    profile_type <- "geoprofile"
+  } else if(profile_type == "realised") {
+    profile_type <- "geoprofile_realised"
   }
   
   # get values of K with output
@@ -675,7 +688,7 @@ get_hitscores <- function(project, source_lon, source_lat, ring_search = TRUE) {
   
   # add geoprofile hitscores for all K
   for (k in K) {
-    geoprofile <- get_output(project, "geoprofile", k)
+    geoprofile <- get_output(project, profile_type, k)
     df$x <- round(raster::extract(geoprofile, cbind(source_lon, source_lat)), digits = 2)
     names(df)[ncol(df)] <- paste0("hs_geoprofile_K", k)
   }

@@ -114,7 +114,7 @@
       <h1 data-toc-skip>Point pattern data</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2021-02-28</h4>
+            <h4 class="date">2021-05-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/PointPattern-basic-implementation.Rmd"><code>vignettes/PointPattern-basic-implementation.Rmd</code></a></small>
       <div class="hidden name"><code>PointPattern-basic-implementation.Rmd</code></div>
@@ -351,7 +351,7 @@
 <div id="other-parameter-estimation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#other-parameter-estimation" class="anchor"></a>Other Parameter Estimation</h3>
-<p>We can also plot the posterior 95% credible intervals of each sigma. The <code>"single"</code> model will produce a sinle interval. Note the true value of 0.5 km.</p>
+<p>We can also plot the posterior 95% credible intervals of each sigma. The <code>"single"</code> model will produce a single interval. Note the true value of 0.5 km.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_sigma.html">plot_sigma</a></span><span class="op">(</span><span class="va">p</span>, K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
 <p><img src="PointPattern-basic-implementation_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
@@ -365,11 +365,11 @@
 ##   hs_geoprofile_K4 hs_geoprofile_K5
 ## 1             0.32             0.57
 ## 2             0.02             2.44</code></pre>
-<p>Another common metric to use for this analysis is a gini coefficent from a Lorenz plot.</p>
+<p>Another common metric to use for this analysis is a gini coefficient from a Lorenz plot.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/plot_lorenz.html">plot_lorenz</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></code></pre></div>
 <p><img src="PointPattern-basic-implementation_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
-<p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficent is then calculated as the area under these piecewise curves.</p>
+<p>This <code><a href="../reference/plot_lorenz.html">plot_lorenz()</a></code> function returns a graph that describes the number of sources found as a function of area searched. The Gini co-efficient is then calculated as the area under these piecewise curves.</p>
 <div class="sourceCode"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/gini.html">gini</a></span><span class="op">(</span><span class="va">hs</span><span class="op">)</span></code></pre></div>
 <pre><code>## hs_geoprofile_K1 hs_geoprofile_K2 hs_geoprofile_K3 hs_geoprofile_K4 

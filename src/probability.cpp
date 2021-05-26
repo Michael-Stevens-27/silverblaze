@@ -202,12 +202,15 @@ void rdirichlet2(std::vector<double> &x, std::vector<double> &alpha, double scal
   double xSum = 0;
 
   for (int i = 0; i < n; i++) {
+    // print(alpha[i]);
     x[i] = rgamma1(scale_factor*alpha[i], 1.0);
     xSum += x[i];
   }
   double xSumInv = 1.0/xSum;
+  // print(scale_factor);
   for (int i = 0; i < n; i++) {
     x[i] *= xSumInv;
+    // print(x[i]);
     if (x[i] <= UNDERFLO) {
       x[i] = UNDERFLO;
     }

@@ -114,7 +114,7 @@
       <h1 data-toc-skip>Metropolis-Hastings Coupling</h1>
                         <h4 class="author">Michael Stevens</h4>
             
-            <h4 class="date">2021-02-28</h4>
+            <h4 class="date">2021-05-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/Michael-Stevens-27/silverblaze/blob/master/vignettes/MHCoupling.Rmd"><code>vignettes/MHCoupling.Rmd</code></a></small>
       <div class="hidden name"><code>MHCoupling.Rmd</code></div>
@@ -218,7 +218,7 @@
                samples <span class="op">=</span> <span class="fl">5e3</span>,
                converge_test <span class="op">=</span> <span class="fl">1e3</span>,
                auto_converge <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<p>To ensure we are confident that MCMC algorithm is consitently finding the correct answer, let's run the above code five separate times and compare the output of each chain.</p>
+<p>To ensure we are confident that MCMC algorithm is consistently finding the correct answer, let's run the above code five separate times and compare the output of each chain.</p>
 <p>Now the MCMC has finished running let's plot a few of the outputs. Here we plot the log-likelihood and the DIC values for each models.</p>
 <p><img src="MHCoupling_files/figure-html/unnamed-chunk-8-1.png" width="768"><img src="MHCoupling_files/figure-html/unnamed-chunk-8-2.png" width="768"></p>
 <p>In each case we can see the output of the MCMC chains when the mixture is composed of one to five components. When the model is only searching for one mixture component (<code>K = 1</code>) the five MCMC chains agree with one another. However, when we switch to a <code>K = 2</code> model the chains start to disagree with one another.</p>

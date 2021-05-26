@@ -33,7 +33,7 @@ Particle::Particle(Data &data, Parameters &params, Lookup &lookup, Spatial_prior
   // weights for each soure
   source_weights = vector<double>(p->K, 1/double(p->K));
   source_weight_prop = vector<double>(p->K, 1/double(p->K));
-  source_weight_prior = vector<double>(p->K, 1);
+  source_weight_prior = vector<double>(p->K, p->weight_prior);
   
   // alpha param for nbinom variance
   alpha = 1;
@@ -147,6 +147,7 @@ void Particle::reset(double beta) {
       }
       for (int k = 0; k < p->K; ++k) { // independent weights
         source_weights[k] = 1/double(p->K);
+        source_weight_prior[k] = p->weight_prior;
       }
     }
   }
@@ -1152,13 +1153,13 @@ void Particle::update_expected_popsize_binom(bool robbins_monro_on, int iteratio
 void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration) {
   
   // loop through sources
-    // propse new weights in one go via current weights 
+    // propose new weights in one go via current weights 
     rdirichlet2(source_weight_prop, source_weights, 1/double(ep_propSD[0]));
 
     // initialise running values
     double loglike_prop = 0;
     
-    // loop through sentinel sites
+    // loop through point-pattern locations
     for (int i = 0; i < d->n; ++i) {
       
       for (int l = 0; l < p->K; ++l) {
@@ -1214,7 +1215,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
       
       // Robbins-Monro positive update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[0] = exp(log(ep_propSD[0]) + 5*(1 - 0.44)/sqrt(iteration));
+        ep_propSD[0] = exp(log(ep_propSD[0]) + 0.5*(1 - 0.44)/sqrt(iteration));
         ep_accept_burnin[0]++;
       } else {
         ep_accept_sampling[0]++;
@@ -1224,7 +1225,7 @@ void Particle::update_weights_point_pattern(bool robbins_monro_on, int iteration
 
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
-        ep_propSD[0] = exp(log(ep_propSD[0]) - 5*0.44/sqrt(iteration));
+        ep_propSD[0] = exp(log(ep_propSD[0]) - 0.5*0.44/sqrt(iteration));
 
       }
       
@@ -1687,99 +1688,3 @@ void Particle::propose_source(std::vector<double> &source_prop, double center_lo
   }
   
 }
-
-// // //------------------------------------------------
-// // // update expected popsize under a Poisson model for each source TODO COMMENTS
-// void Particle::update_expected_popsize_pois_independent(bool robbins_monro_on) {
-// 
-//   int domain_max = 1e3;
-//   int domain_size = 100;
-//   pop_size_domain = vector<double>(domain_max, 0);
-//   vector<double> current_eps = expected_popsize;
-// 
-//   // generate domain 
-//   for (int domain = 0; domain < domain_size; ++domain) {
-//     pop_size_domain[domain] = domain*(domain_max/domain_size);
-//   }
-// 
-//   // // loop through sources
-//   for (int k = 0; k < p->K; ++k) {
-// 
-//    cum_sum_density = vector<double>(domain_size, 0);
-//    cum_sum_normalised = vector<double>(domain_size, 0);
-//    double density_sum = 0;
-// 
-//   // calculate the density of a single expected pop size
-//    for (int i = 1; i < domain_size; ++i) {
-//        // initiate values that make up loglikelihood
-//        double exp_component = 0;
-//        double product_component = 0;
-// 
-//        // loop over sentinel sites to sum over their individual loglikelihoods
-//        for (int j = 0; j < d->n; ++j) {
-// 
-//          // TODO, deal with underflow here
-//          exp_component += exp(log_hazard_height[j][k] - log(current_eps[k]));
-// 
-//          // prep to sum over hazards with new expected pop size 
-//          double sentinel_component = log(pop_size_domain[i]) + log_hazard_height[j][k] - log(current_eps[k]);;
-// 
-//          for (int b = 0; b < p->K; ++b) {
-//            if(b == k){
-//              continue;
-//            } 
-//            if (sentinel_component < log_hazard_height[j][b]) {
-//              sentinel_component = log_hazard_height[j][b] + log(1 + exp(sentinel_component - log_hazard_height[j][b]));
-//            } else {
-//              sentinel_component = sentinel_component + log(1 + exp(log_hazard_height[j][b] - sentinel_component));
-//            }
-//          }
-// 
-//          product_component += sentinel_component*d->counts[j];
-// 
-//       } // finish looping over sentinel sites and combine loglikelihood components
-//       exp_component = pop_size_domain[i]*exp(log_sentinel_area)*exp_component;
-// 
-//       double single_lambda_loglikelihood = beta*(product_component - exp_component);
-//       double single_lambda_logprior = log(dgamma1(pop_size_domain[i],  p->ep_prior_shape,  p->ep_prior_rate)); 
-//       double single_lambda_logposterior = single_lambda_loglikelihood + single_lambda_logprior;
-//       cum_sum_density[i] = cum_sum_density[i - 1] + exp(single_lambda_logposterior);
-//       density_sum += exp(single_lambda_logposterior);
-//       if(robbins_monro_on){
-//           print(product_component);
-//           print(i);
-//         }
-//       }
-// 
-//       // normalise
-//       for(int i = 0; i < domain_size; ++i) {
-//            cum_sum_normalised[i] = cum_sum_density[i]/density_sum;
-//         }
-// 
-//         // draw new expected population size
-//         double random_val = runif_0_1();
-// 
-//         // the index of the value nearest to r 
-//         int lo = 0;
-// 
-//         for(int i = 0; i < domain_size; ++i) {
-//             if(cum_sum_normalised[i] < random_val){
-//                 lo++; 
-//               } else {
-//                   break;
-//                 }
-//               }
-// 
-//               // how far away from the nearest value is r? 
-//               double gap = R::imax2(random_val - cum_sum_normalised[lo], 0); 
-// 
-//               // linear interpolation: y = c + mx from the lower value
-//               double lif = gap/(cum_sum_normalised[lo + 1] - cum_sum_normalised[lo]);
-//               expected_popsize[k] = pop_size_domain[lo] + lif * (pop_size_domain[lo + 1] - pop_size_domain[lo]);
-// 
-//               // update log hazard height given new expected pop size
-//               for (int j = 0; j < d->n; ++j) {
-//                     log_hazard_height[j][k] = log(expected_popsize[k]) + log_hazard_height[j][k] - log(current_eps[k]);
-//                 }
-//               }
-//             }

@@ -28,7 +28,7 @@
 #' @param expected_popsize the expected total number of observations (observed
 #'   and unobserved) in the study area.
 #' @param data_type what model we wish to simulate under - a poisson, binomial
-#'   or vanilla finitre mixture corresponding to "counts", "prevalence" or 
+#'   or vanilla finite mixture corresponding to "counts", "prevalence" or 
 #'   "point-pattern" respectively
 #' @param test_rate The rate of the Poisson distribution with which we draw the 
 #'   number of individuals tested at each sentinel site
